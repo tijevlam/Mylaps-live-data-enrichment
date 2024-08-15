@@ -169,7 +169,7 @@ const tcpServer = net.createServer((socket) => {
   console.log('TCP client connected');
 
   // Send a Ping message upon connection (for Version 2)
-  //socket.write('Tije@Ping@$');
+  socket.write('Tije@Ping@$');
 
   socket.on('data', (data) => {
     console.log(data);
@@ -185,6 +185,14 @@ const tcpServer = net.createServer((socket) => {
     storeMessage(parsedMessage);
     io.emit('new message', parsedMessage);
   });
+  
+  socket.on('end', () => {
+        console.log('Client disconnected');
+    });
+
+    socket.on('error', (err) => {
+        console.error('Socket error:', err);
+    });
 
   // ... (rest of your TCP server code)
 });
