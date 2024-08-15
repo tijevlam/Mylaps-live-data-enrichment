@@ -21,7 +21,101 @@ db.run(`
 
 const TCP_PORT = 3097; // Use the PORT environment variable for App Engine
 
-// ... (rest of your parsing functions - parseMessage, parseStoreMessage, etc.)
+function parseMessage(rawMessage) {
+    const parts = rawMessage.split('@');
+    if (parts.length < 3) {
+        return { error: 'Invalid message format' };
+    }
+
+    const sourceName = parts[0];
+    const function_ = parts[1];
+    const data = parts.slice(2, -1).join('@'); // Join in case data contains '@'
+    const messageNumber = parts[parts.length - 1];
+
+    let parsedData;
+    switch (function_) {
+        case 'Store':
+            parsedData = parseStoreMessage(data);
+            break;
+        case 'Passing':
+            parsedData = parsePassingMessage(data);
+            break;
+        case 'Marker':
+            parsedData = parseMarkerMessage(data);
+            break;
+        case 'GetInfo':
+        case 'AckGetInfo':
+            parsedData = parseGetInfoMessage(data);
+            break;
+        case 'Pong':
+        case 'AckPong':
+            parsedData = parsePongMessage(data);
+            break;
+        default:
+            parsedData = { rawData: data };
+    }
+
+    return {
+        sourceName,
+        function: function_,
+        data: parsedData,
+        messageNumber
+    };
+}
+
+function parseStoreMessage(data) {
+    const records = data.split('@').filter(r => r.trim() !== '');
+    return records.map(record => {
+        const [transponder, time, count, status] = record.split(' ');
+        return { transponder, time, count: parseInt(count), status };
+    });
+}
+
+function parsePassingMessage(data) {
+    const records = data.split('@').filter(r => r.trim() !== '');
+    return records.map(record => {
+        const pairs = record.split('|');
+        const passingData = {};
+        pairs.forEach(pair => {
+            const [key, value] = pair.split('=');
+            passingData[key] = value;
+        });
+        return passingData;
+    });
+}
+
+function parseMarkerMessage(data) {
+    const records = data.split('@').filter(r => r.trim() !== '');
+    return records.map(record => {
+        const pairs = record.split('|');
+        const markerData = {};
+        pairs.forEach(pair => {
+            const [key, value] = pair.split('=');
+            markerData[key] = value;
+        });
+        return markerData;
+    });
+}
+
+function parseGetInfoMessage(data) {
+    const parts = data.split('@');
+    if (parts.length < 2) {
+        return { error: 'Invalid GetInfo message format' };
+    }
+    const deviceName = parts[0];
+    const status = parts[1];
+    const computerName = parts[2] || null;
+    return { deviceName, status, computerName };
+}
+
+function parsePongMessage(data) {
+    // For AckPong messages, data might contain version and parameters
+    const parts = data.split('@');
+    return {
+        version: parts[0] || null,
+        parameters: parts[1] ? parts[1].split('|') : []
+    };
+}
 
 // Store messages in the database
 function storeMessage(parsedMessage) {
