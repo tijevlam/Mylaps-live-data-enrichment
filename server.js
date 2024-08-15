@@ -29,45 +29,45 @@ function bufferToString(buffer) {
 
 
 function parseMessage(rawMessage) {
-    const parts = rawMessage.split('@');
-    if (parts.length < 3) {
-        return { error: 'Invalid message format' };
-    }
+  const parts = rawMessage.split('@');
+  if (parts.length < 3) {
+    return { error: 'Invalid message format' };
+  }
 
-    const sourceName = parts[0];
-    const function_ = parts[1];
-    const data = parts.slice(2, -1).join('@'); // Join in case data contains '@'
-    const messageNumber = parts[parts.length - 1];
+  const sourceName = parts[0];
+  const function_ = parts[1];
+  const data = parts.slice(2, -1).join('@'); // Join in case data contains '@'
+  const messageNumber = parts[parts.length - 1];
 
-    let parsedData;
-    switch (function_) {
-        case 'Store':
-            parsedData = parseStoreMessage(data);
-            break;
-        case 'Passing':
-            parsedData = parsePassingMessage(data);
-            break;
-        case 'Marker':
-            parsedData = parseMarkerMessage(data);
-            break;
-        case 'GetInfo':
-        case 'AckGetInfo':
-            parsedData = parseGetInfoMessage(data);
-            break;
-        case 'Pong':
-        case 'AckPong':
-            parsedData = parsePongMessage(data);
-            break;
-        default:
-            parsedData = { rawData: data };
-    }
+  let parsedData;
+  switch (function_) {
+    case 'Store':
+      parsedData = parseStoreMessage(data);
+      break;
+    case 'Passing':
+      parsedData = parsePassingMessage(data);
+      break;
+    case 'Marker':
+      parsedData = parseMarkerMessage(data);
+      break;
+    case 'GetInfo':
+    case 'AckGetInfo':
+      parsedData = parseGetInfoMessage(data);
+      break;
+    case 'Pong':
+    case 'AckPong':
+      parsedData = parsePongMessage(data);
+      break;
+    default:
+      parsedData = { rawData: data };
+  }
 
-    return {
-        sourceName,
-        function: function_,
-        data: parsedData,
-        messageNumber
-    };
+  return {
+    sourceName,
+    function: function_,
+    data: parsedData,
+    messageNumber,
+  };
 }
 
 function parseStoreMessage(data) {
@@ -105,23 +105,37 @@ function parseMarkerMessage(data) {
 }
 
 function parseGetInfoMessage(data) {
-    const parts = data.split('@');
-    if (parts.length < 2) {
-        return { error: 'Invalid GetInfo message format' };
-    }
-    const deviceName = parts[0];
-    const status = parts[1];
-    const computerName = parts[2] || null;
-    return { deviceName, status, computerName };
+  const parts = data.split('@');
+  if (parts.length < 2) {
+    return { error: 'Invalid GetInfo message format' };
+  }
+  const deviceName = parts[0];
+  const status = parts[1];
+  const computerName = parts[2] || null;
+  // Handle additional parameters for Version 2 if needed
+  // ...
+
+  return { deviceName, status, computerName };
 }
 
 function parsePongMessage(data) {
-    // For AckPong messages, data might contain version and parameters
-    const parts = data.split('@');
+  const parts = data.split('@');
+  const version = parts[0] || null; // Extract version (e.g., 'Version2.1')
+  const parameters = parts[1] ? parts[1].split('|') : []; // Extract parameters
+
+  // Check if it's a Version 2 message
+  if (version && version.startsWith('Version2')) {
     return {
-        version: parts[0] || null,
-        parameters: parts[1] ? parts[1].split('|') : []
+      version: version,
+      parameters: parameters,
     };
+  } else {
+    // Handle as Version 1 message
+    return {
+      version: null, // No version specified in Version 1
+      parameters: [],
+    };
+  }
 }
 
 // Store messages in the database
@@ -153,6 +167,9 @@ io.on('connection', (socket) => {
 // TCP server
 const tcpServer = net.createServer((socket) => {
   console.log('TCP client connected');
+
+  // Send a Ping message upon connection (for Version 2)
+  socket.write('Tije@Ping@$');
 
   socket.on('data', (data) => {
     console.log(data);
