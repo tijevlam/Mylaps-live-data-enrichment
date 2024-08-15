@@ -178,11 +178,7 @@ const server = http.createServer((req, res) => {
     });
 	if (req.url === '/') {
 		
-		console.log("starting server")
-		// Create TCP server
-// Modify the TCP server to use the parsing function
-const tcpServer = net.createServer((socket) => {
-    console.log('TCP client connected');
+		console.log("requested index html")
 
     socket.on('data', (data) => {
         const rawMessage = data.toString().trim();
@@ -194,21 +190,8 @@ const tcpServer = net.createServer((socket) => {
         messages.push(parsedMessage);
         io.emit('new message', parsedMessage);
     });
-
-    socket.on('end', () => {
-        console.log('TCP client disconnected');
-    });
-});
-
-
-
-
-tcpServer.listen(TCP_PORT, () => {
-    console.log(`TCP server listening on port ${TCP_PORT}`);
-});
-
 		
-		fs.readFile('./index.html', (err, data) => {
+		fs.readFile('index.html', (err, data) => {
 			res.setHeader('Content-Type', 'text/html');
 			res.end(data);
 		})
