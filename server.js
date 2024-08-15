@@ -19,7 +19,7 @@ db.run(`
   )
 `);
 
-const TCP_PORT = process.env.PORT || 3097; // Use the PORT environment variable for App Engine
+const TCP_PORT = 3097; // Use the PORT environment variable for App Engine
 
 // ... (rest of your parsing functions - parseMessage, parseStoreMessage, etc.)
 
@@ -72,6 +72,6 @@ const server = http.createServer((req, res) => {
   // ... (your existing HTTP server code)
 });
 
-server.listen(process.env.PORT || 8080); // Use the PORT environment variable for App Engine
+server.listen(8080); // Use the PORT environment variable for App Engine
 
 // ... (rest of your code)
