@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MYLAPS T&S TCP-IP Monitor</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        #message-list {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>MYLAPS T&S TCP-IP Monitor</h1>
+    <div id="message-list"></div>
+
+    <script>
+        const socket = io();
+        const messageList = document.getElementById('message-list');
+
+        function displayMessage(message) {
+            const pre = document.createElement('pre');
+            pre.textContent = JSON.stringify(message, null, 2);
+            messageList.appendChild(pre);
+            messageList.scrollTop = messageList.scrollHeight;
+        }
+
+        socket.on('all messages', (messages) => {
+            messageList.innerHTML = '';
+            messages.forEach(displayMessage);
+        });
+
+        socket.on('new message', displayMessage);
+    </script>
+</body>
+</html>
