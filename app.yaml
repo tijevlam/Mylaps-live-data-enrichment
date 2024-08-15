@@ -1,0 +1,8 @@
+runtime: nodejs18 # Or a suitable Node.js version
+instance_class: F1 # Choose an appropriate instance class
+
+network:
+  instance_tag: mylaps-server # Optional: Add a tag for firewall rules
+
+env_variables:
+  # Add any environment variables you need here
