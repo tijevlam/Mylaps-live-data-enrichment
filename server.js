@@ -163,8 +163,69 @@ tcpServer.listen(TCP_PORT, () => {
 
 // HTTP server
 const server = http.createServer((req, res) => {
-  // ... (your existing HTTP server code)
+	
+    req.on('error', err => {
+        console.error(err);
+        // Handle error...
+        res.statusCode = 400;
+        res.end('400: Bad Request');
+        return;
+    });
+
+    res.on('error', err => {
+        console.error(err);
+        // Handle error...
+    });
+	if (req.url === '/') {
+		
+		console.log("starting server")
+		// Create TCP server
+// Modify the TCP server to use the parsing function
+const tcpServer = net.createServer((socket) => {
+    console.log('TCP client connected');
+
+    socket.on('data', (data) => {
+        const rawMessage = data.toString().trim();
+        console.log('Received:', rawMessage);
+        
+        const parsedMessage = parseMessage(rawMessage);
+        console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
+        
+        messages.push(parsedMessage);
+        io.emit('new message', parsedMessage);
+    });
+
+    socket.on('end', () => {
+        console.log('TCP client disconnected');
+    });
 });
+
+
+
+
+tcpServer.listen(TCP_PORT, () => {
+    console.log(`TCP server listening on port ${TCP_PORT}`);
+});
+
+		
+		fs.readFile('./index.html', (err, data) => {
+			res.setHeader('Content-Type', 'text/html');
+			res.end(data);
+		})
+	}else if(req.url === '/date'){
+		res.end((new Date()).toISOString());
+	}else{
+		fs.readFile('./' + req.url, (err, data) => {
+			if(err){
+				res.statusCode = 404;
+				res.end('404: File Not Found');
+				return
+			}
+			res.end(data);
+		})
+	}
+});
+
 
 server.listen(8080); // Use the PORT environment variable for App Engine
 
