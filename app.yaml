@@ -1,4 +1,4 @@
-runtime: nodejs18 # Or a suitable Node.js version
+runtime: nodejs20 # Or a suitable Node.js version
 instance_class: F1 # Choose an appropriate instance class
 
 network:
@@ -6,3 +6,24 @@ network:
 
 env_variables:
   # Add any environment variables you need here
+
+
+jobs:
+  job_id:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+        service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-appengine@v2'
+
+    # Example of using the output
+    - id: 'test'
+      run: 'curl "${{ steps.deploy.outputs.version_url }}"'
