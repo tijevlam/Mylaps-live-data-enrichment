@@ -3,6 +3,8 @@ const http = require('http');
 const io = require('socket.io')(http);
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose(); // For SQLite
+const fs = require('fs');
+
 
 // Database Configuration (replace with your actual path)
 const db = new sqlite3.Database('/tmp/mylaps_data.db'); // Use /tmp for App Engine
@@ -148,8 +150,13 @@ const tcpServer = net.createServer((socket) => {
   console.log('TCP client connected');
 
   socket.on('data', (data) => {
+    console.log(data);
     const rawMessage = data.toString().trim();
+    console.log('Received:', rawMessage);
+      
     const parsedMessage = parseMessage(rawMessage);
+    console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
+        
     storeMessage(parsedMessage);
     io.emit('new message', parsedMessage);
   });
@@ -179,17 +186,6 @@ const server = http.createServer((req, res) => {
 	if (req.url === '/') {
 		
 		console.log("requested index html")
-
-    socket.on('data', (data) => {
-        const rawMessage = data.toString().trim();
-        console.log('Received:', rawMessage);
-        
-        const parsedMessage = parseMessage(rawMessage);
-        console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
-        
-        messages.push(parsedMessage);
-        io.emit('new message', parsedMessage);
-    });
 		
 		fs.readFile('index.html', (err, data) => {
 			res.setHeader('Content-Type', 'text/html');
