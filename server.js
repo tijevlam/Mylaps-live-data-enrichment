@@ -41,7 +41,6 @@ function handleAckPing(socket, message) {
 
   console.log('Sent AckPong message:', ackPongMessage);
 }
-ik
 
 function parseMessage(rawMessage) {
   const parts = rawMessage.split('@');
