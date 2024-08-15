@@ -24,7 +24,7 @@ db.run(`
 const TCP_PORT = 3097; // Use the PORT environment variable for App Engine
 
 function bufferToString(buffer) {
-  return buffer.toString('utf8'); // Assuming UTF-8 encoding
+  return buffer.toString(); // Assuming UTF-8 encoding
 }
 
 
