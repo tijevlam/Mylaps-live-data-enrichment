@@ -28,6 +28,21 @@ function bufferToString(buffer) {
 }
 
 
+function handleAckPing(socket, message) {
+  // Extract the version and parameters from the parsed message
+  const version = message.data.version;
+  const parameters = message.data.parameters;
+
+  // Construct the AckPong message (Version 2)
+  const ackPongMessage = `T&S@AckPong@${version || 'Version2.1'}@${parameters.join('|')}$`;
+
+  // Send the AckPong message
+  socket.write(ackPongMessage);
+
+  console.log('Sent AckPong message:', ackPongMessage);
+}
+ik
+
 function parseMessage(rawMessage) {
   const parts = rawMessage.split('@');
   if (parts.length < 3) {
@@ -181,7 +196,11 @@ const tcpServer = net.createServer((socket) => {
       
     const parsedMessage = parseMessage(messageString);
     console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
-        
+      
+    if (parsedMessage.function === 'AckPing') {
+        handleAckPing(socket, parsedMessage);
+    }
+      
     storeMessage(parsedMessage);
     io.emit('new message', parsedMessage);
   });
