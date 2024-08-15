@@ -23,6 +23,11 @@ db.run(`
 
 const TCP_PORT = 3097; // Use the PORT environment variable for App Engine
 
+function bufferToString(buffer) {
+  return buffer.toString('utf8'); // Assuming UTF-8 encoding
+}
+
+
 function parseMessage(rawMessage) {
     const parts = rawMessage.split('@');
     if (parts.length < 3) {
@@ -153,8 +158,11 @@ const tcpServer = net.createServer((socket) => {
     console.log(data);
     const rawMessage = data.toString().trim();
     console.log('Received:', rawMessage);
+    const messageString = bufferToString(data);
+    console.log('Received message:', messageString);
+    
       
-    const parsedMessage = parseMessage(rawMessage);
+    const parsedMessage = parseMessage(messageString);
     console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
         
     storeMessage(parsedMessage);
