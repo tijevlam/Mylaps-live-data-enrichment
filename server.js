@@ -244,6 +244,9 @@ const server = http.createServer((req, res) => {
 		})
 	}else if(req.url === '/date'){
 		res.end((new Date()).toISOString());
+	}else if(req.url === '/health'){
+    res.statusCode = 200;
+		res.end("ok");
 	}else{
 		fs.readFile('./' + req.url, (err, data) => {
 			if(err){
