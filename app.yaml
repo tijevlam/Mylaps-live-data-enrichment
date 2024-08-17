@@ -7,7 +7,7 @@ network:
 
 handlers:
 - url: /.*
-  script: 'server.js'
+  script: server.js
 
 env_variables:
   # Add any environment variables you need here
