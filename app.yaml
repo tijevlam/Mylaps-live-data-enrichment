@@ -7,9 +7,7 @@ network:
 
 handlers:
 - url: /.*
-  script: 'auto'
-  secure: always
-  redirect_http_response_code: 301
+  script: 'server.js'
 
 env_variables:
   # Add any environment variables you need here
