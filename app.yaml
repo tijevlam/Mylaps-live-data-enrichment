@@ -4,5 +4,12 @@ instance_class: F1 # Choose an appropriate instance class
 network:
   instance_tag: mylaps-server # Optional: Add a tag for firewall rules
 
+
+handlers:
+- url: /.*
+  script: 'auto'
+  secure: always
+  redirect_http_response_code: 301
+
 env_variables:
   # Add any environment variables you need here
