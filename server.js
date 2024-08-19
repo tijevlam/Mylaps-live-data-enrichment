@@ -67,6 +67,10 @@ function parseMessage(rawMessage) {
   const data = parts.slice(2, -1).join('@'); // Join in case data contains '@'
   const messageNumber = parts[parts.length - 1];
 
+  if (function_.indexOf('Ack') === -1){
+    socket.write(`Tije@Ack${function_}${['Store','Passing'].includes(function_) ? 'messageNumber':''}@$`);
+  }
+
   let parsedData;
   switch (function_) {
     case 'Store':
