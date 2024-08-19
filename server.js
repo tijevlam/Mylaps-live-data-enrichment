@@ -195,7 +195,7 @@ io.on('connection', (socket) => {
 // TCP server
 const tcpServer = net.createServer((socket) => {
   console.log('TCP client connected');
-ley clog = log.entry(metadata, 'TCP client connected');
+let clog = log.entry(metadata, 'TCP client connected');
 log.write(clog);
   // Send a Ping message upon connection (for Version 2)
   socket.write('Tije@Ping@$');
