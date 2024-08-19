@@ -209,6 +209,11 @@ log.write(clog);
     const messageString = bufferToString(data);
     console.log('Received message:', messageString);
     
+    if(rawMessage.indexOf('Pong') > -1){
+      socket.write('Tije@AckPong@Version2.1@$');
+      let pongLog = log.entry(metadata, 'ackpong written');
+      log.write(pongLog);
+    }
       
     const parsedMessage = parseMessage(messageString);
     console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
