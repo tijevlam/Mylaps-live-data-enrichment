@@ -21,7 +21,7 @@ db.run(`
   )
 `);
 
-const TCP_PORT = 3097; // Use the PORT environment variable for App Engine
+const TCP_PORT = 3389; //3097; // Use the PORT environment variable for App Engine
 
 function bufferToString(buffer) {
   return buffer.toString(); // Assuming UTF-8 encoding
@@ -220,7 +220,7 @@ tcpServer.listen(TCP_PORT, () => {
 });
 
 // HTTP server
-/*const server = http.createServer((req, res) => {
+const server = http.createServer((req, res) => {
 	
     req.on('error', err => {
         console.error(err);
@@ -260,6 +260,6 @@ tcpServer.listen(TCP_PORT, () => {
 });
 
 
-server.listen(8080); // Use the PORT environment variable for App Engine
-*/
+server.listen(80); // Use the PORT environment variable for App Engine
+
 // ... (rest of your code)
