@@ -4,7 +4,21 @@ const io = require('socket.io')(http);
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
+const {Logging} = require('@google-cloud/logging');
 
+const projectId = process.env.PROJECT_ID;
+const logName = 'Mylaps Live data stream';
+// Creates a client
+const logging = new Logging({projectId});
+
+// Selects the log to write to
+const log = logging.log(logName);
+
+const metadata = {
+  resource: {type: 'global'},
+  // See: https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity
+  severity: 'INFO',
+};
 
 // Database Configuration (replace with your actual path)
 const db = new sqlite3.Database('/tmp/mylaps_data.db'); // Use /tmp for App Engine
@@ -181,7 +195,8 @@ io.on('connection', (socket) => {
 // TCP server
 const tcpServer = net.createServer((socket) => {
   console.log('TCP client connected');
-
+ley clog = log.entry(metadata, 'TCP client connected');
+log.write(clog);
   // Send a Ping message upon connection (for Version 2)
   socket.write('Tije@Ping@$');
 
@@ -189,13 +204,16 @@ const tcpServer = net.createServer((socket) => {
     console.log(data);
     const rawMessage = data.toString().trim();
     console.log('Received:', rawMessage);
+    let mlog = log.entry(metadata, rawMessage);
+    log.write(mlog)
     const messageString = bufferToString(data);
     console.log('Received message:', messageString);
     
       
     const parsedMessage = parseMessage(messageString);
     console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
-      
+      let plog = log.entry(metadata, rawMessage);
+    log.write(plog)
     if (parsedMessage.function === 'AckPing') {
         handleAckPing(socket, parsedMessage);
     }
