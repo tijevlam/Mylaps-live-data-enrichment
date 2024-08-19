@@ -220,6 +220,7 @@ tcpServer.listen(TCP_PORT, () => {
 });
 
 // HTTP server
+/*
 const server = http.createServer((req, res) => {
 	
     req.on('error', err => {
@@ -261,5 +262,5 @@ const server = http.createServer((req, res) => {
 
 
 server.listen(80); // Use the PORT environment variable for App Engine
-
+*/
 // ... (rest of your code)
