@@ -7,7 +7,7 @@ const fs = require('fs');
 const {Logging} = require('@google-cloud/logging');
 
 const projectId = process.env.PROJECT_ID;
-const logName = 'Mylaps Live data stream';
+const logName = 'mylaps-live-data-stream';
 // Creates a client
 const logging = new Logging({projectId});
 
