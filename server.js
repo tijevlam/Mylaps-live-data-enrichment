@@ -56,7 +56,7 @@ function handleAckPing(socket, message) {
   console.log('Sent AckPong message:', ackPongMessage);
 }
 
-function parseMessage(rawMessage) {
+function parseMessage(rawMessage, socket) {
   const parts = rawMessage.split('@');
   if (parts.length < 3) {
     return { error: 'Invalid message format' };
@@ -219,7 +219,7 @@ log.write(clog);
       log.write(pongLog);
     }
       
-    const parsedMessage = parseMessage(messageString);
+    const parsedMessage = parseMessage(messageString, socket);
     console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
       let plog = log.entry(metadata, rawMessage);
     log.write(plog)
