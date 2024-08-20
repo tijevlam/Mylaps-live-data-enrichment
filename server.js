@@ -65,7 +65,7 @@ function parseMessage(rawMessage, socket) {
   const sourceName = parts[0];
   const function_ = parts[1];
   const data = parts.slice(2, -1).join('@'); // Join in case data contains '@'
-  const messageNumber = ['Store','Passing'].includes(function_) ? parts[parts.length - 2];
+  const messageNumber = ['Store','Passing'].includes(function_) ? parts[parts.length - 2] : undefined;
   
   if (function_ === "Pong"){
     socket.write('Tije@AckPong@Version2.1@$');
