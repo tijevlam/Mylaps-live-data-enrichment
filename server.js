@@ -66,8 +66,12 @@ function parseMessage(rawMessage, socket) {
   const function_ = parts[1];
   const data = parts.slice(2, -1).join('@'); // Join in case data contains '@'
   const messageNumber = ['Store','Passing'].includes(function_) ? parts[parts.length - 2];
-
-  if (function_.indexOf('Ack') === -1){
+  
+  if (function_ === "Pong"){
+    socket.write('Tije@AckPong@Version2.1@$');
+      let pongLog = log.entry(metadata, 'ackpong written');
+      log.write(pongLog);
+  } else if (function_.indexOf('Ack') === -1){
     socket.write(`Tije@Ack${function_}${['Store','Passing'].includes(function_) ? 'messageNumber':''}@$`);
   }
 
@@ -87,12 +91,15 @@ function parseMessage(rawMessage, socket) {
       parsedData = parseGetInfoMessage(data);
       break;
     case 'Pong':
-    case 'AckPong':
       parsedData = parsePongMessage(data);
       break;
+    case 'AckPong':
     default:
       parsedData = { rawData: data };
   }
+
+  let parsedDataLog = log.entry(metadata, parsedData);
+  log.write(parsedDataLog);
 
   return {
     sourceName,
@@ -213,15 +220,17 @@ log.write(clog);
     const messageString = bufferToString(data);
     console.log('Received message:', messageString);
     
+    /*
     if(rawMessage.indexOf('Pong') > -1){
       socket.write('Tije@AckPong@Version2.1@$');
       let pongLog = log.entry(metadata, 'ackpong written');
       log.write(pongLog);
     }
+    */
       
     const parsedMessage = parseMessage(messageString, socket);
     console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
-      let plog = log.entry(metadata, rawMessage);
+    let plog = log.entry(metadata, rawMessage);
     log.write(plog)
     if (parsedMessage.function === 'AckPing') {
         handleAckPing(socket, parsedMessage);
