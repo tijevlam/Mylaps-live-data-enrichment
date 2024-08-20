@@ -21,7 +21,7 @@ const metadata = {
 };
 
 // Database Configuration (replace with your actual path)
-const db = new sqlite3.Database('/tmp/mylaps_data.db'); // Use /tmp for App Engine
+const db = new sqlite3.Database(/mylaps_data.db'); // Use /tmp for App Engine
 
 // Create the table if it doesn't exist
 db.run(`
