@@ -223,7 +223,8 @@ const server = http.createServer((req, res) => {
 		})
 	}
 });
-const io = require('socket.io')(server);
+const { Server } = require('socket.io');
+const io = new Server(server);
 
 // Socket.IO connection
 io.on('connection', (iosocket) => {
