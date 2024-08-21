@@ -1,7 +1,7 @@
- const net = require('net');
+const net = require('net');
 const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
-
+const { join } = require('node:path');
 const express = require('express');
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
@@ -193,7 +193,7 @@ function storeMessage(parsedMessage) {
 
 app.get('/', (req, res) => {
 		console.log("requested index html")
-		res.sendFile(path.join(__dirname, 'index.html'));
+		res.sendFile(join(__dirname, 'index.html'));
 
 	});
 
