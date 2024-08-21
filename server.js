@@ -1,6 +1,6 @@
 const net = require('net');
 const http = require('http');
-const io = require('socket.io')(http);
+const io = require('socket.io')(server);
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
@@ -186,7 +186,7 @@ function storeMessage(parsedMessage) {
 }
 
 // Socket.IO connection
-io.on('connection', (socket) => {
+io.on('connection', (iosocket) => {
   console.log('A user connected');
 
   // Get data from the last 3 minutes
@@ -198,7 +198,7 @@ io.on('connection', (socket) => {
     if (err) {
       console.error('Error fetching data:', err);
     } else {
-      socket.emit('initial data', rows);
+      iosocket.emit('initial data', rows);
     }
   });
 });
@@ -237,7 +237,7 @@ log.write(clog);
     }
       
     storeMessage(parsedMessage);
-    io.emit('new message', parsedMessage);
+    io.broadcast.emit('new message', parsedMessage);
   });
   
   socket.on('end', () => {
