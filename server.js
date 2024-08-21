@@ -296,5 +296,5 @@ const server = http.createServer((req, res) => {
 });
 
 
-server.listen(80, '10.164.0.3'); // Use the PORT environment variable for App Engine
+server.listen(80); // Use the PORT environment variable for App Engine
 
