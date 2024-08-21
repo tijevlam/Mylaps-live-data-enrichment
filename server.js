@@ -1,6 +1,6 @@
 const net = require('net');
 const http = require('http');
-const io = require('socket.io')(server);
+
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
@@ -203,6 +203,51 @@ io.on('connection', (iosocket) => {
   });
 });
 
+const server = http.createServer((req, res) => {
+	
+    req.on('error', err => {
+        console.error(err);
+        // Handle error...
+        res.statusCode = 400;
+        res.end('400: Bad Request');
+        return;
+    });
+
+    res.on('error', err => {
+        console.error(err);
+        // Handle error...
+    });
+	if (req.url === '/') {
+		
+		console.log("requested index html")
+		
+		fs.readFile('index.html', (err, data) => {
+			res.setHeader('Content-Type', 'text/html');
+			res.end(data);
+		})
+	}else if(req.url === '/date'){
+		res.end((new Date()).toISOString());
+	}else if(req.url === '/health'){
+    res.statusCode = 200;
+		res.end("ok");
+	}else{
+		fs.readFile('./' + req.url, (err, data) => {
+			if(err){
+				res.statusCode = 404;
+				res.end('404: File Not Found');
+				return
+			}
+			res.end(data);
+		})
+	}
+});
+const io = require('socket.io')(server);
+
+
+server.listen(80); // Use the PORT environment variable for App Engine
+
+
+
 // TCP server
 const tcpServer = net.createServer((socket) => {
   console.log('TCP client connected');
@@ -256,45 +301,3 @@ tcpServer.listen(TCP_PORT, () => {
 });
 
 // HTTP server
-const server = http.createServer((req, res) => {
-	
-    req.on('error', err => {
-        console.error(err);
-        // Handle error...
-        res.statusCode = 400;
-        res.end('400: Bad Request');
-        return;
-    });
-
-    res.on('error', err => {
-        console.error(err);
-        // Handle error...
-    });
-	if (req.url === '/') {
-		
-		console.log("requested index html")
-		
-		fs.readFile('index.html', (err, data) => {
-			res.setHeader('Content-Type', 'text/html');
-			res.end(data);
-		})
-	}else if(req.url === '/date'){
-		res.end((new Date()).toISOString());
-	}else if(req.url === '/health'){
-    res.statusCode = 200;
-		res.end("ok");
-	}else{
-		fs.readFile('./' + req.url, (err, data) => {
-			if(err){
-				res.statusCode = 404;
-				res.end('404: File Not Found');
-				return
-			}
-			res.end(data);
-		})
-	}
-});
-
-
-server.listen(80); // Use the PORT environment variable for App Engine
-
