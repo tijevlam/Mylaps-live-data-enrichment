@@ -185,24 +185,6 @@ function storeMessage(parsedMessage) {
   `, [parsedMessage.sourceName, parsedMessage.function, JSON.stringify(parsedMessage.data), parsedMessage.messageNumber]);
 }
 
-// Socket.IO connection
-io.on('connection', (iosocket) => {
-  console.log('A user connected');
-
-  // Get data from the last 3 minutes
-  const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
-  db.all(`
-    SELECT * FROM messages
-    WHERE timestamp >= ?
-  `, [threeMinutesAgo.toISOString()], (err, rows) => {
-    if (err) {
-      console.error('Error fetching data:', err);
-    } else {
-      iosocket.emit('initial data', rows);
-    }
-  });
-});
-
 const server = http.createServer((req, res) => {
 	
     req.on('error', err => {
@@ -242,6 +224,24 @@ const server = http.createServer((req, res) => {
 	}
 });
 const io = require('socket.io')(server);
+
+// Socket.IO connection
+io.on('connection', (iosocket) => {
+  console.log('A user connected');
+
+  // Get data from the last 3 minutes
+  const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
+  db.all(`
+    SELECT * FROM messages
+    WHERE timestamp >= ?
+  `, [threeMinutesAgo.toISOString()], (err, rows) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+    } else {
+      iosocket.emit('initial data', rows);
+    }
+  });
+});
 
 
 server.listen(80); // Use the PORT environment variable for App Engine
