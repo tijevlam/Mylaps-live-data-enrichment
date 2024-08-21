@@ -1,9 +1,15 @@
 const net = require('net');
-const http = require('http');
-
-const express = require('express');
 const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
+
+const express = require('express');
+const { createServer } = require('node:http');
+const { Server } = require('socket.io');
+
+const app = express();
+const server = createServer(app);
+const io = new Server(server);
+
 const {Logging} = require('@google-cloud/logging');
 
 const projectId = process.env.PROJECT_ID;
@@ -185,46 +191,10 @@ function storeMessage(parsedMessage) {
   `, [parsedMessage.sourceName, parsedMessage.function, JSON.stringify(parsedMessage.data), parsedMessage.messageNumber]);
 }
 
-const server = http.createServer((req, res) => {
-	
-    req.on('error', err => {
-        console.error(err);
-        // Handle error...
-        res.statusCode = 400;
-        res.end('400: Bad Request');
-        return;
-    });
-
-    res.on('error', err => {
-        console.error(err);
-        // Handle error...
-    });
-	if (req.url === '/') {
-		
+app.get('/', (req, res) => {
 		console.log("requested index html")
-		
-		fs.readFile('index.html', (err, data) => {
-			res.setHeader('Content-Type', 'text/html');
-			res.end(data);
-		})
-	}else if(req.url === '/date'){
-		res.end((new Date()).toISOString());
-	}else if(req.url === '/health'){
-    res.statusCode = 200;
-		res.end("ok");
-	}else{
-		fs.readFile('./' + req.url, (err, data) => {
-			if(err){
-				res.statusCode = 404;
-				res.end('404: File Not Found');
-				return
-			}
-			res.end(data);
-		})
-	}
-});
-const { Server } = require('socket.io');
-const io = new Server(server);
+		res.sendFile('index.html');
+	});
 
 // Socket.IO connection
 io.on('connection', (iosocket) => {
@@ -241,6 +211,10 @@ io.on('connection', (iosocket) => {
     } else {
       iosocket.emit('initial data', rows);
     }
+  });
+  
+  iosocket.on('disconnect', () => {
+    console.log('user disconnected');
   });
 });
 
