@@ -282,7 +282,7 @@ log.write(clog);
     }
       
     storeMessage(parsedMessage);
-    io.broadcast.emit('new message', parsedMessage);
+    io.emit('new message', parsedMessage);
   });
   
   socket.on('end', () => {
