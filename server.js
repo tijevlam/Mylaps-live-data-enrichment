@@ -70,7 +70,7 @@ function parseMessage(rawMessage, socket) {
 
   const sourceName = parts[0];
   const function_ = parts[1];
-  const data = parts.slice(2, -1).join('@'); // Join in case data contains '@'
+  const data = ['Store','Passing'].includes(function_) ? parts.slice(2, -2).join('@') : parts.slice(2, -1).join('@'); // Join in case data contains '@'
   const messageNumber = ['Store','Passing'].includes(function_) ? parts[parts.length - 2] : undefined;
   
   if (function_ === "Pong"){
@@ -108,10 +108,10 @@ function parseMessage(rawMessage, socket) {
   log.write(parsedDataLog);
 
   return {
-    sourceName,
+    sourceName: sourceName,
     function: function_,
     data: parsedData,
-    messageNumber,
+    messageNumber: messageNumber,
   };
 }
 
