@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MYLAPS T&S TCP-IP Monitor</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.5.0/build/global/luxon.min.js"></script>
     <style>
         #message-list {
             height: 400px;
@@ -21,16 +22,57 @@
 <body>
     <h1>MYLAPS T&S TCP-IP Monitor</h1>
     <div id="message-list"></div>
+    <table id="message-list">
+        <thead>
+            <tr>
+                <th>Bib</th>
+                <th>Chip Code</th>
+                <th>Name</th>
+                <th>Time</th>
+                <th>Race Time</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+
+    </table>
 
     <script>
         const socket = io();
         const messageList = document.getElementById('message-list');
 
         function displayMessage(message) {
-            const pre = document.createElement('pre');
-            pre.textContent = JSON.stringify(message, null, 2);
-            messageList.appendChild(pre);
-            messageList.scrollTop = messageList.scrollHeight;
+            let tableBody = document.querySelector('#message-list tbody');
+            tableBody.prepend(row);
+
+            // const pre = document.createElement('pre');
+            // pre.textContent = JSON.stringify(message, null, 2);
+            // messageList.appendChild(pre);
+            // messageList.scrollTop = messageList.scrollHeight;
+            let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
+            let startTime = luxon.DateTime.fromSQL("2024-09-14T07:00:00.000");
+
+            function formatTime(seconds) {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const remainingSeconds = seconds % 60;
+
+                const formattedHours = String(hours).padStart(2, '0');
+                const formattedMinutes = String(minutes).padStart(2, '0');
+                const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+
+                return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+            }
+
+
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${message.b}</td>
+                <td>${message.c}</td>
+                <td></td>
+                <td>${message.t}</td>
+                <td>${formatTime(cTime.diff(startTime, 'seconds'))}</td>`;
+            tableBody.prepend(row);
         }
 
         socket.on('all messages', (messages) => {
