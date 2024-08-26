@@ -258,7 +258,9 @@ log.write(clog);
     }
       
     storeMessage(parsedMessage);
-    io.emit('new message', parsedMessage);
+    if(parsedMessage.function === 'Passing') {
+        io.emit('new message', parsedMessage);
+    }
   });
   
   socket.on('end', () => {

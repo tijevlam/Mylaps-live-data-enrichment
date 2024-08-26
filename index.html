@@ -21,7 +21,6 @@
 </head>
 <body>
     <h1>MYLAPS T&S TCP-IP Monitor</h1>
-    <div id="message-list"></div>
     <table id="message-list">
         <thead>
             <tr>
@@ -75,11 +74,15 @@
         }
 
         socket.on('all messages', (messages) => {
+            console.log(messages);
             messageList.innerHTML = '';
-            messages.forEach(displayMessage);
+            messages.forEach(function(m){displayMessage(m)});
         });
 
-        socket.on('new message', (message) => { displayMessage(message)});
+        socket.on('new message', (message) => {
+            console.log(message);
+            displayMessage(message)
+        });
     </script>
 </body>
 </html>
