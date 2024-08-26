@@ -51,12 +51,12 @@
             // messageList.appendChild(pre);
             // messageList.scrollTop = messageList.scrollHeight;
             let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
-            let startTime = luxon.DateTime.fromSQL("2024-09-14T07:00:00.000");
+            let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
 
             function formatTime(seconds) {
                 const hours = Math.floor(seconds / 3600);
                 const minutes = Math.floor((seconds % 3600) / 60);
-                const remainingSeconds = seconds % 60;
+                const remainingSeconds = Math.floor(seconds % 60);
 
                 const formattedHours = String(hours).padStart(2, '0');
                 const formattedMinutes = String(minutes).padStart(2, '0');
@@ -73,7 +73,7 @@
                 <td>${message.sourceName}</td>
                 <td>&nbsp;</td>
                 <td>${message.t}</td>
-                <td>${formatTime(cTime.diff(startTime, 'seconds'))}</td>`;
+                <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
             tableBody.prepend(row);
         }
 
