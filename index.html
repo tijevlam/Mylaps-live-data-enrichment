@@ -29,6 +29,7 @@
                 <th>Function</th>
                 <th>Source Name</th>
                 <th>Name</th>
+                <th>Laps</th>
                 <th>Time</th>
                 <th>Race Time</th>
             </tr>
@@ -72,6 +73,7 @@
                 <td>${message.function}</td>
                 <td>${message.sourceName}</td>
                 <td>&nbsp;</td>
+                <td>${message.l}</td>
                 <td>${message.t ? message.t.split(".")[0] : ""}</td>
                 <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
             tableBody.prepend(row);
