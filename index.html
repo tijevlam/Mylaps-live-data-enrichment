@@ -75,6 +75,10 @@
                 <td>${message.t.split(".")[0]}</td>
                 <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
             tableBody.prepend(row);
+
+            if ( document.getElementById("message-list").rows.length > 41) {
+                document.getElementById("message-list").deleteRow(42);
+            }
         }
 
         socket.on('all messages', (messages) => {
