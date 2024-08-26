@@ -79,6 +79,7 @@ function parseMessage(rawMessage, socket) {
       log.write(pongLog);
   } else if (function_.indexOf('Ack') === -1){
     socket.write(`Tije@Ack${function_}${['Store','Passing'].includes(function_) ? '@'+messageNumber:''}@$`);
+    console.log(`Tije@Ack${function_}${['Store','Passing'].includes(function_) ? '@'+messageNumber:''}@$`);
   }
 
   let parsedData;
