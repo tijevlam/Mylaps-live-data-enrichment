@@ -54,7 +54,7 @@ function handleAckPing(socket, message) {
   const parameters = message.data.parameters;
 
   // Construct the AckPong message (Version 2)
-  const ackPongMessage = `T&S@AckPong@${version || 'Version2.1'}@${parameters.join('|')}$`;
+  const ackPongMessage = `T&S@AckPong@${version || 'Version2.1'}@${parameters && parameters.lenght > 0 ? parameters.join('|') : ''}$`;
 
   // Send the AckPong message
   socket.write(ackPongMessage);
