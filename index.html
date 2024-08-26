@@ -26,6 +26,8 @@
             <tr>
                 <th>Bib</th>
                 <th>Chip Code</th>
+                <th>Function</th>
+                <th>Source Name</th>
                 <th>Name</th>
                 <th>Time</th>
                 <th>Race Time</th>
@@ -65,9 +67,10 @@
 
 
             const row = document.createElement('tr');
-            row.innerHTML = `<td>${message.b}</td>
+            row.innerHTML = `<td>${message.data.b}</td>
                 <td>${message.c}</td>
-                <td></td>
+                <td>${message.function}</td>
+                <td>${message.sourceName}</td>
                 <td>${message.t}</td>
                 <td>${formatTime(cTime.diff(startTime, 'seconds'))}</td>`;
             tableBody.prepend(row);
@@ -81,7 +84,11 @@
 
         socket.on('new message', (message) => {
             console.log(message);
-            displayMessage(message)
+            for(const d of message.data) {
+              d['function'] = message.function;
+              d['sourceName']= message.sourceName;
+              displayMessage(d);
+            }
         });
     </script>
 </body>
