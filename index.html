@@ -72,7 +72,7 @@
                 <td>${message.function}</td>
                 <td>${message.sourceName}</td>
                 <td>&nbsp;</td>
-                <td>${message.t.split(".")[0]}</td>
+                <td>${message.t ? message.t.split(".")[0] : ""}</td>
                 <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
             tableBody.prepend(row);
 
