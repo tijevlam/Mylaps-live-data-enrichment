@@ -233,7 +233,44 @@ log.write(clog);
   // Send a Ping message upon connection (for Version 2)
   //socket.write('Tije@Ping@$');
 
-  socket.on('data', (data) => {
+var rawData = ""; // variable that collects chunks
+var sep = "$";
+
+socket.on('data', function(chunk) {
+    rawData += chunk;
+
+    var sepIndex = rawData.indexOf(sep);
+    var didFindMsg = sepIndex != -1;
+
+    if (didFindMsg) {
+        var pass = rawData.slice(0, sepIndex);
+        rawData = rawData.slice(sepIndex + 1);
+        
+        console.log(pass);
+        const rawMessage = pass.toString().trim();
+        console.log('Received:', rawMessage);
+        let mlog = log.entry(metadata, rawMessage);
+        log.write(mlog)
+        const messageString = bufferToString(pass);
+        console.log('Received message:', messageString);
+    
+        const parsedMessage = parseMessage(messageString, socket);
+        console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
+        let plog = log.entry(metadata, parsedMessage);
+        log.write(plog)
+        if (parsedMessage.function === 'AckPing') {
+            handleAckPing(socket, parsedMessage);
+        }
+          
+        storeMessage(parsedMessage);
+        if(parsedMessage.function === 'Passing') {
+            io.emit('new message', parsedMessage);
+        }
+    
+    }
+});
+
+  /*socket.on('data', (data) => {
     console.log(data);
     const rawMessage = data.toString().trim();
     console.log('Received:', rawMessage);
@@ -241,7 +278,7 @@ log.write(clog);
     log.write(mlog)
     const messageString = bufferToString(data);
     console.log('Received message:', messageString);
-    
+    */
     /*
     if(rawMessage.indexOf('Pong') > -1){
       socket.write('Tije@AckPong@Version2.1@$');
@@ -249,6 +286,7 @@ log.write(clog);
       log.write(pongLog);
     }
     */
+/*
       
     const parsedMessage = parseMessage(messageString, socket);
     console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
@@ -262,7 +300,7 @@ log.write(clog);
     if(parsedMessage.function === 'Passing') {
         io.emit('new message', parsedMessage);
     }
-  });
+  });*/
   
   socket.on('end', () => {
         console.log('Client disconnected');
