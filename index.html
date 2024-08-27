@@ -6,8 +6,10 @@
     <title>MYLAPS T&S TCP-IP Monitor</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.5.0/build/global/luxon.min.js"></script>
+    <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
     <style>
-        #message-list {
+        /* #message-list {
             height: 400px;
             overflow-y: auto;
             border: 1px solid #ccc;
@@ -16,12 +18,13 @@
         pre {
             margin: 0;
             white-space: pre-wrap;
-        }
+        }*/
     </style>
 </head>
 <body>
     <h1>MYLAPS T&S TCP-IP Monitor</h1>
-    <table id="message-list">
+    <table id="mylaps"></table>
+    <!-- <table id="message-list">
         <thead>
             <tr>
                 <th>Bib</th>
@@ -39,8 +42,22 @@
         </tbody>
 
     </table>
+    --!>
 
     <script>
+    var table = new Tabulator("#mylaps", {
+    columns:[
+        {title:"Bib", field:"bib", sorter:"number", },
+        {title:"Chip Code", field:"chipcode", sorter:"alphanum" },
+        {title:"Function", field:"function", sorter:"string"},
+        {title:"Source Name", field:"sourceName", sorter:"string"},
+        {title:"Name", field:"name", sorter:"string"},
+        {title:"Laps", field:"laps", sorter:"number"},
+        {title:"Time", field:"time", sorter:"time"},
+        {title:"Race Time", field:"raceTime", sorter:"time"}
+    ],
+});
+    
         const socket = io();
         const messageList = document.getElementById('message-list');
 
@@ -67,6 +84,18 @@
             }
 
 
+            table.addData([{
+                bib: message.b,
+                chipcode: message.c,
+                function: message.function,
+                sourceName: message.sourceName,
+                name: "",
+                laps: message.l,
+                time: message.t ? message.t.split(".")[0] : "",
+                raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)
+            }], true);
+            
+            /* 
             const row = document.createElement('tr');
             row.innerHTML = `<td>${message.b}</td>
                 <td>${message.c}</td>
@@ -83,6 +112,7 @@
                     document.getElementById("message-list").deleteRow(42);
                 }
             }
+            */
         }
 
         socket.on('all messages', (messages) => {
