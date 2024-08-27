@@ -62,7 +62,7 @@
     
         const socket = io();
         const messageList = document.getElementById('message-list');
-
+        
         function displayMessage(message) {
             let tableBody = document.querySelector('#message-list tbody');
 
@@ -85,8 +85,7 @@
                 return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
             }
 
-
-            table.addData([{
+        return {
                 bib: message.b,
                 chipcode: message.c,
                 function: message.function,
@@ -95,7 +94,7 @@
                 laps: message.l,
                 time: message.t ? message.t.split(".")[0] : "",
                 raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)
-            }], true);
+            };
             
             /* 
             const row = document.createElement('tr');
@@ -125,11 +124,13 @@
 
         socket.on('new message', (message) => {
             console.log(message);
+            let tableData =[];
             for(const d of message.data) {
               d['function'] = message.function;
               d['sourceName']= message.sourceName;
-              displayMessage(d);
+              tableData.push(displayMessage(d));
             }
+            table.addData(tableData, true);
         });
     </script>
 </body>
