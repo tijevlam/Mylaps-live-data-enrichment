@@ -23,7 +23,7 @@
 </head>
 <body>
     <h1>MYLAPS T&S TCP-IP Monitor</h1>
-    <div id="mylaps"></div>
+    <div id="mylaps" class="striped"></div>
     <!-- <table id="message-list">
         <thead>
             <tr>
@@ -56,6 +56,8 @@
         {title:"Time", field:"time", sorter:"time"},
         {title:"Race Time", field:"raceTime", sorter:"time"}
     ],
+    height:"100%",
+    maxHeight:"100%"
 });
     
         const socket = io();
