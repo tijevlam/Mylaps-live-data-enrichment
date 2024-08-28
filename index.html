@@ -74,13 +74,13 @@
 
 
                         if(['function', 'info', 'chipcode'].includes(column.field)){
-                            column.visible:false;
+                            column.visible =false;
                         }
 
                         if(['bib'].includes(column.field)){
-                            column.sorter:"number";
+                            column.sorter = "number";
                         } else {
-                            column.sorter:"string";
+                            column.sorter = "string";
                         }
 
                     });
@@ -328,7 +328,7 @@
                             si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
                         }
                         return si
-                    }, false);
+                    }}, false);
 
                 table.addColumn({title: "", headerSort: false, formatter: customResponsiveCollapseFormatter, responsive: 0, cssClass: "actionCol"}, false);
 
