@@ -31,13 +31,7 @@
             return response.json();
         }
 
-        async function main(){
-            countries = await fetchCountries();
-            domiciles = await fetchDomiciles();
-            startlist = await fetchStartlist();
-        }
 
-        main();
 
     </script>
 </head>
@@ -45,109 +39,120 @@
     <h1>MYLAPS T&S TCP-IP Monitor</h1>
     <div id="mylaps" class="table tabulator"></div>
     <script>
-    var table = new Tabulator("#mylaps", {
-    columns:[
-        {title:"Bib", field:"bib", sorter:"number" },
-        {title:"Chip Code", field:"chipcode", sorter:"alphanum", visible:false },
-        {title:"Function", field:"function", sorter:"string", visible:false },
-        {title:"Source Name", field:"sourceName", sorter:"string"},
-        {title:"Name", field:"name", sorter:"string"},
-        {title:"Wave", field:"wave", sorter:"string"},
-        {title:"Cat", field:"cat", sorter:"string"},
-        {title:"Laps", field:"laps", sorter:"number"},
-        {title:"Time", field:"time", sorter:"time"},
-        {title:"Race Time", field:"raceTime", sorter:"time"},
-        {title:"Info", field:"info", sorter:"string"},
-        {title:"SI", field: "si"}
-    ],
-    height:"100%",
-    maxHeight:"100%",
-    pagination:"local",
-    paginationSize:20,
-    paginationSizeSelector:false,
-});
-    
-        const socket = io();
-        const messageList = document.getElementById('message-list');
-        
-        function displayMessage(message) {
-            let tableBody = document.querySelector('#message-list tbody');
-            let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
-            let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
 
-            function formatTime(seconds) {
-                const hours = Math.floor(seconds / 3600);
-                const minutes = Math.floor((seconds % 3600) / 60);
-                const remainingSeconds = Math.floor(seconds % 60);
-
-                const formattedHours = String(hours).padStart(2, '0');
-                const formattedMinutes = String(minutes).padStart(2, '0');
-                const formattedSeconds = String(remainingSeconds).padStart(2, '0');
-
-                return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-            }
+        async function main(){
+            countries = await fetchCountries();
+            domiciles = await fetchDomiciles();
+            startlist = await fetchStartlist();
 
 
-        return {
-                bib: message.Bib,
-                chipcode: message.c,
-                function: message.function,
-                sourceName: message.sourceName,
-                name: message.Name,
-                wave: message.Wave,
-                cat: message.Cat,
-                laps: message.l,
-                time: message.t ? message.t.split(".")[0] : "",
-                raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
-                info: message.Info,
-                si: startlist.find(s => s.bibnr == message.Bib) ? startlist.find(s => s.bibnr == message.Bib) : ""
-            };
-            
-            /* 
-            const row = document.createElement('tr');
-            row.innerHTML = `<td>${message.b}</td>
-                <td>${message.c}</td>
-                <td>${message.function}</td>
-                <td>${message.sourceName}</td>
-                <td>&nbsp;</td>
-                <td>${message.l}</td>
-                <td>${message.t ? message.t.split(".")[0] : ""}</td>
-                <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
-            tableBody.prepend(row);
+            var table = new Tabulator("#mylaps", {
+                columns:[
+                    {title:"Bib", field:"bib", sorter:"number" },
+                    {title:"Chip Code", field:"chipcode", sorter:"alphanum", visible:false },
+                    {title:"Function", field:"function", sorter:"string", visible:false },
+                    {title:"Source Name", field:"sourceName", sorter:"string"},
+                    {title:"Name", field:"name", sorter:"string"},
+                    {title:"Wave", field:"wave", sorter:"string"},
+                    {title:"Cat", field:"cat", sorter:"string"},
+                    {title:"Laps", field:"laps", sorter:"number"},
+                    {title:"Time", field:"time", sorter:"time"},
+                    {title:"Race Time", field:"raceTime", sorter:"time"},
+                    {title:"Info", field:"info", sorter:"string"},
+                    {title:"SI", field: "si"}
+                ],
+                height:"100%",
+                maxHeight:"100%",
+                pagination:"local",
+                paginationSize:20,
+                paginationSizeSelector:false,
+            });
 
-            if ( document.getElementById("message-list").rows.length > 41) {
-                if(document.getElementById("message-list").rows[42]) {
-                    document.getElementById("message-list").deleteRow(42);
+            const socket = io();
+            const messageList = document.getElementById('message-list');
+
+            function displayMessage(message) {
+                let tableBody = document.querySelector('#message-list tbody');
+                let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
+                let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
+
+                function formatTime(seconds) {
+                    const hours = Math.floor(seconds / 3600);
+                    const minutes = Math.floor((seconds % 3600) / 60);
+                    const remainingSeconds = Math.floor(seconds % 60);
+
+                    const formattedHours = String(hours).padStart(2, '0');
+                    const formattedMinutes = String(minutes).padStart(2, '0');
+                    const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+
+                    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
                 }
+
+
+                return {
+                    bib: message.Bib,
+                    chipcode: message.c,
+                    function: message.function,
+                    sourceName: message.sourceName,
+                    name: message.Name,
+                    wave: message.Wave,
+                    cat: message.Cat,
+                    laps: message.l,
+                    time: message.t ? message.t.split(".")[0] : "",
+                    raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
+                    info: message.Info,
+                    si: startlist.find(s => s.bibnr == message.Bib) ? startlist.find(s => s.bibnr == message.Bib) : ""
+                };
+
+                /*
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${message.b}</td>
+                    <td>${message.c}</td>
+                    <td>${message.function}</td>
+                    <td>${message.sourceName}</td>
+                    <td>&nbsp;</td>
+                    <td>${message.l}</td>
+                    <td>${message.t ? message.t.split(".")[0] : ""}</td>
+                    <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
+                tableBody.prepend(row);
+
+                if ( document.getElementById("message-list").rows.length > 41) {
+                    if(document.getElementById("message-list").rows[42]) {
+                        document.getElementById("message-list").deleteRow(42);
+                    }
+                }
+                */
             }
-            */
+
+            socket.on('initial data', (messages) => {
+                console.log(messages);
+                let tableData =[];
+                for(const m of messages) {
+                    tableData.push(displayMessage(m));
+                }
+                table.setData(tableData, true);
+            });
+
+            socket.on('all messages', (messages) => {
+                console.log(messages);
+                messageList.innerHTML = '';
+                messages.forEach(function(m){displayMessage(m)});
+            });
+
+            socket.on('new message', (message) => {
+                console.log(message);
+                let tableData =[];
+                for(const d of message.data) {
+                    d['function'] = message.function;
+                    d['sourceName']= message.sourceName;
+                    tableData.push(displayMessage(d));
+                }
+                table.addData(tableData, true);
+            });
         }
 
-        socket.on('initial data', (messages) => {
-            console.log(messages);
-            let tableData =[];
-            for(const m of messages) {
-                tableData.push(displayMessage(m));
-            }
-            table.setData(tableData, true);
-        });
+        main();
 
-        socket.on('all messages', (messages) => {
-            console.log(messages);
-            messageList.innerHTML = '';
-            messages.forEach(function(m){displayMessage(m)});
-        });
-
-        socket.on('new message', (message) => {
-            console.log(message);
-            let tableData =[];
-            for(const d of message.data) {
-              d['function'] = message.function;
-              d['sourceName']= message.sourceName;
-              tableData.push(displayMessage(d));
-            }
-            table.addData(tableData, true);
-        });
     </script>
 </body>
 </html>
