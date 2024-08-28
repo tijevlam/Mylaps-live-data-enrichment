@@ -267,7 +267,7 @@
 				<td style="vertical-align: top;">
 				<span class="badge badge-light">2024</span>
 				</td><td>
-				${debugdata.length-1} total athletes this saturday.<br/>
+				${startlist.length-1} total athletes this saturday.<br/>
 				${partHtml ? partHtml : ''}
 				</td></tr></table>
 				<br/></div>`:""}
@@ -848,7 +848,7 @@
             if(record.bibnr != "0"){
                 li += `<div class="accordion accordion-flush" id="sameNamers">`;
 
-                let achternamers =  _.partition(debugdata, (a) =>  {if(a.lastName && a.lastName.toLowerCase() == record.lastName.toLowerCase() && a.athleteId != record.athleteId){ return a.lastName }})[0];
+                let achternamers =  _.partition(startlist, (a) =>  {if(a.lastName && a.lastName.toLowerCase() == record.lastName.toLowerCase() && a.athleteId != record.athleteId){ return a.lastName }})[0];
                 //console.log(achternamers);
                 if(achternamers.length > 0){
                     let achternamersPerRaceType = _.countBy(achternamers, "raceType");
@@ -902,7 +902,7 @@
 
 
             if(record.bibnr != "0"){
-                voornamers =  _.partition(debugdata, (a) =>  {if(a.firstName && a.firstName.toLowerCase() == record.firstName.toLowerCase() && a.athleteId != record.athleteId){ return a.firstName }})[0];
+                voornamers =  _.partition(startlist, (a) =>  {if(a.firstName && a.firstName.toLowerCase() == record.firstName.toLowerCase() && a.athleteId != record.athleteId){ return a.firstName }})[0];
                 //console.log(record.firstName, voornamers);
                 if(voornamers.length > 0){
 
@@ -956,7 +956,7 @@
 
 
             if(record.bibnr != "0"){
-                domicilers =  _.partition(debugdata, (a) =>  {if(a.domicile && record.domicile && a.domicile.toLowerCase() == record.domicile.toLowerCase() && a.athleteId != record.athleteId){ return a.domicile }})[0];
+                domicilers =  _.partition(startlist, (a) =>  {if(a.domicile && record.domicile && a.domicile.toLowerCase() == record.domicile.toLowerCase() && a.athleteId != record.athleteId){ return a.domicile }})[0];
                 //console.log(record.firstName, voornamers);
                 if(domicilers.length > 0){
 
