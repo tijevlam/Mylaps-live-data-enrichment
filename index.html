@@ -268,6 +268,50 @@
                 }
             });
 
+            let customResponsiveCollapseFormatter = function (cell, formatterParams, onRendered) {
+                let self = this,
+                    open = false,
+                    el = document.createElement("div");
+
+                function toggleList(isOpen) {
+                    let collapse = cell.getRow().getElement().getElementsByClassName("tabulator-responsive-collapse")[0];
+
+                    open = isOpen;
+
+                    if (open) {
+                        el.classList.add("open");
+                        if (collapse) {
+                            collapse.style.display = '';
+                        }
+                    } else {
+                        el.classList.remove("open");
+                        if (collapse) {
+                            collapse.style.display = 'none';
+                        }
+                    }
+                }
+
+                el.classList.add("tabulator-responsive-collapse-toggle");
+                el.innerHTML = `<span class='tabulator-responsive-collapse-toggle-open'><button class="btn btn-secondary btn-floating btn-sm ripple" style=""><i class="fas fa-plus fa-xs"></i></button></span><span class='tabulator-responsive-collapse-toggle-close'><button class="btn btn-secondary btn-floating btn-sm ripple" style=""><i class="fas fa-minus fa-xs"></i></button></span>`;
+
+
+                // "<span class='tabulator-responsive-collapse-toggle-open'>+</span><span class='tabulator-responsive-collapse-toggle-close'>-</span>";
+
+                cell.getElement().classList.add("tabulator-row-handle");
+
+                if (self.table.options.responsiveLayoutCollapseStartOpen) {
+                    open = true;
+                }
+
+                el.addEventListener("click", function () {
+                    toggleList(!open);
+                });
+
+                toggleList(open);
+
+                return el;
+            }
+
             const socket = io();
             const messageList = document.getElementById('message-list');
 
