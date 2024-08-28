@@ -52,7 +52,9 @@
                     <h4 class="modal-title w-100" id="editFormTitle">View Record</h4>
                     <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body"></div>
+                <div class="modal-body">
+                    <iframe id="athletelookup" src="https://challengealmere.s3.eu-west-1.amazonaws.com/2023/index.html?queries[bibnr]="></iframe>
+                </div>
             </div>
         </div>
     </div>
@@ -292,8 +294,7 @@
                 }
             });
 
-            table.on('tableBuilt', function() {
-
+            table.on("tableBuilt", () => {
 
                 table.addColumn({title: "Speaker Info", field: "si", responsive: 0, headerSort: false, formatter: function (cell, formatterParams, onRendered) {
                         cell.getRow(); // get row component
@@ -421,6 +422,19 @@
                     tableData.push(displayMessage(d));
                 }
                 table.addData(tableData, true);
+            });
+
+            editModal.addEventListener('show.mdb.modal', (e) => {
+                // debug(e);
+                debug('editForm modal started');
+                debug(e.relatedTarget.getAttribute('data-mdb-rowid'))
+                let rowId = e.relatedTarget.getAttribute('data-mdb-rowid');
+                let rowData = table.getRow(rowId).getData();
+                debug(rowData.index)
+                if (rowData) {
+                    document.querySelector("#athletelookup").src = `https://challengealmere.s3.eu-west-1.amazonaws.com/2023/index.html?queries[bibnr]=${rowData.bib}`;
+                }
+
             });
         }
 
