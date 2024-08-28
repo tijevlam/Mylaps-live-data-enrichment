@@ -57,8 +57,17 @@
                     {title:"Laps", field:"laps", sorter:"number"},
                     {title:"Time", field:"time", sorter:"time"},
                     {title:"Race Time", field:"raceTime", sorter:"time"},
-                    {title:"Info", field:"info", sorter:"string"},
-                    {title:"SI", field: "si"}
+                    {title:"Info", field:"info", sorter:"string", visible:false},
+                    {title:"Speaker Info", field: "si", formatter:function(cell, formatterParams, onRendered){
+                            cell.getRow(); // get row component
+                            let si;
+                            let history = cell.getRow().getData()?.history;
+                            if(history && history.length > 0) {
+                                si += `CAA`;
+                            }
+                            return si
+                        },
+                    }
                 ],
                 height:"100%",
                 maxHeight:"100%",
