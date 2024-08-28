@@ -43,6 +43,14 @@ db.run(`
 
 const TCP_PORT = 3389; //3097; // Use the PORT environment variable for App Engine
 
+// read bibs csv file and store in memory
+const bibs = fs.readFileSync('Bibs_202408280939.csv', 'utf8').split('\n').map(line => line.split(','));
+
+function matchChipToBib(chip) {
+    const bib = bibs.find(bib => bib[0] === chip);
+    return bib ? bib : null;
+}
+
 function bufferToString(buffer) {
   return buffer.toString(); // Assuming UTF-8 encoding
 }
@@ -131,7 +139,18 @@ function parsePassingMessage(data) {
         const passingData = {};
         pairs.forEach(pair => {
             const [key, value] = pair.split('=');
-            passingData[key] = value;
+            if(['c','d','l','b','n','t'].includes(key)) {
+                passingData[key] = value;
+                if(key === 'c') {
+                    const bib = matchChipToBib(value);
+                    if(bib) {
+                        // add all keys and their values in bib to passingData
+                        bib.forEach(([bkey, bvalue]) => {
+                            passingData[bkey] = bvalue;
+                        });
+                    }
+                }
+            }
         });
         return passingData;
     });
