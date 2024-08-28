@@ -637,7 +637,7 @@
                 countryOverview += `</table>`;
                 countryOverviewMd += `</table>`;
 
-                li += `<br/>${countryOverview}<br/>${countryOverviewMd}`;
+                li += `<br/><br/>${countryOverview}<br/><br/>${countryOverviewMd}`;
 
 
                 // domiciles
@@ -744,7 +744,7 @@
 
 
             if(record.country){
-                li += `<h5>
+                li += `<br/><br/><h5>
 					<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">
 	  				${record.countryData.Country}
 				   </h5>`;
@@ -798,7 +798,7 @@
             //<i class="fas fa-earth-europe"></i>
 
             if(record.domicile && record.bibnr != "0"){
-                li += `<h5><i class="fas fa-city me-2"></i>${record.domicile}</h5>`;
+                li += `<br/><br/><h5><i class="fas fa-city me-2"></i>${record.domicile}</h5>`;
 
                 if(record.raceType == "long distance"){
 
