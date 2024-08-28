@@ -294,8 +294,7 @@
                 }
             });
 
-            table.on("tableBuilt", () => {
-
+            table.on("dataProcessed", function(){
                 table.addColumn({title: "Speaker Info", field: "si", responsive: 0, headerSort: false, formatter: function (cell, formatterParams, onRendered) {
                         cell.getRow(); // get row component
                         let si = '';
@@ -339,11 +338,11 @@
 
                 editModal.addEventListener('show.mdb.modal', (e) => {
                     // debug(e);
-                    debug('editForm modal started');
-                    debug(e.relatedTarget.getAttribute('data-mdb-rowid'))
+                    console.log('editForm modal started');
+                    console.log(e.relatedTarget.getAttribute('data-mdb-rowid'))
                     let rowId = e.relatedTarget.getAttribute('data-mdb-rowid');
                     let rowData = table.getRow(rowId).getData();
-                    debug(rowData.index)
+                    console.log(rowData.index)
                     if (rowData) {
                         document.querySelector("#athletelookup").src = `https://challengealmere.s3.eu-west-1.amazonaws.com/2023/index.html?queries[bibnr]=${rowData.bib}`;
                     }
