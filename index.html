@@ -333,6 +333,22 @@
                     }
                 });
 
+                table.redraw();
+
+                const editModal = document.getElementById('editRowFormModal');
+
+                editModal.addEventListener('show.mdb.modal', (e) => {
+                    // debug(e);
+                    debug('editForm modal started');
+                    debug(e.relatedTarget.getAttribute('data-mdb-rowid'))
+                    let rowId = e.relatedTarget.getAttribute('data-mdb-rowid');
+                    let rowData = table.getRow(rowId).getData();
+                    debug(rowData.index)
+                    if (rowData) {
+                        document.querySelector("#athletelookup").src = `https://challengealmere.s3.eu-west-1.amazonaws.com/2023/index.html?queries[bibnr]=${rowData.bib}`;
+                    }
+
+                });
 
             });
 
@@ -424,18 +440,6 @@
                 table.addData(tableData, true);
             });
 
-            editModal.addEventListener('show.mdb.modal', (e) => {
-                // debug(e);
-                debug('editForm modal started');
-                debug(e.relatedTarget.getAttribute('data-mdb-rowid'))
-                let rowId = e.relatedTarget.getAttribute('data-mdb-rowid');
-                let rowData = table.getRow(rowId).getData();
-                debug(rowData.index)
-                if (rowData) {
-                    document.querySelector("#athletelookup").src = `https://challengealmere.s3.eu-west-1.amazonaws.com/2023/index.html?queries[bibnr]=${rowData.bib}`;
-                }
-
-            });
         }
 
         main();
