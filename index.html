@@ -326,8 +326,8 @@
                     cssClass: "actionCol",
                     formatter: function (cell, formatterParams, onRendered) {
                         // ${yrd[cell.getRow().getData().year] && yrd[cell.getRow().getData().year].CompleteData ? 'disabled' : ''}
-                        return `<button class="btn btn-primary btn-floating btn-sm ripple" style="" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-rowId="${cell.getRow().getData().index}">
-                                    <i class="far fa-edit" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-rowId="${cell.getRow().getData().index}"></i>
+                        return `<button class="btn btn-primary btn-floating btn-sm ripple" style="" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}">
+                                    <i class="far fa-edit" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}"></i>
                                 ` //return the contents of the cell;
                     }
                 });
@@ -339,12 +339,11 @@
                 editModal.addEventListener('show.mdb.modal', (e) => {
                     // debug(e);
                     console.log('editForm modal started');
-                    console.log(e.relatedTarget.getAttribute('data-mdb-rowid'))
-                    let rowId = e.relatedTarget.getAttribute('data-mdb-rowid');
-                    let rowData = table.getRow(rowId).getData();
-                    console.log(rowData.index)
-                    if (rowData) {
-                        document.querySelector("#athletelookup").src = `https://challengealmere.s3.eu-west-1.amazonaws.com/2023/index.html?queries[bibnr]=${rowData.bib}`;
+                    console.log(e.relatedTarget.getAttribute('data-mdb-bib'))
+                    let bib = e.relatedTarget.getAttribute('data-mdb-bib');
+
+                    if (bib) {
+                        document.querySelector("#athletelookup").src = `https://challengealmere.s3.eu-west-1.amazonaws.com/2023/index.html?queries[bibnr]=${bib}`;
                     }
 
                 });
