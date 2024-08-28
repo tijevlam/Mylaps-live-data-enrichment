@@ -44,10 +44,28 @@ db.run(`
 const TCP_PORT = 3389; //3097; // Use the PORT environment variable for App Engine
 
 // read bibs csv file and store in memory
-const bibs = fs.readFileSync('Bibs_202408280939.csv', 'utf8').split('\n').map(line => line.split(','));
+const Papa = require("papaparse");
+async function parseCsv(file) {
+    return new Promise((resolve, reject) => {
+        Papa.parse(fs.createReadStream(file), {
+            header: true,
+            skipEmptyLines: true,
+            delimiter: ';',
+            // transform: value => {
+            //     return value.trim()
+            // },
+            complete: results => {
+                return resolve(results.data)
+            },
+            error: error => {
+                return reject(error)
+            }
+        })
+    })
+}
 
-function matchChipToBib(chip) {
-    const bib = bibs.find(bib => bib[0] === chip);
+function matchChipToBib(bibs, chip) {
+    const bib = bibs.find(bib => bib.Chip === chip);
     return bib ? bib : null;
 }
 
@@ -70,7 +88,7 @@ function handleAckPing(socket, message) {
   console.log('Sent AckPong message:', ackPongMessage);
 }
 
-function parseMessage(rawMessage, socket) {
+function parseMessage(bibs, rawMessage, socket) {
   const parts = rawMessage.split('@');
   if (parts.length < 3) {
     return { error: 'Invalid message format' };
@@ -96,7 +114,7 @@ function parseMessage(rawMessage, socket) {
       parsedData = parseStoreMessage(data);
       break;
     case 'Passing':
-      parsedData = parsePassingMessage(data);
+      parsedData = parsePassingMessage(bibs, data);
       break;
     case 'Marker':
       parsedData = parseMarkerMessage(data);
@@ -132,7 +150,7 @@ function parseStoreMessage(data) {
     });
 }
 
-function parsePassingMessage(data) {
+function parsePassingMessage(bibs, data) {
     const records = data.split('@').filter(r => r.trim() !== '');
     return records.map(record => {
         const pairs = record.split('|');
@@ -142,7 +160,7 @@ function parsePassingMessage(data) {
             if(['c','d','l','b','n','t'].includes(key)) {
                 passingData[key] = value;
                 if(key === 'c') {
-                    const bib = matchChipToBib(value);
+                    const bib = matchChipToBib(bibs, value);
                     if(bib) {
                         // add all keys and their values in bib to passingData
                         bib.forEach(([bkey, bvalue]) => {
@@ -211,129 +229,105 @@ function storeMessage(parsedMessage) {
   `, [parsedMessage.sourceName, parsedMessage.function, JSON.stringify(parsedMessage.data), parsedMessage.messageNumber]);
 }
 
-app.get('/', (req, res) => {
-		console.log("requested index html")
-		res.sendFile(join(__dirname, 'index.html'));
 
-	});
+
+
+async function main(){
+    const bibs = await parseCsv("Bibs_202408280939.csv");
+
+    app.get('/', (req, res) => {
+        console.log("requested index html")
+        res.sendFile(join(__dirname, 'index.html'));
+
+    });
 
 // Socket.IO connection
-io.on('connection', (iosocket) => {
-  console.log('A user connected');
+    io.on('connection', (iosocket) => {
+        console.log('A user connected');
 
-  // Get data from the last 3 minutes
-  const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
-  db.all(`
+        // Get data from the last 3 minutes
+        const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
+        db.all(`
     SELECT * FROM messages
     WHERE timestamp >= ?
   `, [threeMinutesAgo.toISOString()], (err, rows) => {
-    if (err) {
-      console.error('Error fetching data:', err);
-    } else {
-      iosocket.emit('initial data', rows);
-    }
-  });
-  
-  iosocket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
-});
+            if (err) {
+                console.error('Error fetching data:', err);
+            } else {
+                iosocket.emit('initial data', rows);
+            }
+        });
 
-
-server.listen(80); // Use the PORT environment variable for App Engine
-
+        iosocket.on('disconnect', () => {
+            console.log('user disconnected');
+        });
+    });
 
 
 // TCP server
-const tcpServer = net.createServer((socket) => {
-  console.log('TCP client connected');
-let clog = log.entry(metadata, 'TCP client connected');
-log.write(clog);
-  // Send a Ping message upon connection (for Version 2)
-  //socket.write('Tije@Ping@$');
+    const tcpServer = net.createServer((socket) => {
+        console.log('TCP client connected');
+        let clog = log.entry(metadata, 'TCP client connected');
+        log.write(clog);
 
-var rawData = ""; // variable that collects chunks
-var sep = "$";
 
-socket.on('data', function(chunk) {
-    rawData += chunk;
+        var rawData = ""; // variable that collects chunks
+        var sep = "$";
 
-    var sepIndex = rawData.indexOf(sep);
-    var didFindMsg = sepIndex != -1;
+        socket.on('data', function(chunk) {
+            rawData += chunk;
 
-    if (didFindMsg) {
-        var pass = rawData.slice(0, sepIndex);
-        rawData = rawData.slice(sepIndex + 1);
-        
-        console.log(pass);
-        const rawMessage = pass.toString().trim();
-        console.log('Received:', rawMessage);
-        let mlog = log.entry(metadata, rawMessage);
-        log.write(mlog)
-        const messageString = bufferToString(pass);
-        console.log('Received message:', messageString);
-    
-        const parsedMessage = parseMessage(messageString, socket);
-        console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
-        let plog = log.entry(metadata, parsedMessage);
-        log.write(plog)
-        if (parsedMessage.function === 'AckPing') {
-            handleAckPing(socket, parsedMessage);
-        }
-          
-        storeMessage(parsedMessage);
-        if(parsedMessage.function === 'Passing') {
-            io.emit('new message', parsedMessage);
-        }
-    
-    }
-});
+            var sepIndex = rawData.indexOf(sep);
+            var didFindMsg = sepIndex != -1;
 
-  /*socket.on('data', (data) => {
-    console.log(data);
-    const rawMessage = data.toString().trim();
-    console.log('Received:', rawMessage);
-    let mlog = log.entry(metadata, rawMessage);
-    log.write(mlog)
-    const messageString = bufferToString(data);
-    console.log('Received message:', messageString);
-    */
-    /*
-    if(rawMessage.indexOf('Pong') > -1){
-      socket.write('Tije@AckPong@Version2.1@$');
-      let pongLog = log.entry(metadata, 'ackpong written');
-      log.write(pongLog);
-    }
-    */
-/*
-      
-    const parsedMessage = parseMessage(messageString, socket);
-    console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
-    let plog = log.entry(metadata, rawMessage);
-    log.write(plog)
-    if (parsedMessage.function === 'AckPing') {
-        handleAckPing(socket, parsedMessage);
-    }
-      
-    storeMessage(parsedMessage);
-    if(parsedMessage.function === 'Passing') {
-        io.emit('new message', parsedMessage);
-    }
-  });*/
-  
-  socket.on('end', () => {
-        console.log('Client disconnected');
+            if (didFindMsg) {
+                var pass = rawData.slice(0, sepIndex);
+                rawData = rawData.slice(sepIndex + 1);
+
+                console.log(pass);
+                const rawMessage = pass.toString().trim();
+                console.log('Received:', rawMessage);
+                let mlog = log.entry(metadata, rawMessage);
+                log.write(mlog)
+                const messageString = bufferToString(pass);
+                console.log('Received message:', messageString);
+
+                const parsedMessage = parseMessage(bibs, messageString, socket);
+                console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
+                let plog = log.entry(metadata, parsedMessage);
+                log.write(plog)
+                if (parsedMessage.function === 'AckPing') {
+                    handleAckPing(socket, parsedMessage);
+                }
+
+                storeMessage(parsedMessage);
+                if(parsedMessage.function === 'Passing') {
+                    io.emit('new message', parsedMessage);
+                }
+
+            }
+        });
+
+
+        socket.on('end', () => {
+            console.log('Client disconnected');
+        });
+
+        socket.on('error', (err) => {
+            console.error('Socket error:', err);
+        });
+
     });
 
-    socket.on('error', (err) => {
-        console.error('Socket error:', err);
+
+    // Start the HTTP Server to start the web interface
+    server.listen(80);
+
+    // Start the TCP/IP Server to listen to Mylaps Exporter
+    tcpServer.listen(TCP_PORT, () => {
+        console.log(`TCP server listening on port ${TCP_PORT}`);
     });
 
-  // ... (rest of your TCP server code)
-});
+}
 
-tcpServer.listen(TCP_PORT, () => {
-  console.log(`TCP server listening on port ${TCP_PORT}`);
-});
-
-// HTTP server
+main();
