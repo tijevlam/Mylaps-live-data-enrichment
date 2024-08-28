@@ -256,11 +256,9 @@ async function main(){
 
         // Get data from the last 3 minutes
         const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
-        console.log(threeMinutesAgo.toISOString());
-        db.all(`
-    SELECT * FROM messages
-    WHERE timestamp >= ?
-  `, [threeMinutesAgo.toISOString()], (err, rows) => {
+        console.log(threeMinutesAgo.toISOString())
+        //        SELECT * FROM messages        WHERE timestamp >= ?            `, [threeMinutesAgo.toISOString()]
+        db.all(`SELECT * FROM messages ORDER BY timestamp DESC LIMIT 30;`, (err, rows) => {
             if (err) {
                 console.error('Error fetching data:', err);
             } else {
