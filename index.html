@@ -103,7 +103,7 @@
                     time: message.t ? message.t.split(".")[0] : "",
                     raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
                     info: message.Info,
-                    si: startlist.find(s => s.bibnr == message.Bib) ? startlist.find(s => s.bibnr == message.Bib) : ""
+                    si: startlist.find(s => s.bibnr == message.Bib) ? [startlist.find(s => s.bibnr == message.Bib)] : ""
                 };
 
                 /*
