@@ -42,6 +42,9 @@
     <h1>MYLAPS T&S TCP-IP Monitor</h1>
     <div id="mylaps" class="table tabulator"></div>
     <script>
+        const capitalize = s => s && s[0].toUpperCase() + s.slice(1);
+
+        const decapitalize = s => s && s[0].toLowerCase() + s.slice(1);
         async function main(){
             countries = await fetchCountries();
             domiciles = await fetchDomiciles();
