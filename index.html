@@ -90,7 +90,7 @@
                 }
 
 
-                return {
+                let pdata = {
                     bib: message.Bib,
                     chipcode: message.c,
                     function: message.function,
@@ -101,9 +101,15 @@
                     laps: message.l,
                     time: message.t ? message.t.split(".")[0] : "",
                     raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
-                    info: message.Info,
-                    si: startlist.find(s => s.bibnr == message.Bib) ? [startlist.find(s => s.bibnr == message.Bib)] : ""
+                    info: message.Info
                 };
+
+                if (startlist.find(s => s.bibnr == message.Bib)) {
+                    Object.assign(pdata, startlist.find(s => s.bibnr == message.Bib));
+                }
+
+                 return pdata;
+
 
                 /*
                 const row = document.createElement('tr');
