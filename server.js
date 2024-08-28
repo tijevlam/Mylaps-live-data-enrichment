@@ -234,7 +234,7 @@ function storeMessage(parsedMessage) {
     for(const d of parsedMessage.data) {
         db.run(`
         INSERT INTO messages (sourceName, function, messageNumber, c, d, l, b, n, t, Bib, Name, Info, Cat, Wave)
-        VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [parsedMessage.sourceName, parsedMessage.function, parsedMessage.messageNumber, d.c, d.d, d.l, d.b, d.n, d.t, d.Bib, d.Name, d.Info, d.Cat, d.Wave])
     }
 }
