@@ -45,6 +45,15 @@
         const capitalize = s => s && s[0].toUpperCase() + s.slice(1);
 
         const decapitalize = s => s && s[0].toLowerCase() + s.slice(1);
+
+        const decodeS = function (e, field, rowId) {
+            try {
+                return JSON.parse(String(e).replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&sect;/g, "$").replace(/&copy;/g, "©").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#45;/g, "-").replace(/&nbsp;/g, " "))
+            } catch (err) {
+                debug(e, field, rowId, err)
+                return ''
+            }
+        }
         async function main(){
             countries = await fetchCountries();
             domiciles = await fetchDomiciles();
