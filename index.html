@@ -9,6 +9,9 @@
     <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css" rel="stylesheet">
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
     <link href="https://history.hollandtriathlon.nl/assets/css/tabulator_materialize.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/mdb.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap">
         <script>
         let countries;
 
@@ -60,15 +63,15 @@
                     {title:"Info", field:"info", sorter:"string", visible:false},
                     {title:"Speaker Info", field: "si", formatter:function(cell, formatterParams, onRendered){
                             cell.getRow(); // get row component
-                            let si;
+                            let si ='';
                             if(cell.getRow().getData()?.history) {
                                 si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
                             }
                             if(cell.getRow().getData()?.worldTriProfile) {
-                                si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/worldtri_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                                si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png" width="20" style="margin-right: 10px; padding:0;">`;
                             }
                             if(cell.getRow().getData()?.trirating) {
-                                si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/trirating_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                                si += `<span class="icon chartup"></span>`;
                             }
                             // add gelreman
                             if(cell.getRow().getData()?.gelreman) {
