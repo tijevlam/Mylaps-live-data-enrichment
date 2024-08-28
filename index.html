@@ -160,11 +160,11 @@
 
             if(record.country){
                 record.countryData = _.partition(countries, (a) =>  {if(a.IOC && a.IOC == record.country || a.FIFA && a.FIFA == record.country || a["ISO 3166-1 alpha2"] == record.country){ return a.IOC }})[0][0];
-                // li += '</h3><h3><img src="assets/img/flags/'
+                // li += '</h3><h3><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/'
                 // + record.countryData.iso.toLowerCase()
                 // +'.gif" height="35"> ';
                 // console.log(record.countryData);
-                li += record.countryData.hasOwnProperty("ISO 3166-1 alpha2") ? `<br/><img src="assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">` : `<br/>(${record.country})`; // <i class="flag flag-${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}"></i>
+                li += record.countryData.hasOwnProperty("ISO 3166-1 alpha2") ? `<br/><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">` : `<br/>(${record.country})`; // <i class="flag flag-${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}"></i>
             }
             if(record.domicile){
                 record.domicileData = _.partition(domiciles, (a) =>  {if(a.domicile && a.domicile == record.domicile ){ return a.domicile }})[0][0];
@@ -346,10 +346,10 @@
             li += `<ul class="nav nav-tabs nav-fill mb-3" id="si-tabs" role="tablist">`
 
             li += createTab(1, {"src": "", "width": "", "style": ""}, ``);
-            li += createTab(2, {"src": "assets/img/world-triathlon.png", "width": "20", "style": "margin-right: 10px;"}, ``);
-            li += createTab(3, {"src": "assets/img/challenge_icon.png", "width": "20", "style": "margin-right: 10px;  padding:0;"}, `(${finishes} / ${record.history && record.history.length ? record.history.length-1 : ''})`);
-            li += createTab(4, {"src": "assets/img/gelreman.png", "width": "20", "style": "width:20px; height:20px; margin-right: 10px; padding:0;"}, `${gelremanIn2023 ? '<span class="badge bg-danger badge-dot"></span>' : ''} (${gelremanFinishes} / ${record.gelreman && record.gelreman.length ? record.gelreman.length : ''})`);
-            li += createTab(5, {"src": "assets/img/frysman-icon.png", "width": "20", "style": "width:20px; height:20px; margin-right: 10px; padding:0;"}, `(${frysmanFinishes} / ${record.frysman && record.frysman.length ? record.frysman.length : ''})`);
+            li += createTab(2, {"src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png", "width": "20", "style": "margin-right: 10px;"}, ``);
+            li += createTab(3, {"src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png", "width": "20", "style": "margin-right: 10px;  padding:0;"}, `(${finishes} / ${record.history && record.history.length ? record.history.length-1 : ''})`);
+            li += createTab(4, {"src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman.png", "width": "20", "style": "width:20px; height:20px; margin-right: 10px; padding:0;"}, `${gelremanIn2023 ? '<span class="badge bg-danger badge-dot"></span>' : ''} (${gelremanFinishes} / ${record.gelreman && record.gelreman.length ? record.gelreman.length : ''})`);
+            li += createTab(5, {"src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman-icon.png", "width": "20", "style": "width:20px; height:20px; margin-right: 10px; padding:0;"}, `(${frysmanFinishes} / ${record.frysman && record.frysman.length ? record.frysman.length : ''})`);
 
 
             li += `</ul>
@@ -379,7 +379,7 @@
                 // }
 
                 li +=`<div class="tab-pane fade" id="si-tabs-2" role="tabpanel" aria-labelledby="si-tab-2" >
-			<h4><img src="assets/img/world-triathlon.png" width="20" style="margin-right: 10px;" />World Triathlon Profile information</h4><div style="padding-left:15px;">`;
+			<h4><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png" width="20" style="margin-right: 10px;" />World Triathlon Profile information</h4><div style="padding-left:15px;">`;
 
                 if(record.worldTriProfile[0].stats){
                     li +=`Races logged by World Triathlon: <br/><b>${record.worldTriProfile[0].stats.race_finishes}</b> finishes in <b>${record.worldTriProfile[0].stats.race_starts}</b> starts, <b>${record.worldTriProfile[0].stats.race_wins}</b> wins, <b>${record.worldTriProfile[0].stats.race_podiums}</b> podiums.`
@@ -405,7 +405,7 @@
 
             if(record.history){
                 li += `<div class="tab-pane fade" id="si-tabs-3" role="tabpanel" aria-labelledby="si-tab-3" >
-			<h3><img src="assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;" \>CAA History <br/>(${finishes} finishes / ${record.history.length-1} starts):</h3><table style="width:100%;">`
+			<h3><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;" \>CAA History <br/>(${finishes} finishes / ${record.history.length-1} starts):</h3><table style="width:100%;">`
 
 
                 let fastest_time = _.orderBy(
@@ -441,7 +441,7 @@
                                     let flag = record.countryData["ISO 3166-1 alpha2"].toLowerCase();
                                     res += `<span class="badge badge-secondary"><i class="flag flag-${flag} me-2"></i> ${st.trim()}</span>`;
                                 } else if (st.trim().toLowerCase().indexOf('almeer') > -1) {
-                                    res += `<span class="badge badge-warning""><img src="assets/img/flags/4x3/almere.svg" height="11" class="me-2"\>${st.trim()}</span> `;
+                                    res += `<span class="badge badge-warning""><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/almere.svg" height="11" class="me-2"\>${st.trim()}</span> `;
                                 } else if (st.trim().toLowerCase().indexOf('celebration') > -1) {
                                     res += `<span class="badge badge-warning">💃 ${st.trim()}</span>   `;
                                 } else if (st.trim().toLowerCase().indexOf('laatste finisher') > -1) {
@@ -528,7 +528,7 @@
 
             if(record.frysman){
                 li += `<div class="tab-pane fade" id="si-tabs-5" role="tabpanel" aria-labelledby="si-tab-5" >
-			<h3><img src="assets/img/frysman-icon.png" style="width:20px; height:20px; padding:0;"/> Frysman: </h3>`
+			<h3><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman-icon.png" style="width:20px; height:20px; padding:0;"/> Frysman: </h3>`
                 record.frysman.reverse().forEach(function(fr){
                     li += `<b>${fr.year} </b> ${fr.raceTime} (${fr.pos}${fr.posCat ? ", "+fr.cat+": "+fr.posCat : ""})<br/>`
                 });
@@ -537,7 +537,7 @@
 
             if(record.gelreman){
                 li += `<div class="tab-pane fade" id="si-tabs-4" role="tabpanel" aria-labelledby="si-tab-4" >
-			<h3> <img src="assets/img/gelreman.png" style="width:20px; height:20px; padding:0;"/> Gelreman: </h3><table>`
+			<h3> <img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman.png" style="width:20px; height:20px; padding:0;"/> Gelreman: </h3><table>`
                 _.orderBy(record.gelreman, ['year'], 'desc').forEach(function(gm){
                     li += `<tr>
 						<td>${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
@@ -625,13 +625,13 @@
                 for(let country of partCountries){
                     // Long distance
                     if(country.participationsThisYear && country.participationsThisYear > 0){
-                        countryOverview += `<tr><td><img src="assets/img/flags/4x3/${country["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2"> ${country.Country}</td><td>${country.participationsThisYear}</td></tr>`;
+                        countryOverview += `<tr><td><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${country["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2"> ${country.Country}</td><td>${country.participationsThisYear}</td></tr>`;
                     }
                 }
                 for(let country of partCountriesMd){
                     //Middle distance
                     if(country.participationsThisYearMd && country.participationsThisYearMd > 0){
-                        countryOverviewMd += `<tr><td><img src="assets/img/flags/4x3/${country["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2"> ${country.Country}</td><td>${country.participationsThisYearMd}</td></tr>`;
+                        countryOverviewMd += `<tr><td><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${country["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2"> ${country.Country}</td><td>${country.participationsThisYearMd}</td></tr>`;
                     }
                 }
                 countryOverview += `</table>`;
@@ -745,7 +745,7 @@
 
             if(record.country){
                 li += `<h5>
-					<img src="assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">
+					<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">
 	  				${record.countryData.Country}
 				   </h5>`;
 
