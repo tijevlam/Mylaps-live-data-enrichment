@@ -61,28 +61,29 @@
                     {title:"Time", field:"time", sorter:"time"},
                     {title:"Race Time", field:"raceTime", sorter:"time"},
                     {title:"Info", field:"info", sorter:"string", visible:false},
-                    {title:"Speaker Info", field: "si", formatter:function(cell, formatterParams, onRendered){
+                    {title: "Speaker Info", field: "si", formatter: function (cell, formatterParams, onRendered) {
                             cell.getRow(); // get row component
-                            let si ='';
-                            if(cell.getRow().getData()?.history) {
+                            let si = '';
+                            if (cell.getRow().getData()?.history) {
                                 si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
                             }
-                            if(cell.getRow().getData()?.worldTriProfile) {
+                            if (cell.getRow().getData()?.worldTriProfile) {
                                 si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png" width="20" style="margin-right: 10px; padding:0;">`;
                             }
-                            if(cell.getRow().getData()?.trirating) {
+                            if (cell.getRow().getData()?.trirating) {
                                 si += `<span class="icon chartup"></span>`;
                             }
                             // add gelreman
-                            if(cell.getRow().getData()?.gelreman) {
+                            if (cell.getRow().getData()?.gelreman) {
                                 si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
                             }
                             // add frysman
-                            if(cell.getRow().getData()?.frysman) {
+                            if (cell.getRow().getData()?.frysman) {
                                 si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
                             }
                             return si
-                        },
+                        }
+                    },
                     {title: "", headerSort: false, formatter: customResponsiveCollapseFormatter, responsive: 0, cssClass: "actionCol"}
                 ],
                 height:"100%",
