@@ -256,6 +256,7 @@ async function main(){
 
         // Get data from the last 3 minutes
         const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
+        console.log(threeMinutesAgo.toISOString());
         db.all(`
     SELECT * FROM messages
     WHERE timestamp >= ?
