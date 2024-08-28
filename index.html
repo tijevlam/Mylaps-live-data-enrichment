@@ -49,13 +49,16 @@
     var table = new Tabulator("#mylaps", {
     columns:[
         {title:"Bib", field:"bib", sorter:"number", },
-        {title:"Chip Code", field:"chipcode", sorter:"alphanum" },
-        {title:"Function", field:"function", sorter:"string"},
+        {title:"Chip Code", field:"chipcode", sorter:"alphanum", visible:false
+        {title:"Function", field:"function", sorter:"string", visibile:false},
         {title:"Source Name", field:"sourceName", sorter:"string"},
         {title:"Name", field:"name", sorter:"string"},
+        {title:"Wave", field:"wave", sorter:"string"},
+        {title:"Cat", field:"cat", sorter:"string"},
         {title:"Laps", field:"laps", sorter:"number"},
         {title:"Time", field:"time", sorter:"time"},
-        {title:"Race Time", field:"raceTime", sorter:"time"}
+        {title:"Race Time", field:"raceTime", sorter:"time"},
+        {title:"Info", field:"info", sorter:"string"},
     ],
     height:"100%",
     maxHeight:"100%"
@@ -87,14 +90,17 @@
             }
 
         return {
-                bib: message.b,
+                bib: message.Bib,
                 chipcode: message.c,
                 function: message.function,
                 sourceName: message.sourceName,
-                name: "",
+                name: message.Name,
+                wave: message.Wave,
+                cat: message.Cat,
                 laps: message.l,
                 time: message.t ? message.t.split(".")[0] : "",
-                raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)
+                raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
+                info: message.Info
             };
             
             /* 
