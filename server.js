@@ -36,8 +36,17 @@ db.run(`
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     sourceName TEXT,
     function TEXT,
-    data TEXT,
-    messageNumber TEXT
+    messageNumber TEXT,
+    c TEXT,
+    d TEXT,
+    l NUMBER,
+    b TEXT,
+    n TEXT,
+    t TEXT,
+    Name TEXT,
+    Info TEXT,
+    Cat TEXT,
+    Wave TEXT
   )
 `);
 
@@ -80,7 +89,7 @@ function handleAckPing(socket, message) {
   const parameters = message.data.parameters;
 
   // Construct the AckPong message (Version 2)
-  const ackPongMessage = `T&S@AckPong@${version || 'Version2.1'}@${parameters && parameters.lenght > 0 ? parameters.join('|') : ''}$`;
+  const ackPongMessage = `T&S@AckPong@${version || 'Version2.1'}@${parameters && parameters.length > 0 ? parameters.join('|') : ''}$`;
 
   // Send the AckPong message
   socket.write(ackPongMessage);
@@ -221,10 +230,12 @@ function parsePongMessage(data) {
 
 // Store messages in the database
 function storeMessage(parsedMessage) {
-  db.run(`
-    INSERT INTO messages (sourceName, function, data, messageNumber)
-    VALUES (?, ?, ?, ?)
-  `, [parsedMessage.sourceName, parsedMessage.function, JSON.stringify(parsedMessage.data), parsedMessage.messageNumber]);
+    for(const d of parsedMessage.data) {
+        db.run(`
+        INSERT INTO messages (sourceName, function, messageNumber, c, d, l, b, n, t, Name, Info, Cat, Wave)
+        VALUES (?, ?, ?, ?)
+      `, [parsedMessage.sourceName, parsedMessage.function, parsedMessage.messageNumber, d.c, d.d, d.l, d.b, d.n, d.t, d.Name, d.Info, d.Cat, d.Wave])
+    }
 }
 
 
@@ -252,6 +263,7 @@ async function main(){
             if (err) {
                 console.error('Error fetching data:', err);
             } else {
+                console.log(rows);
                 iosocket.emit('initial data', rows);
             }
         });
@@ -298,8 +310,9 @@ async function main(){
                     handleAckPing(socket, parsedMessage);
                 }
 
-                storeMessage(parsedMessage);
+
                 if(parsedMessage.function === 'Passing') {
+                    storeMessage(parsedMessage);
                     io.emit('new message', parsedMessage);
                 }
 
