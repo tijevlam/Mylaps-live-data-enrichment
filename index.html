@@ -61,9 +61,22 @@
                     {title:"Speaker Info", field: "si", formatter:function(cell, formatterParams, onRendered){
                             cell.getRow(); // get row component
                             let si;
-                            let history = cell.getRow().getData()?.history;
-                            if(history && history.length > 0) {
-                                si += `CAA`;
+                            if(cell.getRow().getData()?.history) {
+                                si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                            }
+                            if(cell.getRow().getData()?.worldTriProfile) {
+                                si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/worldtri_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                            }
+                            if(cell.getRow().getData()?.trirating) {
+                                si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/trirating_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                            }
+                            // add gelreman
+                            if(cell.getRow().getData()?.gelreman) {
+                                si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                            }
+                            // add frysman
+                            if(cell.getRow().getData()?.frysman) {
+                                si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
                             }
                             return si
                         },
