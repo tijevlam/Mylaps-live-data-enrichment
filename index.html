@@ -123,6 +123,15 @@
             */
         }
 
+        socket.on('initial data', (messages) => {
+            console.log(message);
+            let tableData =[];
+            for(const d of message.data) {
+                tableData.push(displayMessage(d));
+            }
+            table.setData(tableData, true);
+        });
+
         socket.on('all messages', (messages) => {
             console.log(messages);
             messageList.innerHTML = '';
