@@ -1327,7 +1327,7 @@
                     let bib = e.relatedTarget.getAttribute('data-mdb-bib');
 
                     if (bib) {
-                        document.querySelector("#athleteDetails").innerHTML = ulWriter('', debugdata.find(d => d.bibnr == bib));
+                        document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == bib));
                         setupTabs();
                     }
 
