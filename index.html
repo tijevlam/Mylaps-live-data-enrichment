@@ -42,6 +42,21 @@
 <body>
     <h1>MYLAPS T&S TCP-IP Monitor</h1>
     <div id="mylaps" class="table tabulator"></div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade modal-lg" id="editRowFormModal" tabindex="-1" role="dialog" aria-labelledby="editFormTitle"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title w-100" id="editFormTitle">View Record</h4>
+                    <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const capitalize = s => s && s[0].toUpperCase() + s.slice(1);
 
@@ -78,16 +93,18 @@
 
                         if(['bib', 'name', 'sourceName', 'cat', 'laps', 'time', 'raceTime'].includes(column.field)){
                             column.responsive = 0;
+                            column.visible = true;
                         } else if(['wave'].includes(column.field)){
+                            column.visible = true;
                             column.responsive = 2;
                         } else {
+                            column.visible = false;
                             column.responsive = 3;
                         }
 
 
-
                         if(['function', 'info', 'chipcode'].includes(column.field)){
-                            column.visible =false;
+                            column.visible = false;
                         }
 
                         if(['bib'].includes(column.field)){
@@ -276,49 +293,7 @@
             });
 
             table.on('build', function() {
-                let customResponsiveCollapseFormatter = function (cell, formatterParams, onRendered) {
-                    let self = this,
-                        open = false,
-                        el = document.createElement("div");
 
-                    function toggleList(isOpen) {
-                        let collapse = cell.getRow().getElement().getElementsByClassName("tabulator-responsive-collapse")[0];
-
-                        open = isOpen;
-
-                        if (open) {
-                            el.classList.add("open");
-                            if (collapse) {
-                                collapse.style.display = '';
-                            }
-                        } else {
-                            el.classList.remove("open");
-                            if (collapse) {
-                                collapse.style.display = 'none';
-                            }
-                        }
-                    }
-
-                    el.classList.add("tabulator-responsive-collapse-toggle");
-                    el.innerHTML = `<span class='tabulator-responsive-collapse-toggle-open'><button class="btn btn-secondary btn-floating btn-sm ripple" style=""><i class="fas fa-plus fa-xs"></i></button></span><span class='tabulator-responsive-collapse-toggle-close'><button class="btn btn-secondary btn-floating btn-sm ripple" style=""><i class="fas fa-minus fa-xs"></i></button></span>`;
-
-
-                    // "<span class='tabulator-responsive-collapse-toggle-open'>+</span><span class='tabulator-responsive-collapse-toggle-close'>-</span>";
-
-                    cell.getElement().classList.add("tabulator-row-handle");
-
-                    if (self.table.options.responsiveLayoutCollapseStartOpen) {
-                        open = true;
-                    }
-
-                    el.addEventListener("click", function () {
-                        toggleList(!open);
-                    });
-
-                    toggleList(open);
-
-                    return el;
-                }
 
                 table.addColumn({title: "Speaker Info", field: "si", responsive: 0, headerSort: false, formatter: function (cell, formatterParams, onRendered) {
                         cell.getRow(); // get row component
@@ -343,7 +318,19 @@
                         return si
                     }}, false);
 
-                table.addColumn({title: "", headerSort: false, formatter: customResponsiveCollapseFormatter, responsive: 0, cssClass: "actionCol"}, false);
+
+                table.addColumn({
+                    title: "",
+                    headerSort: false, /*cellClick: function(){  },*/
+                    responsive: 0,
+                    cssClass: "actionCol",
+                    formatter: function (cell, formatterParams, onRendered) {
+                        // ${yrd[cell.getRow().getData().year] && yrd[cell.getRow().getData().year].CompleteData ? 'disabled' : ''}
+                        return `<button class="btn btn-primary btn-floating btn-sm ripple" style="" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-rowId="${cell.getRow().getData().index}">
+                                    <i class="far fa-edit" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-rowId="${cell.getRow().getData().index}"></i>
+                                ` //return the contents of the cell;
+                    }
+                });
 
 
             });
@@ -442,5 +429,64 @@
     </script>
     <script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/popper.min.js"></script>
     <script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/mdb.min.js"></script>
+<style>
+    tr.year:nth-child(even) {background: #CCC}
+    tr.year:nth-child(odd) {background: #FFF}
+
+    td, th{
+        padding: 5px;
+    }
+
+    .almereRecord{
+        background-color: pink !important;
+    }
+
+    @font-face {font-family: "Font Awesome 6 Pro Thin";
+        src: url("assets/css/1e66caed7f0d4a1bc39c8c2426573134.eot"); /* IE9*/
+        src: url("assets/css/1e66caed7f0d4a1bc39c8c2426573134.eot?#iefix") format("embedded-opentype"), /* IE6-IE8 */
+        url("assets/css/1e66caed7f0d4a1bc39c8c2426573134.woff2") format("woff2"), /* chrome、firefox */
+        url("assets/css/1e66caed7f0d4a1bc39c8c2426573134.woff") format("woff"), /* chrome、firefox */
+        url("assets/css/1e66caed7f0d4a1bc39c8c2426573134.ttf") format("truetype"), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+        url("assets/css/1e66caed7f0d4a1bc39c8c2426573134.svg#Font Awesome 6 Pro Thin") format("svg"); /* iOS 4.1- */
+    }
+
+    .icon{
+        color: #000;
+        line-height: 1.2em;
+        font-family: "Font Awesome 6 Pro Thin"!important;
+        font-size: 22px;
+        /*background-color: #FFF;*/
+        border-top-width: 0px;
+        border-right-width: 0px;
+        border-bottom-width: 0px;
+        border-left-width: 0px;
+    }
+
+    .swim:before{
+        content: "\f5c4"
+    }
+    .bike:before{
+        content: "\f84a";
+    }
+    .run:before{
+        content: "\f70c";
+    }
+    .medal:before{
+        content: "\f5a2";
+    }
+    .ranking:before{
+        content: "\e561";
+    }
+    .chartup:before{
+        content: "\e0e5";
+    }
+    .megaphone:before{
+        content:  "\f0a1";
+    }
+    .space-left{
+        margin-left: 15px;
+    }
+</style>
+
 </body>
 </html>
