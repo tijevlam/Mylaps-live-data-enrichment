@@ -124,10 +124,10 @@
         }
 
         socket.on('initial data', (messages) => {
-            console.log(message);
+            console.log(messages);
             let tableData =[];
-            for(const d of message.data) {
-                tableData.push(displayMessage(d));
+            for(const m of messages) {
+                tableData.push(displayMessage(m));
             }
             table.setData(tableData, true);
         });
