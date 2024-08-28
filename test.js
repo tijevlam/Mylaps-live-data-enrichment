@@ -239,8 +239,15 @@ async function main(){
 //console.log(bibs);
 
     for (let d of data){
-        console.log(matchChipToBib(bibs, d.c));
+        // console.log(typeof d, d);
+        const bib = matchChipToBib(bibs, d.c);
+        if(bib) {
+            // console.log(bib);
+            // add all keys and their values in bib to passingData
+            Object.assign(d, bib);
+        }
     }
+    console.log(data[0])
 
 }
 

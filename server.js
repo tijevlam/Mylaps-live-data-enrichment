@@ -159,17 +159,15 @@ function parsePassingMessage(bibs, data) {
             const [key, value] = pair.split('=');
             if(['c','d','l','b','n','t'].includes(key)) {
                 passingData[key] = value;
-                if(key === 'c') {
-                    const bib = matchChipToBib(bibs, value);
-                    if(bib) {
-                        // add all keys and their values in bib to passingData
-                        bib.forEach(([bkey, bvalue]) => {
-                            passingData[bkey] = bvalue;
-                        });
-                    }
-                }
             }
+
         });
+        if(passingData.c) {
+            const bib = matchChipToBib(bibs, passingData.c);
+            if (bib) {
+                Object.assign(passingData, bib);
+            }
+        }
         return passingData;
     });
 }
