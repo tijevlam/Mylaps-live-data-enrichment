@@ -1261,19 +1261,23 @@
                     rowTable = document.createElement("table")
 
                     rowTable.innerHTML = `
-                       <tr><td>${data.function}</td>`
-                    rowTable.innerHTML += `<td><table><tr><td>`
-                    if (data.raceType) {
-                        rowTable.innerHTML += `<span class="badge ${setRaceTypeBadge(data.raceType)} mt-2 mb-2 me-2"> ${data.raceType} </span>`;
-                    }
-                    rowTable.innerHTML += `</td></tr><tr><td>
-                                            <h1 style="color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h1>
-                        </td></tr></table></td></tr>`;
-                    rowTable.innerHTML += `<tr><td>${data.bib}</td><td>`;
-                    if (data.Cat) {
-                        rowTable.innerHTML += `<span class="badge badge-primary mt-2 mb-2"> ${data.Cat}</span> `;
-                    }
-                    rowTable.innerHTML += `${data.cat}</td></tr>`;
+                        <tr>
+                            <td><span class="badge badge-info mt-2 mb-2"> ${data.sourceName}</span></td>
+                            <td>
+                                <table>
+                                    <tr>
+                                        <td><span class="badge ${setRaceTypeBadge(data.raceType)} mt-2 mb-2 me-2"> ${data.raceType} </span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><h1 style="color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h1></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>`;
+                        <tr>
+                            <td>${data.bib}</td>
+                            <td><span class="badge badge-primary mt-2 mb-2"> ${data.Cat}</span></td>
+                        </tr>`;
 
                     console.log(rowTable);
                     element.append(rowTable);
