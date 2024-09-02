@@ -1513,7 +1513,7 @@
             // console.log('editForm modal started');
             // console.log(clickedDetails);
             if(clickedDetails && clickedDetails.bib) {
-                document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == clickedDetails.bib));
+                document.querySelector("#athleteDetails").innerHTML = ulWriter('', clickedDetails));
                 setupTabs();
             }
 
