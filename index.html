@@ -1516,16 +1516,12 @@
 
         let clickedDetails;
         table.on("rowTap", function(e, row){
-            //e - the tap event object
-            //row - row component
             let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'));
             clickedDetails = row.getData();
             details.show();
         });
 
         table.on("rowClick", function(e, row){
-            //e - the click event object
-            //row - row component
             let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'));
             clickedDetails = row.getData();
             details.show();
@@ -1555,6 +1551,7 @@
         editModal.addEventListener('hidden.mdb.modal', (e) => {
             // debug(e);
             document.querySelector("#athleteDetails").innerHTML = ''
+            clickedDetails = null;
         });
 
     });
