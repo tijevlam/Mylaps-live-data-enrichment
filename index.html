@@ -72,7 +72,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title w-100" id="editFormTitle"><h2 class="detailsBib"></h2><span class="detailsName"></span></h1>
+                <div class="modal-title w-100" id="editFormTitle"><h2 class="detailsBib"></h2><h1 class="detailsName"></h1></div>
                 <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="athleteDetails">
@@ -113,6 +113,7 @@
         document.querySelector('.detailsBib').innerHTML = record.bibnr;
         document.querySelector('.detailsName').style.color = (record?.gender === "Male" ? '#6e99dd' : '#dd6ec5');
         document.querySelector('.detailsName').innerHTML = record.uniqueName;
+        let li = `<div class="result" style="width:100%">`
 
         if (record?.birthdate || (record?.worldTriProfile && record?.worldTriProfile[0]?.dob)) {
             var t = (record?.worldTriProfile && record?.worldTriProfile[0]?.dob) ? record?.worldTriProfile[0]?.dob.split(/[-]/) : record?.birthdate?.split(/[-]/);
