@@ -1517,14 +1517,14 @@
         table.on("rowTap", function(e, row){
             //e - the tap event object
             //row - row component
-            const myModal = new mdb.Modal(document.getElementById('editRowFormModal"'), options);
+            const myModal = new mdb.Modal(document.getElementById('editRowFormModal"'), {});
             myModal.show();
         });
 
         table.on("rowClick", function(e, row){
             //e - the click event object
             //row - row component
-            const myModal = new mdb.Modal(document.getElementById('editRowFormModal"'), options);
+            const myModal = new mdb.Modal(document.getElementById('editRowFormModal"'), {});
             myModal.show();
         });
 
