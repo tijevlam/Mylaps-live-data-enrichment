@@ -1263,19 +1263,14 @@
                     rowTable.innerHTML = `
                         <tr>
                             <td><span class="badge badge-info mt-2 mb-2"> ${data.sourceName}</span></td>
-                            <td>
-                                <table>
-                                    <tr>
-                                        <td><span class="badge ${setRaceTypeBadge(data.raceType)} mt-2 mb-2 me-2"> ${data.raceType} </span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><h3 style="color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h3></td>
-                                    </tr>
-                                </table>
-                            </td>
+                            <td>><span class="badge ${setRaceTypeBadge(data.raceType)} mt-2 mb-2 me-2"> ${data.raceType} </span></td>
                         </tr>
                         <tr>
-                            <td><h2>${data.bib}</h2></td>
+                             <td><h4>${data.bib}</h4></td>
+                             <td><h4 style="color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h4></td>
+                        </tr>
+                        <tr>
+                            <td>&nbsp;</td>
                             <td><span class="badge badge-primary mt-2 mb-2"> ${data.Cat}</span></td>
                         </tr>`;
 
