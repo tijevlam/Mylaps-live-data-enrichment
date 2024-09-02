@@ -1233,6 +1233,7 @@
 
                 return definitions;
             },
+            headerVisible: function(){  if(this.browserMobile ||  "ontouchstart" in document.documentElement){ return  } else { return true } },
             rowFormatter:function(row){
                 var element = row.getElement(),
                     data = row.getData(),
