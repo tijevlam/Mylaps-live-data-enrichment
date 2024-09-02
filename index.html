@@ -1538,21 +1538,18 @@
 
         editModal.addEventListener('show.mdb.modal', (e) => {
 
-            console.log(e)
+            // console.log(e)
             console.log('editForm modal started');
             console.log(clickedDetails);
-            console.log(e.relatedTarget.getAttribute('data-mdb-bib'))
 
             if(clickedDetails && clickedDetails.bib) {
                 document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == clickedDetails.bib));
                 setupTabs();
-            }
-
-            else if (e.relatedTarget.getAttribute('data-mdb-bib')) {
+            } else if (e?.relatedTarget.getAttribute('data-mdb-bib')) {
                 document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == e.relatedTarget.getAttribute('data-mdb-bib')));
                 setupTabs();
             }
-            
+
         });
 
         editModal.addEventListener('hidden.mdb.modal', (e) => {
