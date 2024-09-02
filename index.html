@@ -1535,14 +1535,11 @@
         editModal.addEventListener('show.mdb.modal', (e) => {
 
             // console.log(e)
-            console.log('editForm modal started');
-            console.log(clickedDetails);
+            // console.log('editForm modal started');
+            // console.log(clickedDetails);
 
             if(clickedDetails && clickedDetails.bib) {
                 document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == clickedDetails.bib));
-                setupTabs();
-            } else if (e?.relatedTarget.getAttribute('data-mdb-bib')) {
-                document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == e.relatedTarget.getAttribute('data-mdb-bib')));
                 setupTabs();
             }
 
