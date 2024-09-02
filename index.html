@@ -1239,6 +1239,7 @@
                     rowTable, cellContents;
 
                 if(this.browserMobile){
+                    console.log('mobile browser, lets rebuild the rows');
                     //clear current row data
                     while(element.firstChild) element.removeChild(element.firstChild);
 
@@ -1278,6 +1279,7 @@
                        `;
                 } else {
                 }
+                console.log(element);
                 return element;
             },
             responsiveLayoutCollapseFormatter: function (data) {
