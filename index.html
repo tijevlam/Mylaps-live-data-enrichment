@@ -1238,13 +1238,13 @@
                     width = element.offsetWidth,
                     rowTable, cellContents;
 
-                if(this.browserMobile){
+                if(this.browserMobile) {
                     console.log('mobile browser, lets rebuild the rows');
                     //clear current row data
-                    while(element.firstChild) element.removeChild(element.firstChild);
+                    while (element.firstChild) element.removeChild(element.firstChild);
 
 
-                    function setRaceTypeBadge(raceType){
+                    function setRaceTypeBadge(raceType) {
                         switch (raceType) {
                             case 'long distance':
                                 return "badge-success";
@@ -1258,29 +1258,29 @@
                     }
 
 
+                    rowTable = document.createElement("table")
 
-                    element.innerHTML = `
-                       <table>
+                    rowTable.innerHTML = `
                        <tr><td>${data.function}</td></tr>
                        <tr><td>`;
-                            if(data.raceType){
-                                element.innerHTML += `<span class="badge ${setRaceTypeBadge(record.raceType)} mt-2 mb-2 me-2"> ${record.raceType} </span>`
-                            }
-                            if(data.Cat){
-                                element.innerHTML  +=`<span class="badge badge-primary mt-2 mb-2"> ${data.Cat}</span> `;
-                            }
-                            element.innerHTML  +=`</td></tr>
+                    if (data.raceType) {
+                        element.innerHTML += `<span class="badge ${setRaceTypeBadge(record.raceType)} mt-2 mb-2 me-2"> ${record.raceType} </span>`
+                    }
+                    if (data.Cat) {
+                        element.innerHTML += `<span class="badge badge-primary mt-2 mb-2"> ${data.Cat}</span> `;
+                    }
+                    element.innerHTML += `</td></tr>
                        <tr>
                         <td>
                             <h1 style="color:${(record?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h1>
                         </td>
                         </tr>
-                       </table>
                        `;
+                    console.log(rowTable);
+                    element.append(rowTable);
                 } else {
+
                 }
-                console.log(element);
-                return element;
             },
             responsiveLayoutCollapseFormatter: function (data) {
                 //debug(data)
