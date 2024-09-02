@@ -1492,7 +1492,8 @@
     table.on("dataProcessed", function () {
         let clickedDetails;
         table.on("rowClick", function(e, row){
-            let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'));
+            row.getElement().classList.add("opened");
+            let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'))
             clickedDetails = row.getData();
             details.show();
         });
@@ -1715,6 +1716,9 @@
 
     .space-left {
         margin-left: 15px;
+    }
+    .opened, .opened table, .opened tr, .opened td {
+        background-color: #fdc8c8;
     }
 </style>
 
