@@ -1233,13 +1233,12 @@
                 return definitions;
             },
             rowFormatter:function(row){
+                var element = row.getElement(),
+                    data = row.getData(),
+                    width = element.offsetWidth,
+                    rowTable, cellContents;
 
                 if(this.browserMobile){
-                    var element = row.getElement(),
-                        data = row.getData(),
-                        width = element.offsetWidth,
-                        rowTable, cellContents;
-
                     //clear current row data
                     while(element.firstChild) element.removeChild(element.firstChild);
 
@@ -1278,8 +1277,8 @@
                        </table>
                        `;
                 } else {
-                return row.getElement();
                 }
+                return element;
             },
             responsiveLayoutCollapseFormatter: function (data) {
                 //debug(data)
