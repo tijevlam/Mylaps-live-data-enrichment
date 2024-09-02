@@ -8,14 +8,17 @@
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.5.0/build/global/luxon.min.js"></script>
     <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css" rel="stylesheet">
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
-    <script type="text/javascript" src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/js/lodash.min.js"></script>
-    <script type="text/javascript" src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/js/jquery-1.6.4.min.js"></script>
+    <script type="text/javascript"
+            src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/js/lodash.min.js"></script>
+    <script type="text/javascript"
+            src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/js/jquery-1.6.4.min.js"></script>
     <link href="https://history.hollandtriathlon.nl/assets/css/tabulator_materialize.css" rel="stylesheet">
     <link rel="stylesheet" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/mdb.css">
     <link rel="stylesheet" href="https://history.hollandtriathlon.nl/assets/css/all.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap">
-        <script>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap">
+    <script>
         let countries;
 
         async function fetchCountries() {
@@ -32,6 +35,7 @@
         }
 
         let startlist;
+
         async function fetchStartlist() {
             const response = await fetch('https://challengealmere.s3.eu-west-1.amazonaws.com/2023/startlist2023.json');
             return response.json();
@@ -42,210 +46,250 @@
     </script>
 </head>
 <body>
-    <h1>MYLAPS T&S TCP-IP Monitor</h1>
-    <div id="mylaps" class="table tabulator"></div>
+<h1>MYLAPS T&S TCP-IP Monitor</h1>
+<div id="mylaps" class="table tabulator"></div>
 
-    <!-- Edit Modal -->
-    <div class="modal fade modal-lg" id="editRowFormModal" tabindex="-1" role="dialog" aria-labelledby="editFormTitle"
-         aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title w-100" id="editFormTitle">View Record</h4>
-                    <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="athleteDetails">
-                </div>
+<!-- Edit Modal -->
+<div class="modal fade modal-lg" id="editRowFormModal" tabindex="-1" role="dialog" aria-labelledby="editFormTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title w-100" id="editFormTitle">View Record</h4>
+                <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="athleteDetails">
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        const capitalize = s => s && s[0].toUpperCase() + s.slice(1);
+<script>
+    const capitalize = s => s && s[0].toUpperCase() + s.slice(1);
 
-        const decapitalize = s => s && s[0].toLowerCase() + s.slice(1);
+    const decapitalize = s => s && s[0].toLowerCase() + s.slice(1);
 
-        function getAge(birthday) {
-            birthday = new Date(birthday);
-            var ageDifMs = Date.now() - birthday.getTime();
-            var ageDate = new Date(ageDifMs);
-            return Math.abs(ageDate.getUTCFullYear() - 1970);
+    function getAge(birthday) {
+        birthday = new Date(birthday);
+        var ageDifMs = Date.now() - birthday.getTime();
+        var ageDate = new Date(ageDifMs);
+        return Math.abs(ageDate.getUTCFullYear() - 1970);
+    }
+
+    const decodeS = function (e) {
+        try {
+            return JSON.parse(String(e).replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&sect;/g, "$").replace(/&copy;/g, "©").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#45;/g, "-").replace(/&nbsp;/g, " "))
+        } catch (err) {
+            //console.log(e, err)
+            return ''
         }
-
-        const decodeS = function (e) {
-            try {
-                return JSON.parse(String(e).replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&sect;/g, "$").replace(/&copy;/g, "©").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#45;/g, "-").replace(/&nbsp;/g, " "))
-            } catch (err) {
-                //console.log(e, err)
-                return ''
-            }
-        }
+    }
 
 
-        var e;
-        let voornamers;
+    var e;
+    let voornamers;
 
-        function ulWriter(rowIndex, record, columns, cellWriter) {
-            window.record = record;
-            e = record;
-            var li = `<div class="result" style="width:100%">
+    function ulWriter(rowIndex, record, columns, cellWriter) {
+        window.record = record;
+        e = record;
+        var li = `<div class="result" style="width:100%">
 			<h2 style="line-height:0.5em;">${record.bibnr}</h2>
 			<h1 style="color:${(record?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">`;
 
-            if(record.serie && record.serie.toLowerCase().indexOf("relay") >-1){
-                li += record.uniqueName
-            } else {
-                li += record.firstName ? record.firstName  : '';
-                if(record.lastName){li += ' ' + record.lastName;}
+        if (record.serie && record.serie.toLowerCase().indexOf("relay") > -1) {
+            li += record.uniqueName
+        } else {
+            li += record.firstName ? record.firstName : '';
+            if (record.lastName) {
+                li += ' ' + record.lastName;
+            }
+        }
+
+        li += `</h1>`;
+
+
+        if (record?.birthdate || (record?.worldTriProfile && record?.worldTriProfile[0]?.dob)) {
+            var t = (record?.worldTriProfile && record?.worldTriProfile[0]?.dob) ? record?.worldTriProfile[0]?.dob.split(/[-]/) : record?.birthdate?.split(/[-]/);
+            var d = new Date(parseInt(t[0]), parseInt(t[1]) - 1, parseInt(t[2]));
+            li += getAge(d)
+                + ' years (';
+
+
+            // Apply each element to the Date function
+            //console.log(record.birthdate);
+            //console.log(d);
+            var actiondate = new Date(d);
+            var today = new Date();
+
+            var dDitJaar = new Date(2024, parseInt(t[1]) - 1, parseInt(t[2]));
+
+            var diffTime = Math.abs(today.getTime() - dDitJaar.getTime());
+            var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            li += actiondate.getDate() + "-" + parseInt(actiondate.getMonth() + 1) + "-" + actiondate.getFullYear() + ')';
+            if (diffDays > -8 && diffDays < 8) {
+                li += '<span style="color: red;">!!</span>'
+            }
+        }
+
+
+        if (record.raceType) {
+            if (record.raceType == "long distance") {
+
             }
 
-            li += `</h1>`;
-
-
-
-
-            if(record?.birthdate || (record?.worldTriProfile && record?.worldTriProfile[0]?.dob)){
-                var t = (record?.worldTriProfile && record?.worldTriProfile[0]?.dob ) ? record?.worldTriProfile[0]?.dob.split(/[-]/) : record?.birthdate?.split(/[-]/);
-                var d = new Date(parseInt(t[0]), parseInt(t[1])-1, parseInt(t[2]));
-                li += getAge(d)
-                    +' years (';
-
-
-                // Apply each element to the Date function
-                //console.log(record.birthdate);
-                //console.log(d);
-                var actiondate = new Date(d);
-                var today = new Date();
-
-                var dDitJaar = new Date(2024, parseInt(t[1])-1, parseInt(t[2]));
-
-                var diffTime = Math.abs(today.getTime() - dDitJaar.getTime());
-                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                li += actiondate.getDate()+"-"+parseInt(actiondate.getMonth()+1)+"-"+actiondate.getFullYear() +  ')';
-                if(diffDays > -8 && diffDays < 8 ){ li += '<span style="color: red;">!!</span>'}
-            }
-
-
-            if(record.raceType){
-                if(record.raceType == "long distance"){
-
+            function setRaceTypeBadge(raceType) {
+                switch (raceType) {
+                    case 'long distance':
+                        return "badge-success";
+                    case 'middle distance':
+                        return "badge-danger";
+                    case 'AB LD':
+                        return "badge-warning";
+                    case 'AB MD':
+                        return "badge-dark";
                 }
+            }
 
-                function setRaceTypeBadge(raceType){
-                    switch (raceType) {
-                        case 'long distance':
-                            return "badge-success";
-                        case 'middle distance':
-                            return "badge-danger";
-                        case 'AB LD':
-                            return "badge-warning";
-                        case 'AB MD':
-                            return "badge-dark";
+            li += `<br/> <span class=\"badge ${setRaceTypeBadge(record.raceType)} mt-2 mb-2 me-2\"> ${record.raceType} </span>`;
+        }
+
+
+        if (record.cat) {
+            li += '<span class=\"badge badge-primary mt-2 mb-2\">';
+            li += record.cat;
+            if (record.catEk) {
+                li += ` | EC: ${record.catEk}`;
+            }
+            if (record.country && record.country == "NED" && record.catNk) {
+                li += ` | NK: ${record.catNk}`;
+            }
+            li += `</span> `;
+
+        }
+
+        if (record.country) {
+            record.countryData = _.partition(countries, (a) => {
+                if (a.IOC && a.IOC == record.country || a.FIFA && a.FIFA == record.country || a["ISO 3166-1 alpha2"] == record.country) {
+                    return a.IOC
+                }
+            })[0][0];
+            // li += '</h3><h3><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/'
+            // + record.countryData.iso.toLowerCase()
+            // +'.gif" height="35"> ';
+            // console.log(record.countryData);
+            li += record.countryData.hasOwnProperty("ISO 3166-1 alpha2") ? `<br/><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">` : `<br/>(${record.country})`; // <i class="flag flag-${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}"></i>
+        }
+        if (record.domicile) {
+            record.domicileData = _.partition(domiciles, (a) => {
+                if (a.domicile && a.domicile == record.domicile) {
+                    return a.domicile
+                }
+            })[0][0];
+            // console.log(record.domicileData)
+            li += '' + record.domicile + ",";
+        }
+        if (record.country) {
+            li += ' ' + record.countryData.Country;
+        }
+        if (record.nationality) {
+            li += ' (' + record.nationality + ')';
+        }
+        // li += record.TeamClub ?	'<h3><span style="color: red;">Club</span> '+record.TeamClub+'</h3>':'';
+
+
+        li += '</h3>';
+
+        let finishes = 0;
+        let mdfinishes = 0;
+        let ldfinishes = 0;
+        let ldstarts = 0;
+        let mdstarts = 0;
+        let gelremanFinishes = 0;
+        let frysmanFinishes = 0;
+        let gelremanIn2023 = false
+        let ldHistory;
+        let mdHistory;
+
+        if (record.history) {
+            let totalRacesByRaceType = _.countBy(record.history, "raceType");
+            let totalFinishesByRaceType = _.countBy(_.partition(record.history, (a) => {
+                if (a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total" && a.year != "2024") {
+                    return a.raceTime
+                }
+            })[0], "raceType");
+
+            ldHistory = _.orderBy(_.partition(record.history, (a) => {
+                if ((a.raceType && !!a.raceType.match(/long distance|O3/)) && a.year != "Total" && a.year != "2024") {
+                    return a.raceType
+                }
+            })[0], "year", "asc")
+            mdHistory = _.orderBy(_.partition(record.history, (a) => {
+                if ((a.raceType && !!a.raceType.match(/middle distance/)) && a.year != "Total" && a.year != "2024") {
+                    return a.raceType
+                }
+            })[0], "year", 'asc');
+
+            // console.log(totalRacesByRaceType)
+            // console.log(totalFinishesByRaceType)
+
+            ldfinishes = (totalFinishesByRaceType["long distance"] ?? 0) + (totalFinishesByRaceType["O3"] ?? 0);
+            ldstarts = (totalRacesByRaceType["long distance"] ?? 0) + (totalRacesByRaceType["O3"] ?? 0);
+            mdfinishes = totalFinishesByRaceType["middle distance"];
+            mdstarts = totalRacesByRaceType["middle distance"];
+            finishes = (ldfinishes ?? 0) + (mdfinishes ?? 0);
+            // console.log(ldfinishes, ldstarts, mdfinishes, mdstarts, finishes)
+            // console.log(ldHistory);
+
+            li += (ldfinishes && (ldfinishes == 9 || ldfinishes == 14 || ldfinishes == 19 || ldfinishes == 24 || ldfinishes == 29 || ldfinishes > 30) ? `<h3><span style="color: red;">Jubilee:</span> ${ldfinishes} finishes (${ldstarts} starts). <b>Last finish in:</b> ${ldHistory[ldHistory.length - 1].year} (${ldHistory[ldHistory.length - 1].raceTime}) </h3>` : ``);
+        }
+
+        if (record.gelreman && record.frysman) {
+            li += (record.frysman[record.frysman.length - 1].year == "2024" && record.frysman[record.frysman.length - 1].raceTime && record.gelreman[record.gelreman.length - 1].year == "2024" && record.gelreman[record.gelreman.length - 1].raceTime) ? `<h3><span style="color: red;">Triple Dutch Opportunity!! Allready Finished the other two LD Triathlons in NL this year.</span> Frysman: ${record.frysman[record.frysman.length - 1].raceTime}, Gelreman: ${record.gelreman[record.gelreman.length - 1].raceTime}</h3>` : '';
+        }
+
+        if (record.gelreman) {
+            record.gelreman.forEach(function (s) {
+                if (s.raceTime && s.raceTime != " DNF" && ((s.status && !s.status.match(/DNF|DNS|DSQ/)) || !s.status) && s.year != "Total") {
+                    gelremanFinishes++;
+                    if (s.year == '2024') {
+                        gelremanIn2023 = true;
                     }
                 }
+            });
+        }
 
-                li += `<br/> <span class=\"badge ${setRaceTypeBadge(record.raceType)} mt-2 mb-2 me-2\"> ${record.raceType} </span>`;
-            }
+        if (record.frysman) {
+            record.frysman.forEach(function (s) {
+                if (s.raceTime && s.raceTime != " DNF" && ((s.status && !s.status.match(/DNF|DNS|DSQ/)) || !s.status) && s.year != "Total") {
+                    frysmanFinishes++
+                }
+            });
+        }
 
+        li += "<hr/>";
 
-            if(record.cat){
-                li +='<span class=\"badge badge-primary mt-2 mb-2\">';
-                li += record.cat;
-                if(record.catEk){ li += ` | EC: ${record.catEk}`;}
-                if(record.country && record.country == "NED" && record.catNk){ li += ` | NK: ${record.catNk}`;}
-                li += `</span> `;
-
-            }
-
-            if(record.country){
-                record.countryData = _.partition(countries, (a) =>  {if(a.IOC && a.IOC == record.country || a.FIFA && a.FIFA == record.country || a["ISO 3166-1 alpha2"] == record.country){ return a.IOC }})[0][0];
-                // li += '</h3><h3><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/'
-                // + record.countryData.iso.toLowerCase()
-                // +'.gif" height="35"> ';
-                // console.log(record.countryData);
-                li += record.countryData.hasOwnProperty("ISO 3166-1 alpha2") ? `<br/><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">` : `<br/>(${record.country})`; // <i class="flag flag-${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}"></i>
-            }
-            if(record.domicile){
-                record.domicileData = _.partition(domiciles, (a) =>  {if(a.domicile && a.domicile == record.domicile ){ return a.domicile }})[0][0];
-                // console.log(record.domicileData)
-                li +=''+record.domicile + ",";
-            }
-            if(record.country){ li +=' '+record.countryData.Country ; }
-            if(record.nationality){ li +=' ('+record.nationality+')'; }
-            // li += record.TeamClub ?	'<h3><span style="color: red;">Club</span> '+record.TeamClub+'</h3>':'';
-
-
-
-            li +='</h3>';
-
-            let finishes = 0;
-            let mdfinishes = 0;
-            let ldfinishes = 0;
-            let ldstarts = 0;
-            let mdstarts = 0;
-            let gelremanFinishes = 0;
-            let frysmanFinishes = 0;
-            let gelremanIn2023 = false
-            let ldHistory;
-            let mdHistory;
-
-            if(record.history){
-                let totalRacesByRaceType = _.countBy(record.history, "raceType");
-                let totalFinishesByRaceType = _.countBy(_.partition(record.history, (a) =>  {if(a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total" && a.year != "2024"){ return a.raceTime }})[0], "raceType");
-
-                ldHistory = _.orderBy(_.partition(record.history, (a) =>  {if((a.raceType && !!a.raceType.match(/long distance|O3/)) && a.year != "Total" && a.year != "2024"){ return a.raceType }})[0], "year", "asc")
-                mdHistory = _.orderBy(_.partition(record.history, (a) =>  {if((a.raceType && !!a.raceType.match(/middle distance/)) && a.year != "Total" && a.year != "2024"){ return a.raceType }})[0], "year", 'asc');
-
-                // console.log(totalRacesByRaceType)
-                // console.log(totalFinishesByRaceType)
-
-                ldfinishes = (totalFinishesByRaceType["long distance"] ?? 0)+(totalFinishesByRaceType["O3"] ?? 0);
-                ldstarts = (totalRacesByRaceType["long distance"] ?? 0)+(totalRacesByRaceType["O3"] ?? 0);
-                mdfinishes = totalFinishesByRaceType["middle distance"];
-                mdstarts = totalRacesByRaceType["middle distance"];
-                finishes = (ldfinishes ?? 0) + (mdfinishes ?? 0);
-                // console.log(ldfinishes, ldstarts, mdfinishes, mdstarts, finishes)
-                // console.log(ldHistory);
-
-                li += (ldfinishes && (ldfinishes == 9 || ldfinishes == 14 || ldfinishes == 19 || ldfinishes == 24 || ldfinishes == 29 || ldfinishes > 30)  ? `<h3><span style="color: red;">Jubilee:</span> ${ldfinishes} finishes (${ldstarts} starts). <b>Last finish in:</b> ${ldHistory[ldHistory.length-1].year} (${ldHistory[ldHistory.length-1].raceTime}) </h3>`: ``);
-            }
-
-            if(record.gelreman && record.frysman){
-                li += (record.frysman[record.frysman.length-1].year == "2024" && record.frysman[record.frysman.length-1].raceTime && record.gelreman[record.gelreman.length-1].year == "2024" && record.gelreman[record.gelreman.length-1].raceTime) ? `<h3><span style="color: red;">Triple Dutch Opportunity!! Allready Finished the other two LD Triathlons in NL this year.</span> Frysman: ${record.frysman[record.frysman.length-1].raceTime}, Gelreman: ${record.gelreman[record.gelreman.length-1].raceTime}</h3>`: '';
-            }
-
-            if(record.gelreman){
-                record.gelreman.forEach(function(s){ if(s.raceTime && s.raceTime != " DNF" && ((s.status && !s.status.match(/DNF|DNS|DSQ/)) || !s.status) && s.year != "Total"){ gelremanFinishes++; if(s.year == '2024'){ gelremanIn2023 = true;} }});
-            }
-
-            if(record.frysman){
-                record.frysman.forEach(function(s){ if(s.raceTime && s.raceTime != " DNF" && ((s.status && !s.status.match(/DNF|DNS|DSQ/)) || !s.status) && s.year != "Total"){ frysmanFinishes++ }});
-            }
-
-            li += "<hr/>";
-
-            if(record.serie && record.serie.toLowerCase().indexOf("relay") >-1){
-                li += `<span class="icon swim space-left"></span> ${record.naamZwemmer}
+        if (record.serie && record.serie.toLowerCase().indexOf("relay") > -1) {
+            li += `<span class="icon swim space-left"></span> ${record.naamZwemmer}
 	  					<br/>
 	  					<span class="icon bike space-left"></span> ${record.naamFietser}
 	  					<br/>
 	  					<span class="icon run space-left"></span> ${record.naamLoper}`;
+        }
+
+        let partHtml;
+
+        if (record.totals && record.totals.participationsThisYear) {
+            // console.log(record.totals.participationsThisYear)
+            partHtml = '<table>';
+            for (const [key, value] of Object.entries(record.totals.participationsThisYear)) {
+                partHtml += `<tr><td><span class="badge badge-light">${key}</span></td><td>${value}</td></tr>`
             }
+            partHtml += '</table>';
+            // console.log(partHtml)
+        }
 
-            let partHtml;
-
-            if(record.totals && record.totals.participationsThisYear){
-                // console.log(record.totals.participationsThisYear)
-                partHtml = '<table>';
-                for (const [key, value] of Object.entries(record.totals.participationsThisYear)) {
-                    partHtml += `<tr><td><span class="badge badge-light">${key}</span></td><td>${value}</td></tr>`
-                }
-                partHtml += '</table>';
-                // console.log(partHtml)
-            }
-
-            li += `<h3><span class="icon megaphone"></span> Speakerinfo</h3>
+        li += `<h3><span class="icon megaphone"></span> Speakerinfo</h3>
 
 				${record.totals ? `<div style="padding: 5px;">
 				<h4>Totals</h4>
@@ -253,32 +297,32 @@
 				<span class="badge badge-light">Long distance</span><br/>
 				</td><td>
 				Total starts on the Long distance in Almere: <b>${record.totals.totalStartsLD}</b>.<br/>
-				Total Finishes on the LD in Almere: <b>${record.totals.totalFinishesLD}</b>.<br/>This means a finish percentage of: <b>${(parseInt(record.totals.totalFinishesLD)/parseInt(record.totals.totalStartsLD)*100).toFixed(2)}%</b>
+				Total Finishes on the LD in Almere: <b>${record.totals.totalFinishesLD}</b>.<br/>This means a finish percentage of: <b>${(parseInt(record.totals.totalFinishesLD) / parseInt(record.totals.totalStartsLD) * 100).toFixed(2)}%</b>
 				</td></tr>
 				<tr>
 				<td style="vertical-align: top;">
 				<span class="badge badge-light">Middle distance</span>
 				</td><td>
 				Total starts on the Middle distance in Almere: <b>${record.totals.totalStartsMD}</b>.<br/>
-				Total Finishes on the MD in Almere: <b>${record.totals.totalFinishesMD}</b>.<br/>This means a finish percentage of: <b>${(parseInt(record.totals.totalFinishesMD)/parseInt(record.totals.totalStartsMD)*100).toFixed(2)}%</b>
+				Total Finishes on the MD in Almere: <b>${record.totals.totalFinishesMD}</b>.<br/>This means a finish percentage of: <b>${(parseInt(record.totals.totalFinishesMD) / parseInt(record.totals.totalStartsMD) * 100).toFixed(2)}%</b>
 				</td></tr>
 				<tr><td>&nbsp;</td></tr>
 				<tr>
 				<td style="vertical-align: top;">
 				<span class="badge badge-light">2024</span>
 				</td><td>
-				${startlist.length-1} total athletes this saturday.<br/>
+				${startlist.length - 1} total athletes this saturday.<br/>
 				${partHtml ? partHtml : ''}
 				</td></tr></table>
-				<br/></div>`:""}
+				<br/></div>` : ""}
 
-				${record.bibnr == "0" ? `<div style="padding: 5px;"><p>Total athletes celebrating their birthday today: <b>${jarigen.length}</b> <br/>This is them by name, cat and raceType: ${jarigenHtml} </p></div>`: ""}
+				${record.bibnr == "0" ? `<div style="padding: 5px;"><p>Total athletes celebrating their birthday today: <b>${jarigen.length}</b> <br/>This is them by name, cat and raceType: ${jarigenHtml} </p></div>` : ""}
 
 			`;
 
 
-            function colorSwimcap(color){
-                return `<svg id="Laag_1" data-name="Laag 1" style="height:30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 800">
+        function colorSwimcap(color) {
+            return `<svg id="Laag_1" data-name="Laag 1" style="height:30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 800">
 					  <defs>
 					    <style>
 					      .cls-1 {
@@ -289,46 +333,46 @@
 					  </defs>
 					  <path class="cls-1 me-2" fill="${color}" d="m554.3,135.1c-20.5,1.8-45.8,7.5-65.2,14.7-85.2,31.3-149.1,103.9-168.5,191.5-5.6,25.1-5.8,28.6-6.3,84.4-.4,46.1-.3,52.3,1,52.3.8,0,10.4-3.3,21.4-7.4,63.5-23.8,127.4-37.6,197.8-42.7,24-1.7,78.2-1.5,101,.5,67.4,5.9,132.7,20.8,194.5,44.5l15.5,6,.7-32.2c1.4-64.3-2-96.3-13.7-131.3-19.7-58.7-59.8-109.2-112.5-141.9-11.6-7.1-36-19-49.3-23.9-11.8-4.4-32.7-9.8-45.7-12-20.8-3.4-49.2-4.4-70.7-2.5Zm121.2,372.8c-16.5,2.7-33.9,11.5-45,23-2.1,2.3-4.5,4.1-5.2,4.1s-3.7-1.4-6.7-3c-9-5.1-23.1-8.2-37.1-8.3-6.6,0-14.9.5-18.5,1.2-8.7,1.7-20.7,5.7-24.1,8.1-1.5,1.1-3.2,2-3.9,2s-4.5-3.1-8.6-6.9c-8.6-8.1-21.1-14.9-33-18.2-7.4-2-9.4-2.1-31.9-1.6-26.5.6-36.5,1.8-58.4,7.3-34.1,8.4-56.3,19.5-73.3,36.4l-7.9,8h-61.9v53h62l8.3,8.3c17.2,17.1,39.8,28.5,72.8,36.6,32.2,7.9,74.2,10.3,91.3,5.2,33.1-9.9,55.4-36.6,58.3-69.9.6-7,.7-7.3,4.7-10.2,10.6-7.9,26-9.6,37.7-4.2,3.5,1.6,7.8,4.1,9.5,5.5,2.9,2.5,3.1,3.2,3.6,11,1.1,16.7,10,35.1,23.4,48.4,16.2,15.8,32.9,22.2,58.4,22.3,58.8.1,117.4-19.3,142.4-47.1l4.9-5.4,31.1-.5,31.1-.5.3-26.3.2-26.2h-62.2l-7.3-7.4c-20.9-21.4-60.2-37.5-105.1-43-14.7-1.8-43.2-2.8-49.9-1.7Z"/>
 					</svg>`
-            }
+        }
 
-            if (record.speakerinfo2023) {
-                for (var key in record.speakerinfo2023){
-                    if(record.speakerinfo2023[key] && record.speakerinfo2023[key] !=""){
+        if (record.speakerinfo2023) {
+            for (var key in record.speakerinfo2023) {
+                if (record.speakerinfo2023[key] && record.speakerinfo2023[key] != "") {
 
-                        if(key == "swimcap"){
-                            li += `<h5>${key}</h5>${colorSwimcap (record.speakerinfo2023[key])} ${record.speakerinfo2023[key]}<br/><br/>`;
-                        } else {
-                            li += `<h5>${key}</h5>${record.speakerinfo2023[key]}<br/><br/>`;
-                        }
+                    if (key == "swimcap") {
+                        li += `<h5>${key}</h5>${colorSwimcap(record.speakerinfo2023[key])} ${record.speakerinfo2023[key]}<br/><br/>`;
+                    } else {
+                        li += `<h5>${key}</h5>${record.speakerinfo2023[key]}<br/><br/>`;
                     }
                 }
             }
+        }
 
-            if(record.speakerInfo){
-                li += `<div class="mb-2"><table>`
+        if (record.speakerInfo) {
+            li += `<div class="mb-2"><table>`
 
-                let speakerInfo = (record.speakerInfo.length > 0 && record.speakerInfo != "&nbsp;" )? decodeS(record.speakerInfo) : '';
+            let speakerInfo = (record.speakerInfo.length > 0 && record.speakerInfo != "&nbsp;") ? decodeS(record.speakerInfo) : '';
 
-                if (typeof (speakerInfo) === "object") {
-                    let rsi = JSON.parse(record.speakerInfo);
+            if (typeof (speakerInfo) === "object") {
+                let rsi = JSON.parse(record.speakerInfo);
 
-                    for (var key in rsi){
-                        if(rsi[key] && rsi[key] !=""){
-                            li += `<tr><td><b>${key}</b></td><td>${rsi[key]}</td></tr>`;
-                        }
+                for (var key in rsi) {
+                    if (rsi[key] && rsi[key] != "") {
+                        li += `<tr><td><b>${key}</b></td><td>${rsi[key]}</td></tr>`;
                     }
-                } else {
-                    li += `<tr><td>${record.speakerInfo}</td></tr>`;
                 }
-
-                li +='</table></div>';
-
+            } else {
+                li += `<tr><td>${record.speakerInfo}</td></tr>`;
             }
 
+            li += '</table></div>';
 
-            function createTab(i, image, totals){
+        }
 
-                return `<li class="nav-item" role="presentation">
+
+        function createTab(i, image, totals) {
+
+            return `<li class="nav-item" role="presentation">
 			    <a
 			      class="nav-link"
 			      id="si-tab-${i}"
@@ -338,167 +382,195 @@
 			      aria-controls="si-tabs-${i}"
 			      aria-selected="false"
 			      style="padding-left:0; padding-right:0;">`
-                    + (image.src ? `<img src="${image.src}" width="${image.width}" style="${image.style}" \>` : `<span class="icon chartup"></span>`)
-                    + `${totals} </a>
+                + (image.src ? `<img src="${image.src}" width="${image.width}" style="${image.style}" \>` : `<span class="icon chartup"></span>`)
+                + `${totals} </a>
 			      </li>`
-            }
+        }
 
-            li += `<ul class="nav nav-tabs nav-fill mb-3" id="si-tabs" role="tablist">`
+        li += `<ul class="nav nav-tabs nav-fill mb-3" id="si-tabs" role="tablist">`
 
-            li += createTab(1, {"src": "", "width": "", "style": ""}, ``);
-            li += createTab(2, {"src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png", "width": "20", "style": "margin-right: 10px;"}, ``);
-            li += createTab(3, {"src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png", "width": "20", "style": "margin-right: 10px;  padding:0;"}, `(${finishes} / ${record.history && record.history.length ? record.history.length-1 : ''})`);
-            li += createTab(4, {"src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman.png", "width": "20", "style": "width:20px; height:20px; margin-right: 10px; padding:0;"}, `${gelremanIn2023 ? '<span class="badge bg-danger badge-dot"></span>' : ''} (${gelremanFinishes} / ${record.gelreman && record.gelreman.length ? record.gelreman.length : ''})`);
-            li += createTab(5, {"src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman-icon.png", "width": "20", "style": "width:20px; height:20px; margin-right: 10px; padding:0;"}, `(${frysmanFinishes} / ${record.frysman && record.frysman.length ? record.frysman.length : ''})`);
+        li += createTab(1, {"src": "", "width": "", "style": ""}, ``);
+        li += createTab(2, {
+            "src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png",
+            "width": "20",
+            "style": "margin-right: 10px;"
+        }, ``);
+        li += createTab(3, {
+            "src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png",
+            "width": "20",
+            "style": "margin-right: 10px;  padding:0;"
+        }, `(${finishes} / ${record.history && record.history.length ? record.history.length - 1 : ''})`);
+        li += createTab(4, {
+            "src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman.png",
+            "width": "20",
+            "style": "width:20px; height:20px; margin-right: 10px; padding:0;"
+        }, `${gelremanIn2023 ? '<span class="badge bg-danger badge-dot"></span>' : ''} (${gelremanFinishes} / ${record.gelreman && record.gelreman.length ? record.gelreman.length : ''})`);
+        li += createTab(5, {
+            "src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman-icon.png",
+            "width": "20",
+            "style": "width:20px; height:20px; margin-right: 10px; padding:0;"
+        }, `(${frysmanFinishes} / ${record.frysman && record.frysman.length ? record.frysman.length : ''})`);
 
 
-            li += `</ul>
+        li += `</ul>
 		<div class="tab-content" id="si-content">`
 
-            if(record.trirating){
+        if (record.trirating) {
 
-                li +=`<div class="tab-pane fade" id="si-tabs-1" role="tabpanel" aria-labelledby="si-tab-1" >
+            li += `<div class="tab-pane fade" id="si-tabs-1" role="tabpanel" aria-labelledby="si-tab-1" >
 			  <h3><span class="icon chartup"></span> Trirating</h3>
 			  <table>`
 
-                record.trirating.forEach(function(tr){
-                    // console.log(tr)
-                    li +=`<tr><td><h4 style='transform: rotate(-90deg);'>${tr.year}</h4></td><td>
-			  Expected position: <b>${tr.expectedPosition}</b>, ${tr.winningOdds ? "Winning Odds: "+tr.winningOdds : ""} <br/> Expected Racetime: ${tr.expectedRaceTime}<br/>
+            record.trirating.forEach(function (tr) {
+                // console.log(tr)
+                li += `<tr><td><h4 style='transform: rotate(-90deg);'>${tr.year}</h4></td><td>
+			  Expected position: <b>${tr.expectedPosition}</b>, ${tr.winningOdds ? "Winning Odds: " + tr.winningOdds : ""} <br/> Expected Racetime: ${tr.expectedRaceTime}<br/>
 				Expected Splits: <br/><span class="icon swim"></span> ${tr.expectedSwimTime} <span class="icon bike space-left"></span>  ${tr.expectedBikeTime} (${tr.expectedAfterBike}) <span class="icon run space-left"></span> ${tr.expectedRunTime}<br/>
 				</td></tr>`;
-                });
+            });
 
-                li +=`</table></div>`
+            li += `</table></div>`
 
-            }
+        }
 
-            if(record.worldTriProfile){
-                // if (record.worldTriProfile[0].athlete_profile_image ) {
-                // 	li +=`<img src="${record.worldTriProfile[0].athlete_profile_image}" width="250" /><br/>`;
-                // }
+        if (record.worldTriProfile) {
+            // if (record.worldTriProfile[0].athlete_profile_image ) {
+            // 	li +=`<img src="${record.worldTriProfile[0].athlete_profile_image}" width="250" /><br/>`;
+            // }
 
-                li +=`<div class="tab-pane fade" id="si-tabs-2" role="tabpanel" aria-labelledby="si-tab-2" >
+            li += `<div class="tab-pane fade" id="si-tabs-2" role="tabpanel" aria-labelledby="si-tab-2" >
 			<h4><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png" width="20" style="margin-right: 10px;" />World Triathlon Profile information</h4><div style="padding-left:15px;">`;
 
-                if(record.worldTriProfile[0].stats){
-                    li +=`Races logged by World Triathlon: <br/><b>${record.worldTriProfile[0].stats.race_finishes}</b> finishes in <b>${record.worldTriProfile[0].stats.race_starts}</b> starts, <b>${record.worldTriProfile[0].stats.race_wins}</b> wins, <b>${record.worldTriProfile[0].stats.race_podiums}</b> podiums.`
-                }
-
-                if(record.worldTriProfile[0].current_rankings && record.worldTriProfile[0].current_rankings.long_distance_triathlon){
-                    li +=`<br/>${record.worldTriProfile[0].current_rankings.long_distance_triathlon.ranking_name} ranking: <b>${record.worldTriProfile[0].current_rankings.long_distance_triathlon.ranking}</b>`
-                }
-
-                li +=`<br/><br/><u>Last results</u>`
-
-                if(record.worldTriProfile[0].latest_results){
-                    record.worldTriProfile[0].latest_results.forEach(function(lres){
-                        li += `<div> <b>${lres.event_title}</b> ${parseInt(lres.position) < 4 ? '<span class="icon medal"></span> ':''}${lres.position} (<i>${lres.prog_name}</i>). ${lres.total_time} </div>`;
-                    })
-                }
-
-                li+=`</div></div>`
-
-
+            if (record.worldTriProfile[0].stats) {
+                li += `Races logged by World Triathlon: <br/><b>${record.worldTriProfile[0].stats.race_finishes}</b> finishes in <b>${record.worldTriProfile[0].stats.race_starts}</b> starts, <b>${record.worldTriProfile[0].stats.race_wins}</b> wins, <b>${record.worldTriProfile[0].stats.race_podiums}</b> podiums.`
             }
 
+            if (record.worldTriProfile[0].current_rankings && record.worldTriProfile[0].current_rankings.long_distance_triathlon) {
+                li += `<br/>${record.worldTriProfile[0].current_rankings.long_distance_triathlon.ranking_name} ranking: <b>${record.worldTriProfile[0].current_rankings.long_distance_triathlon.ranking}</b>`
+            }
 
-            if(record.history){
-                li += `<div class="tab-pane fade" id="si-tabs-3" role="tabpanel" aria-labelledby="si-tab-3" >
-			<h3><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;" \>CAA History <br/>(${finishes} finishes / ${record.history.length-1} starts):</h3><table style="width:100%;">`
+            li += `<br/><br/><u>Last results</u>`
+
+            if (record.worldTriProfile[0].latest_results) {
+                record.worldTriProfile[0].latest_results.forEach(function (lres) {
+                    li += `<div> <b>${lres.event_title}</b> ${parseInt(lres.position) < 4 ? '<span class="icon medal"></span> ' : ''}${lres.position} (<i>${lres.prog_name}</i>). ${lres.total_time} </div>`;
+                })
+            }
+
+            li += `</div></div>`
 
 
-                let fastest_time = _.orderBy(
-                    _.partition(record.history, (a) => { if(a.raceType == "long distance" && (a.raceTime && (!a.status || a.status && a.status != "DNF") && a.raceTime.indexOf("00:") != 0 && parseInt(a.raceTime.replace(/(\:|DNF)/g,"")) )){ return a }} )[0], o => parseInt(o.raceTime.replace(/(\:|DNF)/g,"")), 'asc')[0];
-                let fastest_timeMD = _.orderBy(
-                    _.partition(record.history, (a) => { if(a.raceType == "middle distance" && (a.raceTime && (!a.status || a.status && a.status != "DNF")&& a.raceTime.indexOf("00:") != 0 && parseInt(a.raceTime.replace(/(\:|DNF)/g,"")) )){ return a }} )[0], o => parseInt(o.raceTime.replace(/(\:|DNF)/g,"")), 'asc')[0];
-                // console.table(fastest_time);
-                _.orderBy(record.history, ['year'], 'desc').forEach(function(caa){
-                    if(caa.year != "Total"){
-                        //console.log(caa.raceTime.replace(/\:/g,""))
+        }
 
 
-                        // ${caa.raceTime ? caa.raceTime : "DNF" }  ${ caa.status ? renderStatus(caa.status) : ""} <span class=\"badge badge-primary\">"+ caa.status + "</span>":""} <br/>
+        if (record.history) {
+            li += `<div class="tab-pane fade" id="si-tabs-3" role="tabpanel" aria-labelledby="si-tab-3" >
+			<h3><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;" \>CAA History <br/>(${finishes} finishes / ${record.history.length - 1} starts):</h3><table style="width:100%;">`
 
-                        function renderStatus(status){
-                            let res = '';
 
-                            let statusData = status ? status.split(",") : [];
-                            for (let st of statusData) {
-                                if (st.trim().indexOf('Award') > -1) {
-                                    res += `<span class="badge badge-warning"><i class="fas fa-trophy me-2"></i> ${st.trim()}</span> `;
-                                } else if (st.trim().toLowerCase().indexOf('swim') > -1) {
-                                    res += `<span class="badge badge-info"><i class="fas fa-swimmer me-2"></i> ${st.trim()}</span> `;
-                                } else if (st.trim().toLowerCase().indexOf('bike') > -1) {
-                                    res += `<span class="badge badge-success"><i class="fas fa-biking me-2"></i> ${st.trim()}</span> `;
-                                } else if (st.trim().toLowerCase().indexOf('run') > -1) {
-                                    res += `<span class="badge badge-warning"><i class="fas fa-running me-2"></i> ${st.trim()}</span> `;
-                                } else if (st.trim().indexOf('Course Record') > -1) {
-                                    res += `<span class="badge badge-danger"><i class="fas fa-stopwatch me-2"></i> ${st.trim()}</span> `;
-                                } else if (st.trim().toLowerCase().indexOf('dutch') > -1) {
-                                    res += `<span class="badge badge-secondary" style="background-color: #ffa726 !important;"><i class="flag flag-netherlands me-2"></i> ${st.trim()}</span> `
-                                } else if (st.trim().toLowerCase().indexOf('national record') > -1) {
-                                    let flag = record.countryData["ISO 3166-1 alpha2"].toLowerCase();
-                                    res += `<span class="badge badge-secondary"><i class="flag flag-${flag} me-2"></i> ${st.trim()}</span>`;
-                                } else if (st.trim().toLowerCase().indexOf('almeer') > -1) {
-                                    res += `<span class="badge badge-warning""><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/almere.svg" height="11" class="me-2"\>${st.trim()}</span> `;
-                                } else if (st.trim().toLowerCase().indexOf('celebration') > -1) {
-                                    res += `<span class="badge badge-warning">💃 ${st.trim()}</span>   `;
-                                } else if (st.trim().toLowerCase().indexOf('laatste finisher') > -1) {
-                                    res += `<span class="badge badge-danger">🏮 ${st.trim()}</span>   `;
-                                } else {
-                                    res += st.trim();
-                                }
+            let fastest_time = _.orderBy(
+                _.partition(record.history, (a) => {
+                    if (a.raceType == "long distance" && (a.raceTime && (!a.status || a.status && a.status != "DNF") && a.raceTime.indexOf("00:") != 0 && parseInt(a.raceTime.replace(/(\:|DNF)/g, "")))) {
+                        return a
+                    }
+                })[0], o => parseInt(o.raceTime.replace(/(\:|DNF)/g, "")), 'asc')[0];
+            let fastest_timeMD = _.orderBy(
+                _.partition(record.history, (a) => {
+                    if (a.raceType == "middle distance" && (a.raceTime && (!a.status || a.status && a.status != "DNF") && a.raceTime.indexOf("00:") != 0 && parseInt(a.raceTime.replace(/(\:|DNF)/g, "")))) {
+                        return a
+                    }
+                })[0], o => parseInt(o.raceTime.replace(/(\:|DNF)/g, "")), 'asc')[0];
+            // console.table(fastest_time);
+            _.orderBy(record.history, ['year'], 'desc').forEach(function (caa) {
+                if (caa.year != "Total") {
+                    //console.log(caa.raceTime.replace(/\:/g,""))
+
+
+                    // ${caa.raceTime ? caa.raceTime : "DNF" }  ${ caa.status ? renderStatus(caa.status) : ""} <span class=\"badge badge-primary\">"+ caa.status + "</span>":""} <br/>
+
+                    function renderStatus(status) {
+                        let res = '';
+
+                        let statusData = status ? status.split(",") : [];
+                        for (let st of statusData) {
+                            if (st.trim().indexOf('Award') > -1) {
+                                res += `<span class="badge badge-warning"><i class="fas fa-trophy me-2"></i> ${st.trim()}</span> `;
+                            } else if (st.trim().toLowerCase().indexOf('swim') > -1) {
+                                res += `<span class="badge badge-info"><i class="fas fa-swimmer me-2"></i> ${st.trim()}</span> `;
+                            } else if (st.trim().toLowerCase().indexOf('bike') > -1) {
+                                res += `<span class="badge badge-success"><i class="fas fa-biking me-2"></i> ${st.trim()}</span> `;
+                            } else if (st.trim().toLowerCase().indexOf('run') > -1) {
+                                res += `<span class="badge badge-warning"><i class="fas fa-running me-2"></i> ${st.trim()}</span> `;
+                            } else if (st.trim().indexOf('Course Record') > -1) {
+                                res += `<span class="badge badge-danger"><i class="fas fa-stopwatch me-2"></i> ${st.trim()}</span> `;
+                            } else if (st.trim().toLowerCase().indexOf('dutch') > -1) {
+                                res += `<span class="badge badge-secondary" style="background-color: #ffa726 !important;"><i class="flag flag-netherlands me-2"></i> ${st.trim()}</span> `
+                            } else if (st.trim().toLowerCase().indexOf('national record') > -1) {
+                                let flag = record.countryData["ISO 3166-1 alpha2"].toLowerCase();
+                                res += `<span class="badge badge-secondary"><i class="flag flag-${flag} me-2"></i> ${st.trim()}</span>`;
+                            } else if (st.trim().toLowerCase().indexOf('almeer') > -1) {
+                                res += `<span class="badge badge-warning""><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/almere.svg" height="11" class="me-2"\>${st.trim()}</span> `;
+                            } else if (st.trim().toLowerCase().indexOf('celebration') > -1) {
+                                res += `<span class="badge badge-warning">💃 ${st.trim()}</span>   `;
+                            } else if (st.trim().toLowerCase().indexOf('laatste finisher') > -1) {
+                                res += `<span class="badge badge-danger">🏮 ${st.trim()}</span>   `;
+                            } else {
+                                res += st.trim();
                             }
-
-                            return res;
                         }
 
+                        return res;
+                    }
 
-                        li += `<tr class="year${fastest_time == caa ? " almereRecord":""} ${fastest_timeMD == caa ? " almereRecord":""}">
+
+                    li += `<tr class="year${fastest_time == caa ? " almereRecord" : ""} ${fastest_timeMD == caa ? " almereRecord" : ""}">
 									<td style="vertical-align: top; padding: 5px; padding-top:10px"><b>${caa.year} </b><br><span class="badge badge-primary">${caa.raceType == "O3" ? "O3" : caa.raceType.match(/\b(\w)/g).join('').toUpperCase()}</span></td>
 									<td>
 										<table>
 											<tr>
 												<td>
-													${caa.raceTime ? caa.raceTime : "" }  ${ caa.status ? renderStatus(caa.status) : ""} <br/>
+													${caa.raceTime ? caa.raceTime : ""}  ${caa.status ? renderStatus(caa.status) : ""} <br/>
 													<span class="icon swim"></span> ${caa.swimTime ? caa.swimTime : "DNF"}
 													<span class="icon bike space-left"></span> ${caa.bikeTime ? caa.bikeTime : "DNF"}
 													<span class="icon run space-left"></span> ${caa.runTime ? caa.runTime : "DNF"}
 												</td>
 											</tr>`
-                        if(caa.raceTime && caa.raceTime != "DNF"){
-                            li+=`
+                    if (caa.raceTime && caa.raceTime != "DNF") {
+                        li += `
 											<tr>
 												<td>Overall:${caa.pos}</td>
 											</tr>
-											${caa.posCat ? "<tr><td>"+(parseInt(caa.posCat) < 4 ? '<span class="icon medal"></span> ':'')+"Category, "+caa.cat +": "+caa.posCat+"</td></tr>" : ""}
-											${caa.posCatWk ? "<tr><td>"+(parseInt(caa.posCatWk) < 4 ? '<span class="icon medal"></span> ':'')+"World Championship, "+caa.catWk+": "+caa.posCatWk+"</td></tr>" : ""}
-											${caa.posCatEk ? "<tr><td>"+(parseInt(caa.posCatEk) < 4 ? '<span class="icon medal"></span> ':'')+"European Championship, "+caa.catEk+": "+caa.posCatEk+"</td></tr>" : ""}
-											${caa.posCatNk ? "<tr><td>"+(parseInt(caa.posCatNk) < 4 ? '<span class="icon medal"></span> ':'')+"Dutch Championship, "+caa.catNk+": "+caa.posCatNk+"</td></tr>" : ""}`
-                        }
-                        li+=`			</table>
+											${caa.posCat ? "<tr><td>" + (parseInt(caa.posCat) < 4 ? '<span class="icon medal"></span> ' : '') + "Category, " + caa.cat + ": " + caa.posCat + "</td></tr>" : ""}
+											${caa.posCatWk ? "<tr><td>" + (parseInt(caa.posCatWk) < 4 ? '<span class="icon medal"></span> ' : '') + "World Championship, " + caa.catWk + ": " + caa.posCatWk + "</td></tr>" : ""}
+											${caa.posCatEk ? "<tr><td>" + (parseInt(caa.posCatEk) < 4 ? '<span class="icon medal"></span> ' : '') + "European Championship, " + caa.catEk + ": " + caa.posCatEk + "</td></tr>" : ""}
+											${caa.posCatNk ? "<tr><td>" + (parseInt(caa.posCatNk) < 4 ? '<span class="icon medal"></span> ' : '') + "Dutch Championship, " + caa.catNk + ": " + caa.posCatNk + "</td></tr>" : ""}`
+                    }
+                    li += `			</table>
 									</td>
 								</tr>`
-                    }
-                    if(caa.year == "Total"){
+                }
+                if (caa.year == "Total") {
 
-                        let totalRacesByRaceType = _.countBy(record.history, "raceType");
-                        let totalFinishesByRaceType = _.countBy(_.partition(record.history, (a) =>  {if(a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total"){ return a.raceTime }})[0], "raceType");
-
-                        // console.log(totalRacesByRaceType)
-                        let racesPerRaceType = '<table>';
-                        for (const [key, value] of Object.entries(totalRacesByRaceType)) {
-                            if(key != "undefined"){
-                                racesPerRaceType += `<tr><td><span class="badge badge-light">${key}</span></td><td>${totalFinishesByRaceType[key]} / ${value}</td></tr>`
-                            }
+                    let totalRacesByRaceType = _.countBy(record.history, "raceType");
+                    let totalFinishesByRaceType = _.countBy(_.partition(record.history, (a) => {
+                        if (a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total") {
+                            return a.raceTime
                         }
-                        racesPerRaceType += '</table>';
+                    })[0], "raceType");
 
-                        li += `<tr><td colspan="2">
-							<div class="mb-2">This athlete has raced a total of at least ${(parseFloat(caa.totals.distance.total.swim_kms)+parseFloat(caa.totals.distance.total.bike_kms)+parseFloat(caa.totals.distance.total.run_kms)).toFixed()} kilometers in Almere.`
-                        li += `And doing that this athlete has been spending at least ${caa.totals.time.total.raceTime}h on the course in Almere.</div></td></tr>`
-                        li += `<tr>
+                    // console.log(totalRacesByRaceType)
+                    let racesPerRaceType = '<table>';
+                    for (const [key, value] of Object.entries(totalRacesByRaceType)) {
+                        if (key != "undefined") {
+                            racesPerRaceType += `<tr><td><span class="badge badge-light">${key}</span></td><td>${totalFinishesByRaceType[key]} / ${value}</td></tr>`
+                        }
+                    }
+                    racesPerRaceType += '</table>';
+
+                    li += `<tr><td colspan="2">
+							<div class="mb-2">This athlete has raced a total of at least ${(parseFloat(caa.totals.distance.total.swim_kms) + parseFloat(caa.totals.distance.total.bike_kms) + parseFloat(caa.totals.distance.total.run_kms)).toFixed()} kilometers in Almere.`
+                    li += `And doing that this athlete has been spending at least ${caa.totals.time.total.raceTime}h on the course in Almere.</div></td></tr>`
+                    li += `<tr>
 								<td><span class="badge badge-light mt-2">Distances</span></td>
 								<td><span class="icon swim" style="padding:0;"></span> ${(parseFloat(caa.totals.distance.total.swim_kms)).toFixed(2)} km
 									<span class="icon bike space-left" style="padding:0;"></span> ${(parseFloat(caa.totals.distance.total.bike_kms)).toFixed(2)} km
@@ -506,7 +578,7 @@
 								</td>
 							</tr>
 							`
-                        li += `<tr>
+                    li += `<tr>
 							<td><span class="badge badge-light mt-2">Times</span></td>
 								<td>
 									<span class="icon swim" style="padding:0;"></span> ${caa.totals.time.total.swimTime}
@@ -518,157 +590,162 @@
 							<tr><td colspan="2">
 								 <hr />
 								 </td></tr>`
-                    }
-                });
-                li += "</table>";
+                }
+            });
+            li += "</table>";
 
-                li+=`</div>`
-            }
+            li += `</div>`
+        }
 
 
-            if(record.frysman){
-                li += `<div class="tab-pane fade" id="si-tabs-5" role="tabpanel" aria-labelledby="si-tab-5" >
+        if (record.frysman) {
+            li += `<div class="tab-pane fade" id="si-tabs-5" role="tabpanel" aria-labelledby="si-tab-5" >
 			<h3><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman-icon.png" style="width:20px; height:20px; padding:0;"/> Frysman: </h3>`
-                record.frysman.reverse().forEach(function(fr){
-                    li += `<b>${fr.year} </b> ${fr.raceTime} (${fr.pos}${fr.posCat ? ", "+fr.cat+": "+fr.posCat : ""})<br/>`
-                });
-                li += "</div>";
-            }
+            record.frysman.reverse().forEach(function (fr) {
+                li += `<b>${fr.year} </b> ${fr.raceTime} (${fr.pos}${fr.posCat ? ", " + fr.cat + ": " + fr.posCat : ""})<br/>`
+            });
+            li += "</div>";
+        }
 
-            if(record.gelreman){
-                li += `<div class="tab-pane fade" id="si-tabs-4" role="tabpanel" aria-labelledby="si-tab-4" >
+        if (record.gelreman) {
+            li += `<div class="tab-pane fade" id="si-tabs-4" role="tabpanel" aria-labelledby="si-tab-4" >
 			<h3> <img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman.png" style="width:20px; height:20px; padding:0;"/> Gelreman: </h3><table>`
-                _.orderBy(record.gelreman, ['year'], 'desc').forEach(function(gm){
-                    li += `<tr>
+            _.orderBy(record.gelreman, ['year'], 'desc').forEach(function (gm) {
+                li += `<tr>
 						<td>${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
-						<td>${gm.raceTime} (${gm.pos}${gm.posCat ? ", "+gm.cat+": "+gm.posCat : ""})
+						<td>${gm.raceTime} (${gm.pos}${gm.posCat ? ", " + gm.cat + ": " + gm.posCat : ""})
 						<br/>
 							<span class="icon swim"></span> ${gm.swimTime ? gm.swimTime : "DNF"}
 							<span class="icon bike space-left"></span> ${gm.bikeTime ? gm.bikeTime : "DNF"}
 							<span class="icon run space-left"></span> ${gm.runTime ? gm.runTime : "DNF"}
 					</td></tr>`
-                });
-                li += "</table></div>";
-            }
-
-
-            let psi = false;
-            _.orderBy(record.history, ['year'], 'desc').forEach(function(csi){
-                //console.log(si)
-                if(csi.speakerInfo){
-                    if(!psi){
-                        li += `<div><hr/><h3><span class="icon megaphone"></span> Old Speakerinfo: </h3><table style=" width:100%">`
-                        psi = true;
-                    }
-                    let si = JSON.parse(csi.speakerInfo);
-                    //console.log(si)
-
-                    li += `<tr class="year" ><td><b>${csi.year}</b></td><td><div style="padding:5px; margin: 5px;">`
-
-                    for (var key in si){
-                        if(si[key] && si[key] !=""){
-                            li += `<b>${key}</b> ${si[key]} <br/>`;
-                        }
-                    }
-
-
-                    li +='</div></td></tr>';
-
-                }
             });
-
-            if(psi){
-                li += "</table><hr/></div>";
-            }
+            li += "</table></div>";
+        }
 
 
-            if(record["TRIRATING POS"]){
-                li += "<br><b>Trirating prediction:</b> <span style=\"color:red;\">"+record["TRIRATING POS"]+".</span> "+record["TRIRATING Expected"] + " (<i>Rating: "+record["TRIRATING Rating"] + ")</i>";
-                li += "<br><b>Swim:</b> "+record["TRIRATING ESwim"]+", <b>Bike:</b> "+record["TRIRATING EBike"]+", <b>AfterBike:</b> "+record["TRIRATING EATB"]+", <b>Run:</b> "+record["TRIRATING ERun"];
-                li += "<br><b>Consistency:</b> "+record["TRIRATING Consistency"];
-            }
+        let psi = false;
+        _.orderBy(record.history, ['year'], 'desc').forEach(function (csi) {
+            //console.log(si)
+            if (csi.speakerInfo) {
+                if (!psi) {
+                    li += `<div><hr/><h3><span class="icon megaphone"></span> Old Speakerinfo: </h3><table style=" width:100%">`
+                    psi = true;
+                }
+                let si = JSON.parse(csi.speakerInfo);
+                //console.log(si)
 
+                li += `<tr class="year" ><td><b>${csi.year}</b></td><td><div style="padding:5px; margin: 5px;">`
 
-
-            if(record.Specials2021 ){
-                li += "<bR><br><b>Special Info: </b><br>"+record.Specials2021+"<br>";
-            }
-
-
-
-            for(i=2023; i>2014; i--){
-                if(record[i+"raceTime"] || record[i+"DNF"] ){
-                    li += '<div style="background: #fbf7f7; padding:2px 4px;">';
-                    li += "<h3>"+i+"</h3> <b>Race Time:</b> "+(record[i+"raceTime"] != null ? record[i+"raceTime"] : record[i+"DNF"])+"<br>("+record[i+"Splits"]+")"+"<br><b>Ranking:</b> overall: "+record[i+"Overall"];
-                    if(record[i+"Cat"]){
-                        li += " | Cat: "+ record[i+"Cat"];
+                for (var key in si) {
+                    if (si[key] && si[key] != "") {
+                        li += `<b>${key}</b> ${si[key]} <br/>`;
                     }
-                    if(record[i+"EK"]){
-                        li +=  " | EK: "+record[i+"EK"];
-                    }
-                    if(record[i+"NK"]){
-                        if(record[i+"NK"] != " ()"){
-                            li += " | NK: "+record[i+"NK"];
-                        }
+                }
+
+
+                li += '</div></td></tr>';
+
+            }
+        });
+
+        if (psi) {
+            li += "</table><hr/></div>";
+        }
+
+
+        if (record["TRIRATING POS"]) {
+            li += "<br><b>Trirating prediction:</b> <span style=\"color:red;\">" + record["TRIRATING POS"] + ".</span> " + record["TRIRATING Expected"] + " (<i>Rating: " + record["TRIRATING Rating"] + ")</i>";
+            li += "<br><b>Swim:</b> " + record["TRIRATING ESwim"] + ", <b>Bike:</b> " + record["TRIRATING EBike"] + ", <b>AfterBike:</b> " + record["TRIRATING EATB"] + ", <b>Run:</b> " + record["TRIRATING ERun"];
+            li += "<br><b>Consistency:</b> " + record["TRIRATING Consistency"];
+        }
+
+
+        if (record.Specials2021) {
+            li += "<bR><br><b>Special Info: </b><br>" + record.Specials2021 + "<br>";
+        }
+
+
+        for (i = 2023; i > 2014; i--) {
+            if (record[i + "raceTime"] || record[i + "DNF"]) {
+                li += '<div style="background: #fbf7f7; padding:2px 4px;">';
+                li += "<h3>" + i + "</h3> <b>Race Time:</b> " + (record[i + "raceTime"] != null ? record[i + "raceTime"] : record[i + "DNF"]) + "<br>(" + record[i + "Splits"] + ")" + "<br><b>Ranking:</b> overall: " + record[i + "Overall"];
+                if (record[i + "Cat"]) {
+                    li += " | Cat: " + record[i + "Cat"];
+                }
+                if (record[i + "EK"]) {
+                    li += " | EK: " + record[i + "EK"];
+                }
+                if (record[i + "NK"]) {
+                    if (record[i + "NK"] != " ()") {
+                        li += " | NK: " + record[i + "NK"];
                     }
                 }
             }
+        }
 
 
-
-            if(record.bibnr == "0"){
-                let countryOverview = `<h5>Long Distance</h5><table>`;
-                let countryOverviewMd = `<h5>Middle Distance</h5><table>`;
-                let partCountries = _.orderBy(_.partition(countries, (a) =>  {if(a.participationsThisYear && a.participationsThisYear >0 ){ return a.participationsThisYear }})[0], o => parseInt(o.participationsThisYear), 'desc');
-                let partCountriesMd = _.orderBy(_.partition(countries, (a) =>  {if(a.participationsThisYearMd && a.participationsThisYearMd >0 ){ return a.participationsThisYearMd }})[0], o => parseInt(o.participationsThisYearMd), 'desc');
-
-                for(let country of partCountries){
-                    // Long distance
-                    if(country.participationsThisYear && country.participationsThisYear > 0){
-                        countryOverview += `<tr><td><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${country["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2"> ${country.Country}</td><td>${country.participationsThisYear}</td></tr>`;
-                    }
+        if (record.bibnr == "0") {
+            let countryOverview = `<h5>Long Distance</h5><table>`;
+            let countryOverviewMd = `<h5>Middle Distance</h5><table>`;
+            let partCountries = _.orderBy(_.partition(countries, (a) => {
+                if (a.participationsThisYear && a.participationsThisYear > 0) {
+                    return a.participationsThisYear
                 }
-                for(let country of partCountriesMd){
-                    //Middle distance
-                    if(country.participationsThisYearMd && country.participationsThisYearMd > 0){
-                        countryOverviewMd += `<tr><td><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${country["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2"> ${country.Country}</td><td>${country.participationsThisYearMd}</td></tr>`;
-                    }
+            })[0], o => parseInt(o.participationsThisYear), 'desc');
+            let partCountriesMd = _.orderBy(_.partition(countries, (a) => {
+                if (a.participationsThisYearMd && a.participationsThisYearMd > 0) {
+                    return a.participationsThisYearMd
                 }
-                countryOverview += `</table>`;
-                countryOverviewMd += `</table>`;
+            })[0], o => parseInt(o.participationsThisYearMd), 'desc');
 
-                li += `<br/><br/>${countryOverview}<br/><br/>${countryOverviewMd}`;
-
-
-                // domiciles
-                let domOverview = `<h5>Long Distance</h5><table>`;
-                let domOverviewMd = `<h5>Middle Distance</h5><table>`;
-                let partDomiciles = _.orderBy(domiciles, o => parseInt(o.ldParticipationsFromSameDomicileThisYear), 'desc');
-                let partDomicilesMd = _.orderBy(domiciles, o => parseInt(o.mdParticipationsFromSameDomicileThisYear), 'desc');
-
-                for(let domicile of Object.entries(partDomiciles)){
-                    // Long distance
-                    // console.log(domicile)
-                    if(domicile[1].ldParticipationsFromSameDomicileThisYear && domicile[1].ldParticipationsFromSameDomicileThisYear > 2){
-                        domOverview += `<tr><td>${domicile[1].domicile}</td><td>${domicile[1].ldParticipationsFromSameDomicileThisYear}</td></tr>`;
-                    }
+            for (let country of partCountries) {
+                // Long distance
+                if (country.participationsThisYear && country.participationsThisYear > 0) {
+                    countryOverview += `<tr><td><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${country["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2"> ${country.Country}</td><td>${country.participationsThisYear}</td></tr>`;
                 }
-                for(let domicile of Object.entries(partDomicilesMd)){
-                    //Middle distance
-                    if(domicile[1].mdParticipationsFromSameDomicileThisYear && domicile[1].mdParticipationsFromSameDomicileThisYear > 2){
-                        domOverviewMd += `<tr><td>${domicile[1].domicile}</td><td>${domicile[1].mdParticipationsFromSameDomicileThisYear}</td></tr>`;
-                    }
-                }
-                domOverview += `</table>`;
-                domOverviewMd += `</table>`;
-
-                // console.log(domOverview)
-                li += `<br/><h5><i class="fas fa-city me-2"></i>Domicilies</h5><br/>${domOverview}<br/>${domOverviewMd}`;
-
             }
+            for (let country of partCountriesMd) {
+                //Middle distance
+                if (country.participationsThisYearMd && country.participationsThisYearMd > 0) {
+                    countryOverviewMd += `<tr><td><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${country["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2"> ${country.Country}</td><td>${country.participationsThisYearMd}</td></tr>`;
+                }
+            }
+            countryOverview += `</table>`;
+            countryOverviewMd += `</table>`;
 
-            function statsBlock(h, mainStat, title, subtitle,icon, progress){
-                return `<div class="card">
+            li += `<br/><br/>${countryOverview}<br/><br/>${countryOverviewMd}`;
+
+
+            // domiciles
+            let domOverview = `<h5>Long Distance</h5><table>`;
+            let domOverviewMd = `<h5>Middle Distance</h5><table>`;
+            let partDomiciles = _.orderBy(domiciles, o => parseInt(o.ldParticipationsFromSameDomicileThisYear), 'desc');
+            let partDomicilesMd = _.orderBy(domiciles, o => parseInt(o.mdParticipationsFromSameDomicileThisYear), 'desc');
+
+            for (let domicile of Object.entries(partDomiciles)) {
+                // Long distance
+                // console.log(domicile)
+                if (domicile[1].ldParticipationsFromSameDomicileThisYear && domicile[1].ldParticipationsFromSameDomicileThisYear > 2) {
+                    domOverview += `<tr><td>${domicile[1].domicile}</td><td>${domicile[1].ldParticipationsFromSameDomicileThisYear}</td></tr>`;
+                }
+            }
+            for (let domicile of Object.entries(partDomicilesMd)) {
+                //Middle distance
+                if (domicile[1].mdParticipationsFromSameDomicileThisYear && domicile[1].mdParticipationsFromSameDomicileThisYear > 2) {
+                    domOverviewMd += `<tr><td>${domicile[1].domicile}</td><td>${domicile[1].mdParticipationsFromSameDomicileThisYear}</td></tr>`;
+                }
+            }
+            domOverview += `</table>`;
+            domOverviewMd += `</table>`;
+
+            // console.log(domOverview)
+            li += `<br/><h5><i class="fas fa-city me-2"></i>Domicilies</h5><br/>${domOverview}<br/>${domOverviewMd}`;
+
+        }
+
+        function statsBlock(h, mainStat, title, subtitle, icon, progress) {
+            return `<div class="card">
 			              <div class="card-body">
 			                <div class="d-flex justify-content-between p-md-1">
 			                  <div class="d-flex flex-row">
@@ -690,10 +767,10 @@
 			                </div>` : ``) + `
 			              </div>
 			            </div>`
-            }
+        }
 
-            function duoStatsBlock(iconLeft, hLeft, statLeft, title, subtitle, iconRight, hRight, statRight){
-                return `<div class="card">
+        function duoStatsBlock(iconLeft, hLeft, statLeft, title, subtitle, iconRight, hRight, statRight) {
+            return `<div class="card">
               <div class="card-body">
                 <div class="d-flex justify-content-between p-md-1">
                   <div class="d-flex flex-row">
@@ -711,10 +788,10 @@
                 </div>
               </div>
             </div>`
-            }
+        }
 
-            function tripleStatsBlock(title, iconLeft, hLeft, statLeft, secondStatLeft, percLeft, iconMiddle, iconMiddleSize, hMiddle, statMiddle, secondStatMiddle, percMiddle, iconRight, hRight, statRight, secondStatRight, percRight){
-                return `<div class="card" style="padding: 0px; width: 95%; box-shadow: 0px 10px 10px -3px rgba(0, 0, 0, 0.1);    border-bottom-color: rgb(79, 79, 79);    border-bottom-left-radius: 8px;    border-bottom-right-radius: 8px;    border-bottom-style: none;    border-bottom-width: 0px;    border-image-outset: 0;    border-image-repeat: stretch;    border-image-slice: 100%;    border-image-source: none;    border-image-width: 1;    border-left-color: rgb(79, 79, 79);    border-left-style: none;    border-left-width: 0px;    border-right-color: rgb(79, 79, 79);
+        function tripleStatsBlock(title, iconLeft, hLeft, statLeft, secondStatLeft, percLeft, iconMiddle, iconMiddleSize, hMiddle, statMiddle, secondStatMiddle, percMiddle, iconRight, hRight, statRight, secondStatRight, percRight) {
+            return `<div class="card" style="padding: 0px; width: 95%; box-shadow: 0px 10px 10px -3px rgba(0, 0, 0, 0.1);    border-bottom-color: rgb(79, 79, 79);    border-bottom-left-radius: 8px;    border-bottom-right-radius: 8px;    border-bottom-style: none;    border-bottom-width: 0px;    border-image-outset: 0;    border-image-repeat: stretch;    border-image-slice: 100%;    border-image-source: none;    border-image-width: 1;    border-left-color: rgb(79, 79, 79);    border-left-style: none;    border-left-width: 0px;    border-right-color: rgb(79, 79, 79);
     border-right-style: none;    border-right-width: 0px;    border-top-color: rgb(79 79 79 / 10%);    border-top-left-radius: 8px;    border-top-right-radius: 8px;    border-top-style: none;    border-top-width: 0px;   box-shadow: rgba(0, 0, 0, 0.07) 0px 2px 15px -3px, rgba(0, 0, 0, 0.04) 0px 10px 20px -2px;box-sizing: border-box;  margin-bottom: 20px; margin-top: 20px;">
 						<div class="card-header h7 text-uppercase fw-bold text-danger" style="padding-top: 3px; padding-bottom: 3px; border-bottom-style: dashed; background-color: #a0bbbb8a;">${title}</div>
 						<div class="card-body" style="padding-top: 5px; padding-bottom: 5px;">
@@ -722,146 +799,149 @@
 								<div class="align-self-start">
 									<i class="fas ${iconLeft} fa-1x text-primary"></i>
 									<h3 class="${hLeft} mb-0 me-4">${statLeft}</h3>` +
-                    // <p class="mb-0 ">${secondStatLeft} <span class="text-secondary small" style="font-size: 0.7rem;">(${percLeft.toFixed()}%)</span></p>
-                    (secondStatLeft ? `<p class="mb-0 ">${secondStatLeft} ` + ( percLeft ? `<span class="text-secondary small" style="font-size: 0.7rem;">(${_.isNumber(percLeft) ? percLeft.toFixed()+'%' : percLeft})</span>` : ``) + `</p>` : ``) +
-                    `</div>
+                // <p class="mb-0 ">${secondStatLeft} <span class="text-secondary small" style="font-size: 0.7rem;">(${percLeft.toFixed()}%)</span></p>
+                (secondStatLeft ? `<p class="mb-0 ">${secondStatLeft} ` + (percLeft ? `<span class="text-secondary small" style="font-size: 0.7rem;">(${_.isNumber(percLeft) ? percLeft.toFixed() + '%' : percLeft})</span>` : ``) + `</p>` : ``) +
+                `</div>
 								<div class="align-self-start">
 									<i class="fas ${iconMiddle} fa-${iconMiddleSize}x"></i>
 									<h3 class="${hMiddle} mb-0 me-4">${statMiddle}</h3>` +
-                    // <p class="mb-0 ">${secondStatMiddle} <span class="text-secondary small" style="font-size: 0.7rem;">(${percMiddle.toFixed()}%)</span></p>
-                    (secondStatMiddle ? `<p class="mb-0 ">${secondStatMiddle} ` + ( percMiddle ? `<span class="text-secondary small" style="font-size: 0.7rem;">(${_.isNumber(percMiddle) ? percMiddle.toFixed()+'%' : percMiddle})</span>` : ``) + `</p>` : ``) +
-                    `</div>
+                // <p class="mb-0 ">${secondStatMiddle} <span class="text-secondary small" style="font-size: 0.7rem;">(${percMiddle.toFixed()}%)</span></p>
+                (secondStatMiddle ? `<p class="mb-0 ">${secondStatMiddle} ` + (percMiddle ? `<span class="text-secondary small" style="font-size: 0.7rem;">(${_.isNumber(percMiddle) ? percMiddle.toFixed() + '%' : percMiddle})</span>` : ``) + `</p>` : ``) +
+                `</div>
 								<div class="align-self-start">
 									<i class="fas ${iconRight} fa-1x text-danger"></i>
 									<h3 class="${hRight} mb-0 me-4">${statRight}</h3>` +
-                    (secondStatRight ? `<p class="mb-0 ">${secondStatRight} ` + ( percRight ? `<span class="text-secondary small" style="font-size: 0.7rem;">(${_.isNumber(percRight) ? percRight.toFixed()+'%' : percRight})</span>` : ``) + `</p>` : ``) +
-                    `</div>
+                (secondStatRight ? `<p class="mb-0 ">${secondStatRight} ` + (percRight ? `<span class="text-secondary small" style="font-size: 0.7rem;">(${_.isNumber(percRight) ? percRight.toFixed() + '%' : percRight})</span>` : ``) + `</p>` : ``) +
+                `</div>
 							</div>
 						</div>
 					</div>`
-            }
+        }
 
 
-
-            if(record.country){
-                li += `<br/><br/><h5>
+        if (record.country) {
+            li += `<br/><br/><h5>
 					<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">
 	  				${record.countryData.Country}
 				   </h5>`;
 
-                if(record.raceType == "long distance"){
+            if (record.raceType == "long distance") {
 
-                    li += `<div class="note note-secondary mb-3"><h6>Long distance</h6>`;
+                li += `<div class="note note-secondary mb-3"><h6>Long distance</h6>`;
 
-                    li += tripleStatsBlock('Racing this year',
-                        'fa-mars', 'h4', record.countryData.maleParticipationsThisYear, undefined, undefined,
-                        "fa-clipboard-list", '1', 'h4', record.countryData.participationsThisYear, undefined, undefined,
-                        'fa-venus', 'h4', (record.countryData.participationsThisYear-record.countryData.maleParticipationsThisYear), undefined, undefined);
+                li += tripleStatsBlock('Racing this year',
+                    'fa-mars', 'h4', record.countryData.maleParticipationsThisYear, undefined, undefined,
+                    "fa-clipboard-list", '1', 'h4', record.countryData.participationsThisYear, undefined, undefined,
+                    'fa-venus', 'h4', (record.countryData.participationsThisYear - record.countryData.maleParticipationsThisYear), undefined, undefined);
 
-                    li += tripleStatsBlock('Former results',
-                        'fa-mars', 'h4', record.countryData.maleFormerFinishes, record.countryData.maleFormerParticipations, ((record.countryData.maleFormerFinishes/record.countryData.formerParticipations)*100),
-                        'fa-flag-checkered', '1','h4', record.countryData.formerFinishes, record.countryData.formerParticipations, ((record.countryData.formerFinishes/record.countryData.formerParticipations)*100),
-                        'fa-venus', 'h4', (record.countryData.formerFinishes-record.countryData.maleFormerFinishes), (record.countryData.formerParticipations-record.countryData.maleFormerParticipations), (((record.countryData.formerFinishes-record.countryData.maleFormerFinishes)/((record.countryData.formerParticipations-record.countryData.maleFormerParticipations)))*100));
+                li += tripleStatsBlock('Former results',
+                    'fa-mars', 'h4', record.countryData.maleFormerFinishes, record.countryData.maleFormerParticipations, ((record.countryData.maleFormerFinishes / record.countryData.formerParticipations) * 100),
+                    'fa-flag-checkered', '1', 'h4', record.countryData.formerFinishes, record.countryData.formerParticipations, ((record.countryData.formerFinishes / record.countryData.formerParticipations) * 100),
+                    'fa-venus', 'h4', (record.countryData.formerFinishes - record.countryData.maleFormerFinishes), (record.countryData.formerParticipations - record.countryData.maleFormerParticipations), (((record.countryData.formerFinishes - record.countryData.maleFormerFinishes) / ((record.countryData.formerParticipations - record.countryData.maleFormerParticipations))) * 100));
 
-                    li += tripleStatsBlock('Fastest Times',
-                        'fa-mars', 'h4', (record.countryData && record.countryData.fastestMaleRaceTimeInAlmere && record.countryData.fastestMaleRaceTimeInAlmere.hasOwnProperty("raceTime") ? record.countryData.fastestMaleRaceTimeInAlmere.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.countryData && record.countryData.fastestMaleRaceTimeInAlmere && record.countryData.fastestMaleRaceTimeInAlmere.hasOwnProperty("fullName") ? record.countryData.fastestMaleRaceTimeInAlmere.fullName : ``), record?.countryData?.fastestMaleRaceTimeInAlmere?.year,
-                        'fa-trophy', '2', 'h4', '', '', undefined,
-                        'fa-venus', 'h4', (record.countryData && record.countryData.fastestFemaleRaceTimeInAlmere && record.countryData.fastestFemaleRaceTimeInAlmere.hasOwnProperty("raceTime")  ? record.countryData.fastestFemaleRaceTimeInAlmere.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.countryData && record.countryData.fastestFemaleRaceTimeInAlmere  && record.countryData.fastestFemaleRaceTimeInAlmere.hasOwnProperty("fullName") ? record.countryData.fastestFemaleRaceTimeInAlmere.fullName : ``), record?.countryData?.fastestFemaleRaceTimeInAlmere?.year)
+                li += tripleStatsBlock('Fastest Times',
+                    'fa-mars', 'h4', (record.countryData && record.countryData.fastestMaleRaceTimeInAlmere && record.countryData.fastestMaleRaceTimeInAlmere.hasOwnProperty("raceTime") ? record.countryData.fastestMaleRaceTimeInAlmere.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.countryData && record.countryData.fastestMaleRaceTimeInAlmere && record.countryData.fastestMaleRaceTimeInAlmere.hasOwnProperty("fullName") ? record.countryData.fastestMaleRaceTimeInAlmere.fullName : ``), record?.countryData?.fastestMaleRaceTimeInAlmere?.year,
+                    'fa-trophy', '2', 'h4', '', '', undefined,
+                    'fa-venus', 'h4', (record.countryData && record.countryData.fastestFemaleRaceTimeInAlmere && record.countryData.fastestFemaleRaceTimeInAlmere.hasOwnProperty("raceTime") ? record.countryData.fastestFemaleRaceTimeInAlmere.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.countryData && record.countryData.fastestFemaleRaceTimeInAlmere && record.countryData.fastestFemaleRaceTimeInAlmere.hasOwnProperty("fullName") ? record.countryData.fastestFemaleRaceTimeInAlmere.fullName : ``), record?.countryData?.fastestFemaleRaceTimeInAlmere?.year)
 
-                    li += `</div>`;
-                }
-
-
-                if(record.raceType == "middle distance"){
-                    li += `<div class="note note-secondary mb-3"><h6>Middle distance</h6>`;
-
-                    li += tripleStatsBlock('Racing this year',
-                        'fa-mars', 'h4', record.countryData.maleParticipationsThisYearMd, undefined, undefined,
-                        "fa-clipboard-list", '1','h4', record.countryData.participationsThisYearMd, undefined, undefined,
-                        'fa-venus', 'h4', (record.countryData.participationsThisYearMd-record.countryData.maleParticipationsThisYearMd), undefined, undefined);
-
-                    li += tripleStatsBlock('Former results',
-                        'fa-mars', 'h4', record.countryData.maleFormerFinishesMd, record.countryData.maleFormerParticipationsMd, ((record.countryData.maleFormerFinishesMd/record.countryData.formerParticipationsMd)*100),
-                        'fa-flag-checkered', '1','h4', record.countryData.formerFinishesMd, record.countryData.formerParticipationsMd, ((record.countryData.formerFinishesMd/record.countryData.formerParticipationsMd)*100),
-                        'fa-venus', 'h4', (record.countryData.formerFinishesMd-record.countryData.maleFormerFinishesMd), (record.countryData.formerParticipationsMd-record.countryData.maleFormerParticipationsMd), (((record.countryData.formerFinishesMd-record.countryData.maleFormerFinishesMd)/((record.countryData.formerParticipationsMd-record.countryData.maleFormerParticipationsMd)))*100));
-
-                    li += tripleStatsBlock('Fastest Times',
-                        'fa-mars', 'h4', (record.countryData && record.countryData.fastestMaleRaceTimeInAlmereMd && record.countryData.fastestMaleRaceTimeInAlmereMd.hasOwnProperty("raceTime") ? record.countryData.fastestMaleRaceTimeInAlmereMd.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.countryData && record.countryData.fastestMaleRaceTimeInAlmereMd && record.countryData.fastestMaleRaceTimeInAlmereMd.hasOwnProperty("fullName") ? record.countryData.fastestMaleRaceTimeInAlmereMd.fullName : ``), record?.countryData?.fastestMaleRaceTimeInAlmereMd?.year,
-                        'fa-trophy', '2','h4', '', '', undefined,
-                        'fa-venus', 'h4', (record.countryData && record.countryData.fastestFemaleRaceTimeInAlmereMd && record.countryData.fastestFemaleRaceTimeInAlmereMd.hasOwnProperty("raceTime")  ? record.countryData.fastestFemaleRaceTimeInAlmereMd.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.countryData && record.countryData.fastestFemaleRaceTimeInAlmereMd  && record.countryData.fastestFemaleRaceTimeInAlmereMd.hasOwnProperty("fullName") ? record.countryData.fastestFemaleRaceTimeInAlmereMd.fullName : ``), record?.countryData?.fastestFemaleRaceTimeInAlmereMd?.year)
-
-
-                    li += `</div>`;
-                }
+                li += `</div>`;
             }
 
-            //<i class="fas fa-earth-europe"></i>
 
-            if(record.domicile && record.bibnr != "0"){
-                li += `<br/><br/><h5><i class="fas fa-city me-2"></i>${record.domicile}</h5>`;
+            if (record.raceType == "middle distance") {
+                li += `<div class="note note-secondary mb-3"><h6>Middle distance</h6>`;
 
-                if(record.raceType == "long distance"){
+                li += tripleStatsBlock('Racing this year',
+                    'fa-mars', 'h4', record.countryData.maleParticipationsThisYearMd, undefined, undefined,
+                    "fa-clipboard-list", '1', 'h4', record.countryData.participationsThisYearMd, undefined, undefined,
+                    'fa-venus', 'h4', (record.countryData.participationsThisYearMd - record.countryData.maleParticipationsThisYearMd), undefined, undefined);
 
-                    li += `<div class="note note-secondary mb-3"><h6>Long distance</h6>`;
+                li += tripleStatsBlock('Former results',
+                    'fa-mars', 'h4', record.countryData.maleFormerFinishesMd, record.countryData.maleFormerParticipationsMd, ((record.countryData.maleFormerFinishesMd / record.countryData.formerParticipationsMd) * 100),
+                    'fa-flag-checkered', '1', 'h4', record.countryData.formerFinishesMd, record.countryData.formerParticipationsMd, ((record.countryData.formerFinishesMd / record.countryData.formerParticipationsMd) * 100),
+                    'fa-venus', 'h4', (record.countryData.formerFinishesMd - record.countryData.maleFormerFinishesMd), (record.countryData.formerParticipationsMd - record.countryData.maleFormerParticipationsMd), (((record.countryData.formerFinishesMd - record.countryData.maleFormerFinishesMd) / ((record.countryData.formerParticipationsMd - record.countryData.maleFormerParticipationsMd))) * 100));
 
-                    li += tripleStatsBlock('Racing this year',
-                        'fa-mars', 'h4', record?.domicileData?.maleLdParticipationsFromSameDomicileThisYear, undefined, undefined,
-                        "fa-clipboard-list", '1','h4', record?.domicileData?.ldParticipationsFromSameDomicileThisYear, undefined, undefined,
-                        'fa-venus', 'h4', (record?.domicileData?.ldParticipationsFromSameDomicileThisYear-record?.domicileData?.maleLdParticipationsFromSameDomicileThisYear), undefined, undefined);
-
-                    li += tripleStatsBlock('Former results',
-                        'fa-mars', 'h4', record?.domicileData?.maleFinishesFromSameDomicile, record?.domicileData?.maleParticipationsFromSameDomicile, ((record?.domicileData?.maleFinishesFromSameDomicile/record?.domicileData?.participationsFromSameDomicile)*100),
-                        'fa-flag-checkered', '1','h4', record?.domicileData?.finishesFromSameDomicile, record?.domicileData?.participationsFromSameDomicile, ((record?.domicileData?.finishesFromSameDomicile/record?.domicileData?.participationsFromSameDomicile)*100),
-                        'fa-venus', 'h4', (record?.domicileData?.finishesFromSameDomicile-record?.domicileData?.maleFinishesFromSameDomicile), (record?.domicileData?.participationsFromSameDomicile-record?.domicileData?.maleParticipationsFromSameDomicile), (((record?.domicileData?.finishesFromSameDomicile-record?.domicileData?.maleFinishesFromSameDomicile)/((record?.domicileData?.participationsFromSameDomicile-record?.domicileData?.maleParticipationsFromSameDomicile)))*100));
-
-                    li += tripleStatsBlock('Fastest Times',
-                        'fa-mars', 'h4', (record?.domicileData && record?.domicileData?.fastestMaleRaceTimeInAlmere && record?.domicileData?.fastestMaleRaceTimeInAlmere.hasOwnProperty("raceTime") ? record?.domicileData?.fastestMaleRaceTimeInAlmere.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.domicileData && record.domicileData.fastestMaleRaceTimeInAlmere && record.domicileData.fastestMaleRaceTimeInAlmere.hasOwnProperty("fullName") ? record.domicileData.fastestMaleRaceTimeInAlmere.fullName : ``), record?.domicileData?.fastestMaleRaceTimeInAlmere?.year,
-                        'fa-trophy', '2','h4', '', '', undefined,
-                        'fa-venus', 'h4', (record?.domicileData && record?.domicileData?.fastestFemaleRaceTimeInAlmere && record?.domicileData?.fastestFemaleRaceTimeInAlmere.hasOwnProperty("raceTime")  ? record?.domicileData?.fastestFemaleRaceTimeInAlmere.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.domicileData && record.domicileData.fastestFemaleRaceTimeInAlmere  && record.domicileData.fastestFemaleRaceTimeInAlmere.hasOwnProperty("fullName") ? record.domicileData.fastestFemaleRaceTimeInAlmere.fullName : ``), record?.domicileData?.fastestFemaleRaceTimeInAlmere?.year)
-
-                    li += `</div>`;
-                }
+                li += tripleStatsBlock('Fastest Times',
+                    'fa-mars', 'h4', (record.countryData && record.countryData.fastestMaleRaceTimeInAlmereMd && record.countryData.fastestMaleRaceTimeInAlmereMd.hasOwnProperty("raceTime") ? record.countryData.fastestMaleRaceTimeInAlmereMd.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.countryData && record.countryData.fastestMaleRaceTimeInAlmereMd && record.countryData.fastestMaleRaceTimeInAlmereMd.hasOwnProperty("fullName") ? record.countryData.fastestMaleRaceTimeInAlmereMd.fullName : ``), record?.countryData?.fastestMaleRaceTimeInAlmereMd?.year,
+                    'fa-trophy', '2', 'h4', '', '', undefined,
+                    'fa-venus', 'h4', (record.countryData && record.countryData.fastestFemaleRaceTimeInAlmereMd && record.countryData.fastestFemaleRaceTimeInAlmereMd.hasOwnProperty("raceTime") ? record.countryData.fastestFemaleRaceTimeInAlmereMd.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.countryData && record.countryData.fastestFemaleRaceTimeInAlmereMd && record.countryData.fastestFemaleRaceTimeInAlmereMd.hasOwnProperty("fullName") ? record.countryData.fastestFemaleRaceTimeInAlmereMd.fullName : ``), record?.countryData?.fastestFemaleRaceTimeInAlmereMd?.year)
 
 
-                if(record.raceType == "middle distance"){
-                    li += `<div class="note note-secondary mb-3"><h6>Middle distance</h6>`;
+                li += `</div>`;
+            }
+        }
 
-                    li += tripleStatsBlock('Racing this year',
-                        'fa-mars', 'h4', record?.domicileData?.maleMdParticipationsFromSameDomicileThisYear, undefined, undefined,
-                        "fa-clipboard-list", '1','h4', record?.domicileData?.mdParticipationsFromSameDomicileThisYear, undefined, undefined,
-                        'fa-venus', 'h4', (record?.domicileData?.mdParticipationsFromSameDomicileThisYear-record?.domicileData?.maleMdParticipationsFromSameDomicileThisYear), undefined, undefined);
+        //<i class="fas fa-earth-europe"></i>
 
-                    li += tripleStatsBlock('Former results',
-                        'fa-mars', 'h4', record?.domicileData?.maleFinishesFromSameDomicileMd, record?.domicileData?.maleParticipationsFromSameDomicileMd, ((record?.domicileData?.maleFinishesFromSameDomicileMd/record?.domicileData?.maleParticipationsFromSameDomicileMd)*100),
-                        'fa-flag-checkered','1', 'h4', record?.domicileData?.finishesFromSameDomicileMd, record?.domicileData?.participationsFromSameDomicileMd, ((record?.domicileData?.finishesFromSameDomicileMd/record?.domicileData?.participationsFromSameDomicileMd)*100),
-                        'fa-venus', 'h4', (record?.domicileData?.finishesFromSameDomicileMd-record?.domicileData?.maleFinishesFromSameDomicileMd), (record?.domicileData?.participationsFromSameDomicileMd-record?.domicileData?.maleParticipationsFromSameDomicileMd), (((record?.domicileData?.finishesFromSameDomicileMd-record?.domicileData?.maleFinishesFromSameDomicileMd)/((record?.domicileData?.participationsFromSameDomicileMd-record?.domicileData?.maleParticipationsFromSameDomicileMd)))*100));
+        if (record.domicile && record.bibnr != "0") {
+            li += `<br/><br/><h5><i class="fas fa-city me-2"></i>${record.domicile}</h5>`;
 
-                    li += tripleStatsBlock('Fastest Times',
-                        'fa-mars', 'h4', (record.domicileData && record.domicileData.fastestMaleRaceTimeInAlmereMd && record.domicileData.fastestMaleRaceTimeInAlmereMd.hasOwnProperty("raceTime") ? record.domicileData.fastestMaleRaceTimeInAlmereMd.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.domicileData && record.domicileData.fastestMaleRaceTimeInAlmereMd && record.domicileData.fastestMaleRaceTimeInAlmereMd.hasOwnProperty("fullName") ? record.domicileData.fastestMaleRaceTimeInAlmereMd.fullName : ``), record?.domicileData?.fastestMaleRaceTimeInAlmereMd?.year,
-                        'fa-trophy','2', 'h4', '', '', undefined,
-                        'fa-venus', 'h4', (record.domicileData && record.domicileData.fastestFemaleRaceTimeInAlmereMd && record.domicileData.fastestFemaleRaceTimeInAlmereMd.hasOwnProperty("raceTime")  ? record.domicileData.fastestFemaleRaceTimeInAlmereMd.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.domicileData && record.domicileData.fastestFemaleRaceTimeInAlmereMd  && record.domicileData.fastestFemaleRaceTimeInAlmereMd.hasOwnProperty("fullName") ? record.domicileData.fastestFemaleRaceTimeInAlmereMd.fullName : ``), record?.domicileData?.fastestFemaleRaceTimeInAlmereMd?.year);
+            if (record.raceType == "long distance") {
 
-                    li += `</div>`;
-                }
+                li += `<div class="note note-secondary mb-3"><h6>Long distance</h6>`;
+
+                li += tripleStatsBlock('Racing this year',
+                    'fa-mars', 'h4', record?.domicileData?.maleLdParticipationsFromSameDomicileThisYear, undefined, undefined,
+                    "fa-clipboard-list", '1', 'h4', record?.domicileData?.ldParticipationsFromSameDomicileThisYear, undefined, undefined,
+                    'fa-venus', 'h4', (record?.domicileData?.ldParticipationsFromSameDomicileThisYear - record?.domicileData?.maleLdParticipationsFromSameDomicileThisYear), undefined, undefined);
+
+                li += tripleStatsBlock('Former results',
+                    'fa-mars', 'h4', record?.domicileData?.maleFinishesFromSameDomicile, record?.domicileData?.maleParticipationsFromSameDomicile, ((record?.domicileData?.maleFinishesFromSameDomicile / record?.domicileData?.participationsFromSameDomicile) * 100),
+                    'fa-flag-checkered', '1', 'h4', record?.domicileData?.finishesFromSameDomicile, record?.domicileData?.participationsFromSameDomicile, ((record?.domicileData?.finishesFromSameDomicile / record?.domicileData?.participationsFromSameDomicile) * 100),
+                    'fa-venus', 'h4', (record?.domicileData?.finishesFromSameDomicile - record?.domicileData?.maleFinishesFromSameDomicile), (record?.domicileData?.participationsFromSameDomicile - record?.domicileData?.maleParticipationsFromSameDomicile), (((record?.domicileData?.finishesFromSameDomicile - record?.domicileData?.maleFinishesFromSameDomicile) / ((record?.domicileData?.participationsFromSameDomicile - record?.domicileData?.maleParticipationsFromSameDomicile))) * 100));
+
+                li += tripleStatsBlock('Fastest Times',
+                    'fa-mars', 'h4', (record?.domicileData && record?.domicileData?.fastestMaleRaceTimeInAlmere && record?.domicileData?.fastestMaleRaceTimeInAlmere.hasOwnProperty("raceTime") ? record?.domicileData?.fastestMaleRaceTimeInAlmere.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.domicileData && record.domicileData.fastestMaleRaceTimeInAlmere && record.domicileData.fastestMaleRaceTimeInAlmere.hasOwnProperty("fullName") ? record.domicileData.fastestMaleRaceTimeInAlmere.fullName : ``), record?.domicileData?.fastestMaleRaceTimeInAlmere?.year,
+                    'fa-trophy', '2', 'h4', '', '', undefined,
+                    'fa-venus', 'h4', (record?.domicileData && record?.domicileData?.fastestFemaleRaceTimeInAlmere && record?.domicileData?.fastestFemaleRaceTimeInAlmere.hasOwnProperty("raceTime") ? record?.domicileData?.fastestFemaleRaceTimeInAlmere.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.domicileData && record.domicileData.fastestFemaleRaceTimeInAlmere && record.domicileData.fastestFemaleRaceTimeInAlmere.hasOwnProperty("fullName") ? record.domicileData.fastestFemaleRaceTimeInAlmere.fullName : ``), record?.domicileData?.fastestFemaleRaceTimeInAlmere?.year)
+
+                li += `</div>`;
             }
 
-            if(record.bibnr != "0"){
-                li += `<div class="accordion accordion-flush" id="sameNamers">`;
 
-                let achternamers =  _.partition(startlist, (a) =>  {if(a.lastName && a.lastName.toLowerCase() == record.lastName.toLowerCase() && a.athleteId != record.athleteId){ return a.lastName }})[0];
-                //console.log(achternamers);
-                if(achternamers.length > 0){
-                    let achternamersPerRaceType = _.countBy(achternamers, "raceType");
+            if (record.raceType == "middle distance") {
+                li += `<div class="note note-secondary mb-3"><h6>Middle distance</h6>`;
 
-                    let totals = "";
-                    for (const [key, value] of Object.entries(achternamersPerRaceType)) {
-                        if(key != "undefined"){
-                            totals += ` <small><span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${value}</small> `
-                        }
+                li += tripleStatsBlock('Racing this year',
+                    'fa-mars', 'h4', record?.domicileData?.maleMdParticipationsFromSameDomicileThisYear, undefined, undefined,
+                    "fa-clipboard-list", '1', 'h4', record?.domicileData?.mdParticipationsFromSameDomicileThisYear, undefined, undefined,
+                    'fa-venus', 'h4', (record?.domicileData?.mdParticipationsFromSameDomicileThisYear - record?.domicileData?.maleMdParticipationsFromSameDomicileThisYear), undefined, undefined);
+
+                li += tripleStatsBlock('Former results',
+                    'fa-mars', 'h4', record?.domicileData?.maleFinishesFromSameDomicileMd, record?.domicileData?.maleParticipationsFromSameDomicileMd, ((record?.domicileData?.maleFinishesFromSameDomicileMd / record?.domicileData?.maleParticipationsFromSameDomicileMd) * 100),
+                    'fa-flag-checkered', '1', 'h4', record?.domicileData?.finishesFromSameDomicileMd, record?.domicileData?.participationsFromSameDomicileMd, ((record?.domicileData?.finishesFromSameDomicileMd / record?.domicileData?.participationsFromSameDomicileMd) * 100),
+                    'fa-venus', 'h4', (record?.domicileData?.finishesFromSameDomicileMd - record?.domicileData?.maleFinishesFromSameDomicileMd), (record?.domicileData?.participationsFromSameDomicileMd - record?.domicileData?.maleParticipationsFromSameDomicileMd), (((record?.domicileData?.finishesFromSameDomicileMd - record?.domicileData?.maleFinishesFromSameDomicileMd) / ((record?.domicileData?.participationsFromSameDomicileMd - record?.domicileData?.maleParticipationsFromSameDomicileMd))) * 100));
+
+                li += tripleStatsBlock('Fastest Times',
+                    'fa-mars', 'h4', (record.domicileData && record.domicileData.fastestMaleRaceTimeInAlmereMd && record.domicileData.fastestMaleRaceTimeInAlmereMd.hasOwnProperty("raceTime") ? record.domicileData.fastestMaleRaceTimeInAlmereMd.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.domicileData && record.domicileData.fastestMaleRaceTimeInAlmereMd && record.domicileData.fastestMaleRaceTimeInAlmereMd.hasOwnProperty("fullName") ? record.domicileData.fastestMaleRaceTimeInAlmereMd.fullName : ``), record?.domicileData?.fastestMaleRaceTimeInAlmereMd?.year,
+                    'fa-trophy', '2', 'h4', '', '', undefined,
+                    'fa-venus', 'h4', (record.domicileData && record.domicileData.fastestFemaleRaceTimeInAlmereMd && record.domicileData.fastestFemaleRaceTimeInAlmereMd.hasOwnProperty("raceTime") ? record.domicileData.fastestFemaleRaceTimeInAlmereMd.raceTime : `<span class="text-uppercase small">n/a</span>`), (record.domicileData && record.domicileData.fastestFemaleRaceTimeInAlmereMd && record.domicileData.fastestFemaleRaceTimeInAlmereMd.hasOwnProperty("fullName") ? record.domicileData.fastestFemaleRaceTimeInAlmereMd.fullName : ``), record?.domicileData?.fastestFemaleRaceTimeInAlmereMd?.year);
+
+                li += `</div>`;
+            }
+        }
+
+        if (record.bibnr != "0") {
+            li += `<div class="accordion accordion-flush" id="sameNamers">`;
+
+            let achternamers = _.partition(startlist, (a) => {
+                if (a.lastName && a.lastName.toLowerCase() == record.lastName.toLowerCase() && a.athleteId != record.athleteId) {
+                    return a.lastName
+                }
+            })[0];
+            //console.log(achternamers);
+            if (achternamers.length > 0) {
+                let achternamersPerRaceType = _.countBy(achternamers, "raceType");
+
+                let totals = "";
+                for (const [key, value] of Object.entries(achternamersPerRaceType)) {
+                    if (key != "undefined") {
+                        totals += ` <small><span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${value}</small> `
                     }
+                }
 
 
-                    li += `<div class="accordion-item">
+                li += `<div class="accordion-item">
 						    <h2 class="accordion-header" id="achternamersHeader">
 						      <button
 						        data-mdb-collapse-init
@@ -884,38 +964,52 @@
 						    >
 						      <div class="accordion-body">`;
 
-                    _.orderBy(achternamers, (a) => { if(a.history){return Object.keys(a.history).length} else { return 0}}, "desc").forEach(function(v){
-                        let totalRacesByRaceType = _.countBy(v.history, "raceType");
-                        let totalFinishesByRaceType = _.countBy(_.partition(v.history, (a) =>  {if(a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total" && a.year != "2024"){ return a.raceTime }})[0], "raceType");
-                        let racesPerRaceType = "";
-                        for (const [key, value] of Object.entries(totalRacesByRaceType)) {
-                            if(key != "undefined"){
-                                racesPerRaceType += ` <span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${totalFinishesByRaceType[key] ?? '<small>n/a</small>'} / ${value}`
-                            }
+                _.orderBy(achternamers, (a) => {
+                    if (a.history) {
+                        return Object.keys(a.history).length
+                    } else {
+                        return 0
+                    }
+                }, "desc").forEach(function (v) {
+                    let totalRacesByRaceType = _.countBy(v.history, "raceType");
+                    let totalFinishesByRaceType = _.countBy(_.partition(v.history, (a) => {
+                        if (a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total" && a.year != "2024") {
+                            return a.raceTime
                         }
-                        li +=`<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;"> <a href="index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType} </div>`
-                    })
-                    li +=`</div></div>`
-                }
-
-            }
-
-
-            if(record.bibnr != "0"){
-                voornamers =  _.partition(startlist, (a) =>  {if(a.firstName && a.firstName.toLowerCase() == record.firstName.toLowerCase() && a.athleteId != record.athleteId){ return a.firstName }})[0];
-                //console.log(record.firstName, voornamers);
-                if(voornamers.length > 0){
-
-                    let voornamersPerRaceType = _.countBy(voornamers, "raceType");
-
-                    let totals = "";
-                    for (const [key, value] of Object.entries(voornamersPerRaceType)) {
-                        if(key != "undefined"){
-                            totals += ` <small><span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${value}</small> `
+                    })[0], "raceType");
+                    let racesPerRaceType = "";
+                    for (const [key, value] of Object.entries(totalRacesByRaceType)) {
+                        if (key != "undefined") {
+                            racesPerRaceType += ` <span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${totalFinishesByRaceType[key] ?? '<small>n/a</small>'} / ${value}`
                         }
                     }
+                    li += `<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;"> <a href="index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType} </div>`
+                })
+                li += `</div></div>`
+            }
 
-                    li += `<div class="accordion-item">
+        }
+
+
+        if (record.bibnr != "0") {
+            voornamers = _.partition(startlist, (a) => {
+                if (a.firstName && a.firstName.toLowerCase() == record.firstName.toLowerCase() && a.athleteId != record.athleteId) {
+                    return a.firstName
+                }
+            })[0];
+            //console.log(record.firstName, voornamers);
+            if (voornamers.length > 0) {
+
+                let voornamersPerRaceType = _.countBy(voornamers, "raceType");
+
+                let totals = "";
+                for (const [key, value] of Object.entries(voornamersPerRaceType)) {
+                    if (key != "undefined") {
+                        totals += ` <small><span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${value}</small> `
+                    }
+                }
+
+                li += `<div class="accordion-item">
 						    <h2 class="accordion-header" id="voornamersHeader">
 						      <button
 						        data-mdb-collapse-init
@@ -938,38 +1032,52 @@
 						    >
 						      <div class="accordion-body">`;
 
-                    _.orderBy(voornamers, (a) => { if(a.history){return Object.keys(a.history).length} else { return 0}}, "desc").forEach(function(v){
-                        let totalRacesByRaceType = _.countBy(v.history, "raceType");
-                        let totalFinishesByRaceType = _.countBy(_.partition(v.history, (a) =>  {if(a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total" && a.year != "2024"){ return a.raceTime }})[0], "raceType");
-                        let racesPerRaceType = "";
-                        for (const [key, value] of Object.entries(totalRacesByRaceType)) {
-                            if(key != "undefined"){
-                                racesPerRaceType += ` <span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${totalFinishesByRaceType[key] ?? '<small>n/a</small>'} / ${value} `
-                            }
+                _.orderBy(voornamers, (a) => {
+                    if (a.history) {
+                        return Object.keys(a.history).length
+                    } else {
+                        return 0
+                    }
+                }, "desc").forEach(function (v) {
+                    let totalRacesByRaceType = _.countBy(v.history, "raceType");
+                    let totalFinishesByRaceType = _.countBy(_.partition(v.history, (a) => {
+                        if (a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total" && a.year != "2024") {
+                            return a.raceTime
                         }
-                        li +=`<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;">  <a href="index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType} </div>`
-
-                    })
-                    li +=`</div></div>`;
-                }
-            }
-
-
-            if(record.bibnr != "0"){
-                domicilers =  _.partition(startlist, (a) =>  {if(a.domicile && record.domicile && a.domicile.toLowerCase() == record.domicile.toLowerCase() && a.athleteId != record.athleteId){ return a.domicile }})[0];
-                //console.log(record.firstName, voornamers);
-                if(domicilers.length > 0){
-
-                    let domicilersPerRaceType = _.countBy(domicilers, "raceType");
-
-                    let totals = "";
-                    for (const [key, value] of Object.entries(domicilersPerRaceType)) {
-                        if(key != "undefined"){
-                            totals += ` <small><span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${value}</small> `
+                    })[0], "raceType");
+                    let racesPerRaceType = "";
+                    for (const [key, value] of Object.entries(totalRacesByRaceType)) {
+                        if (key != "undefined") {
+                            racesPerRaceType += ` <span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${totalFinishesByRaceType[key] ?? '<small>n/a</small>'} / ${value} `
                         }
                     }
+                    li += `<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;">  <a href="index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType} </div>`
 
-                    li += `<div class="accordion-item">
+                })
+                li += `</div></div>`;
+            }
+        }
+
+
+        if (record.bibnr != "0") {
+            domicilers = _.partition(startlist, (a) => {
+                if (a.domicile && record.domicile && a.domicile.toLowerCase() == record.domicile.toLowerCase() && a.athleteId != record.athleteId) {
+                    return a.domicile
+                }
+            })[0];
+            //console.log(record.firstName, voornamers);
+            if (domicilers.length > 0) {
+
+                let domicilersPerRaceType = _.countBy(domicilers, "raceType");
+
+                let totals = "";
+                for (const [key, value] of Object.entries(domicilersPerRaceType)) {
+                    if (key != "undefined") {
+                        totals += ` <small><span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${value}</small> `
+                    }
+                }
+
+                li += `<div class="accordion-item">
 						    <h2 class="accordion-header" id="domicilersHeader">
 						      <button
 						        data-mdb-collapse-init
@@ -995,191 +1103,259 @@
 
 				`;
 
-                    _.orderBy(domicilers, (a) => { if(a.history){return Object.keys(a.history).length} else { return 0}}, "desc").forEach(function(v){
-                        let totalRacesByRaceType = _.countBy(v.history, "raceType");
-                        let totalFinishesByRaceType = _.countBy(_.partition(v.history, (a) =>  {if(a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total" && a.year != "2024"){ return a.raceTime }})[0], "raceType");
-                        let racesPerRaceType = "";
-                        for (const [key, value] of Object.entries(totalRacesByRaceType)) {
-                            if(key != "undefined"){
-                                racesPerRaceType += ` <span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${totalFinishesByRaceType[key] ?? '<small>n/a</small>'} / ${value} `
-                            }
+                _.orderBy(domicilers, (a) => {
+                    if (a.history) {
+                        return Object.keys(a.history).length
+                    } else {
+                        return 0
+                    }
+                }, "desc").forEach(function (v) {
+                    let totalRacesByRaceType = _.countBy(v.history, "raceType");
+                    let totalFinishesByRaceType = _.countBy(_.partition(v.history, (a) => {
+                        if (a.raceTime && ((a.status && !a.status.match(/DNF|DNS|DSQ/)) || !a.status) && a.year != "Total" && a.year != "2024") {
+                            return a.raceTime
                         }
-                        li +=`<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;">  <a href="index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType}</div>`
+                    })[0], "raceType");
+                    let racesPerRaceType = "";
+                    for (const [key, value] of Object.entries(totalRacesByRaceType)) {
+                        if (key != "undefined") {
+                            racesPerRaceType += ` <span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${totalFinishesByRaceType[key] ?? '<small>n/a</small>'} / ${value} `
+                        }
+                    }
+                    li += `<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;">  <a href="index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType}</div>`
 
-                    })
-                    li +=`</div></div>`;
-                }
-
-                li += `</div></br></br>`;
+                })
+                li += `</div></div>`;
             }
 
-
-
-
-            if(record.countryData){
-                if(record.countryData["Welcome in Almere!"]){
-                    li +=`<br> <h4><i class="fas fa-language me-2"></i> Translations </h4><b>Welcome in Almere!: </b><br>`+record.countryData["Welcome in Almere!"];
-                }
-                if(record.countryData["You made it to our finishline!"]){
-                    li +="<br><br> <b>You made it to our finishline!: </b><br>"+record.countryData["You made it to our finishline!"];
-                }
-                if(record.countryData["Well done! Congratulations!"]){
-                    li +="<br><br> <b>Well done! Congratulations!: </b><br>"+record.countryData[ "Well done! Congratulations!"];
-                }
-            }
-            li +=	'</div><br/>';
-            /*}*/
-            //console.log(li)
-            return li;
+            li += `</div></br></br>`;
         }
 
 
-        function setupTabs(){
-            if(jQuery('#si-tabs-1').length ==0){ jQuery('#si-tab-1').parent().hide();	}
-            if(jQuery('#si-tabs-2').length ==0){ jQuery('#si-tab-2').parent().hide();	}
-            if(jQuery('#si-tabs-3').length ==0){ jQuery('#si-tab-3').parent().hide();	}
-            if(jQuery('#si-tabs-4').length ==0){ jQuery('#si-tab-4').parent().hide();	}
-            if(jQuery('#si-tabs-5').length ==0){	jQuery('#si-tab-5').parent().hide();}
-            const triggerTabList = [].slice.call(document.querySelectorAll('#si-tabs a'));
-            triggerTabList.forEach((triggerEl) => {
-                const tabTrigger = new mdb.Tab(triggerEl);
+        if (record.countryData) {
+            if (record.countryData["Welcome in Almere!"]) {
+                li += `<br> <h4><i class="fas fa-language me-2"></i> Translations </h4><b>Welcome in Almere!: </b><br>` + record.countryData["Welcome in Almere!"];
+            }
+            if (record.countryData["You made it to our finishline!"]) {
+                li += "<br><br> <b>You made it to our finishline!: </b><br>" + record.countryData["You made it to our finishline!"];
+            }
+            if (record.countryData["Well done! Congratulations!"]) {
+                li += "<br><br> <b>Well done! Congratulations!: </b><br>" + record.countryData["Well done! Congratulations!"];
+            }
+        }
+        li += '</div><br/>';
+        /*}*/
+        //console.log(li)
+        return li;
+    }
 
-                triggerEl.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    jQuery('.tab-pane').removeAttr("style");
-                    tabTrigger.show();
-                });
 
+    function setupTabs() {
+        if (jQuery('#si-tabs-1').length == 0) {
+            jQuery('#si-tab-1').parent().hide();
+        }
+        if (jQuery('#si-tabs-2').length == 0) {
+            jQuery('#si-tab-2').parent().hide();
+        }
+        if (jQuery('#si-tabs-3').length == 0) {
+            jQuery('#si-tab-3').parent().hide();
+        }
+        if (jQuery('#si-tabs-4').length == 0) {
+            jQuery('#si-tab-4').parent().hide();
+        }
+        if (jQuery('#si-tabs-5').length == 0) {
+            jQuery('#si-tab-5').parent().hide();
+        }
+        const triggerTabList = [].slice.call(document.querySelectorAll('#si-tabs a'));
+        triggerTabList.forEach((triggerEl) => {
+            const tabTrigger = new mdb.Tab(triggerEl);
+
+            triggerEl.addEventListener('click', (event) => {
+                event.preventDefault();
+                jQuery('.tab-pane').removeAttr("style");
+                tabTrigger.show();
             });
 
-            if(jQuery('.tab-pane:first').length > 0){
-                let tabTrigger = new mdb.Tab(jQuery('#'+jQuery('.tab-pane:first').attr('aria-labelledby')));
-                jQuery('.tab-pane:first').addClass('active, show').show();
-                tabTrigger.show();
-            }
+        });
+
+        if (jQuery('.tab-pane:first').length > 0) {
+            let tabTrigger = new mdb.Tab(jQuery('#' + jQuery('.tab-pane:first').attr('aria-labelledby')));
+            jQuery('.tab-pane:first').addClass('active, show').show();
+            tabTrigger.show();
         }
-        async function main(){
-            countries = await fetchCountries();
-            domiciles = await fetchDomiciles();
-            startlist = await fetchStartlist();
+    }
+
+    async function main() {
+        countries = await fetchCountries();
+        domiciles = await fetchDomiciles();
+        startlist = await fetchStartlist();
 
 
-            table = new Tabulator("#mylaps", {
+        table = new Tabulator("#mylaps", {
 
-                height:"100%",
-                maxHeight:"100%",
-                pagination:"local",
-                paginationSize:20,
-                paginationSizeSelector:false,
-                responsiveLayout: "collapse",
-                responsiveLayoutCollapseStartOpen: false,
-                autoColumns: true,
-                autoColumnsDefinitions: function (definitions) {
-                    definitions.forEach((column) => {
-                        column.title = capitalize(column.field);
+            height: "100%",
+            maxHeight: "100%",
+            pagination: "local",
+            paginationSize: 20,
+            paginationSizeSelector: false,
+            responsiveLayout: "collapse",
+            responsiveLayoutCollapseStartOpen: false,
+            autoColumns: true,
+            autoColumnsDefinitions: function (definitions) {
+                definitions.forEach((column) => {
+                    column.title = capitalize(column.field);
 
 
-                        if(['bib', 'name', 'sourceName', 'cat', 'laps', 'time', 'raceTime'].includes(column.field)){
-                            column.responsive = 0;
-                            column.visible = true;
-                        } else if(['wave'].includes(column.field)){
-                            column.visible = true;
-                            column.responsive = 2;
-                        } else {
-                            column.visible = false;
-                            column.responsive = 3;
+                    if (['bib', 'name', 'sourceName', 'cat', 'laps', 'time', 'raceTime'].includes(column.field)) {
+                        column.responsive = 0;
+                        column.visible = true;
+                    } else if (['wave'].includes(column.field)) {
+                        column.visible = true;
+                        column.responsive = 2;
+                    } else {
+                        column.visible = false;
+                        column.responsive = 3;
+                    }
+
+
+                    if (['function', 'info', 'chipcode'].includes(column.field)) {
+                        column.visible = false;
+                    }
+
+                    if (['bib'].includes(column.field)) {
+                        column.sorter = "number";
+                    } else {
+                        column.sorter = "string";
+                    }
+
+                });
+
+                return definitions;
+            },
+            rowFormatter:function(row){
+
+                if(this.browserMobile){
+                    var element = row.getElement(),
+                        data = row.getData(),
+                        width = element.offsetWidth,
+                        rowTable, cellContents;
+
+                    //clear current row data
+                    while(element.firstChild) element.removeChild(element.firstChild);
+
+
+                    function setRaceTypeBadge(raceType){
+                        switch (raceType) {
+                            case 'long distance':
+                                return "badge-success";
+                            case 'middle distance':
+                                return "badge-danger";
+                            case 'AB LD':
+                                return "badge-warning";
+                            case 'AB MD':
+                                return "badge-dark";
                         }
+                    }
 
 
-                        if(['function', 'info', 'chipcode'].includes(column.field)){
-                            column.visible = false;
-                        }
 
-                        if(['bib'].includes(column.field)){
-                            column.sorter = "number";
-                        } else {
-                            column.sorter = "string";
-                        }
+                    element.innerHTML = `
+                       <table>
+                       <tr><td>${data.function}</td></tr>
+                       <tr><td>`;
+                            if(data.raceType){
+                                element.innerHTML += `<span class="badge ${setRaceTypeBadge(record.raceType)} mt-2 mb-2 me-2"> ${record.raceType} </span>`
+                            }
+                            if(data.Cat){
+                                element.innerHTML  +=`<span class="badge badge-primary mt-2 mb-2"> ${data.Cat}</span> `;
+                            }
+                            element.innerHTML  +=`</td></tr>
+                       <tr>
+                        <td>
+                            <h1 style="color:${(record?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class="fas fa-cake-candles"></i>" : ""}</h1>
+                        </td>
+                        </tr>
+                       </table>
+                       `;
+                } else {
+                return row.getElement();
+                }
+            },
+            responsiveLayoutCollapseFormatter: function (data) {
+                //debug(data)
+                //data - an array of objects containing the column title and value for each cell
 
-                    });
+                let basicInfo = ["uniqueName", "maidenName", "firstName", "lastName", "initials", "fullName", "gender", "domicile", "country", "cat", "catNk", "catOnk", "status", "birthdate", "age", "athleteId", "club"];
+                let raceInfo = ["year", "bibnr", "swimDist", "bikeDist", "runDist", "raceType", "ekWk", "onk", "ekNk", "raceType", "nk"];
+                let timeInfo = ["raceTime", "swimTime", "bikeTime", "runTime", "afterBikeTime", "t2", "t1", "penaltyTime"];
 
-                    return definitions;
-                },
-                responsiveLayoutCollapseFormatter: function (data) {
-                    //debug(data)
-                    //data - an array of objects containing the column title and value for each cell
+                let riContent = ``;
+                let biContent = ``;
+                let tiContent = ``;
+                let ssContent = ``;
+                let siContent = ``;
+                let posContent = ``;
 
-                    let basicInfo = ["uniqueName", "maidenName", "firstName", "lastName", "initials", "fullName", "gender", "domicile", "country", "cat", "catNk", "catOnk", "status", "birthdate", "age", "athleteId", "club"];
-                    let raceInfo = ["year", "bibnr", "swimDist", "bikeDist", "runDist", "raceType", "ekWk", "onk", "ekNk", "raceType", "nk"];
-                    let timeInfo = ["raceTime", "swimTime", "bikeTime", "runTime", "afterBikeTime", "t2", "t1", "penaltyTime"];
+                let rowId;
 
-                    let riContent = ``;
-                    let biContent = ``;
-                    let tiContent = ``;
-                    let ssContent = ``;
-                    let siContent = ``;
-                    let posContent = ``;
+                data.forEach(function (col) {
+                    if (['moderated', 'edits', 'lastUpdatedAt', 'files', 'moderators', 'id', 'mdFinishes', 'ldFinishes'].includes(col.field)) {
 
-                    let rowId;
+                    }
+                    if (col.field === "index") {
+                        rowId = col.value;
+                    } //console.log|(rowId)}
+                    // if(col.value.trim() == "" || !col.value || col.value == "&nbsp;"){
 
-                    data.forEach(function (col) {
-                        if (['moderated', 'edits', 'lastUpdatedAt', 'files', 'moderators', 'id', 'mdFinishes', 'ldFinishes'].includes(col.field)) {
+                    // } else {
+                    if (col.field === "id" || col.field === "index") {
 
-                        }
-                        if (col.field === "index") {
-                            rowId = col.value;
-                        } //console.log|(rowId)}
-                        // if(col.value.trim() == "" || !col.value || col.value == "&nbsp;"){
+                    } else if (basicInfo.includes(col.field)) {
+                        biContent += `<dt class="col-sm-2 "><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
+                    } else if (raceInfo.includes(col.field)) {
+                        riContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
+                    } else if (timeInfo.includes(col.field)) {
+                        tiContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
+                    } else if (col.field === "subSplits") {
 
-                        // } else {
-                        if (col.field === "id" || col.field === "index") {
+                        let subSplits = (col.value.length > 0 && col.value != "&nbsp;") ? decodeS(col.value, col.field, rowId) : '';
+                        // debug(subSplits);
 
-                        } else if (basicInfo.includes(col.field)) {
-                            biContent += `<dt class="col-sm-2 "><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
-                        } else if (raceInfo.includes(col.field)) {
-                            riContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
-                        } else if (timeInfo.includes(col.field)) {
-                            tiContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
-                        } else if (col.field === "subSplits") {
-
-                            let subSplits = (col.value.length > 0 && col.value != "&nbsp;" ) ? decodeS(col.value, col.field, rowId) : '';
-                            // debug(subSplits);
-
-                            if (typeof (subSplits) === "object") {
-                                if (subSplits.swim && Object.keys(subSplits.swim).length > 0) {
-                                    for (const [key, value] of Object.entries(subSplits.swim)) {
-                                        ssContent += `<dt class="col-sm-2"><i class="fas fa-swimmer me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
-                                    }
-                                }
-                                if (subSplits.bike && Object.keys(subSplits.bike).length > 0) {
-                                    for (const [key, value] of Object.entries(subSplits.bike)) {
-                                        ssContent += `<dt class="col-sm-2"><i class="fas fa-biking me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
-                                    }
-                                }
-                                if (subSplits.run && Object.keys(subSplits.run).length > 0) {
-                                    for (const [key, value] of Object.entries(subSplits.run)) {
-                                        ssContent += `<dt class="col-sm-2"><i class="fas fa-running me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
-                                    }
+                        if (typeof (subSplits) === "object") {
+                            if (subSplits.swim && Object.keys(subSplits.swim).length > 0) {
+                                for (const [key, value] of Object.entries(subSplits.swim)) {
+                                    ssContent += `<dt class="col-sm-2"><i class="fas fa-swimmer me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
                                 }
                             }
-                        } else if (col.field === "speakerInfo") {
-
-                            let speakerInfo = (col.value.length > 0 && col.value != "&nbsp;" )? decodeS(col.value, col.field, rowId) : '';
-                            if (typeof (speakerInfo) === "object") {
-                                for (const [key, value] of Object.entries(speakerInfo)) {
-                                    siContent += `<dt class="col-sm-2"><i class="far fa-clipboard me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-10"><small>${value}</small></dd>`;
+                            if (subSplits.bike && Object.keys(subSplits.bike).length > 0) {
+                                for (const [key, value] of Object.entries(subSplits.bike)) {
+                                    ssContent += `<dt class="col-sm-2"><i class="fas fa-biking me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
                                 }
                             }
-                        } else {
-                            posContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
+                            if (subSplits.run && Object.keys(subSplits.run).length > 0) {
+                                for (const [key, value] of Object.entries(subSplits.run)) {
+                                    ssContent += `<dt class="col-sm-2"><i class="fas fa-running me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
+                                }
+                            }
                         }
+                    } else if (col.field === "speakerInfo") {
 
-                        // }
-                    });
+                        let speakerInfo = (col.value.length > 0 && col.value != "&nbsp;") ? decodeS(col.value, col.field, rowId) : '';
+                        if (typeof (speakerInfo) === "object") {
+                            for (const [key, value] of Object.entries(speakerInfo)) {
+                                siContent += `<dt class="col-sm-2"><i class="far fa-clipboard me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-10"><small>${value}</small></dd>`;
+                            }
+                        }
+                    } else {
+                        posContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
+                    }
 
-                    let cardGroup = document.createElement("div");
-                    cardGroup.style.padding = "20px";
-                    cardGroup.innerHTML = `<!-- Tabs navs -->
+                    // }
+                });
+
+                let cardGroup = document.createElement("div");
+                cardGroup.style.padding = "20px";
+                cardGroup.innerHTML = `<!-- Tabs navs -->
                     <ul class="nav nav-tabs mb-3 border-bottom" id="collaps-${rowId}" role="tablist">
                     <li class="nav-item" role="presentation">
                     <a
@@ -1276,175 +1452,184 @@
                         <!-- Tabs content -->`
 
 
-                    return Object.keys(data).length ? cardGroup : "";
+                return Object.keys(data).length ? cardGroup : "";
+            }
+        });
+
+        table.on("dataProcessed", function () {
+            table.addColumn({
+                title: "Speaker Info",
+                field: "si",
+                responsive: 0,
+                headerSort: false,
+                formatter: function (cell, formatterParams, onRendered) {
+                    cell.getRow(); // get row component
+                    let si = '';
+                    if (cell.getRow().getData()?.history) {
+                        si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                    }
+                    if (cell.getRow().getData()?.worldTriProfile) {
+                        si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                    }
+                    if (cell.getRow().getData()?.trirating) {
+                        si += `<span class="icon chartup"></span>`;
+                    }
+                    // add gelreman
+                    if (cell.getRow().getData()?.gelreman) {
+                        si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                    }
+                    // add frysman
+                    if (cell.getRow().getData()?.frysman) {
+                        si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                    }
+                    return si
                 }
-            });
-
-            table.on("dataProcessed", function(){
-                table.addColumn({title: "Speaker Info", field: "si", responsive: 0, headerSort: false, formatter: function (cell, formatterParams, onRendered) {
-                        cell.getRow(); // get row component
-                        let si = '';
-                        if (cell.getRow().getData()?.history) {
-                            si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
-                        }
-                        if (cell.getRow().getData()?.worldTriProfile) {
-                            si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png" width="20" style="margin-right: 10px; padding:0;">`;
-                        }
-                        if (cell.getRow().getData()?.trirating) {
-                            si += `<span class="icon chartup"></span>`;
-                        }
-                        // add gelreman
-                        if (cell.getRow().getData()?.gelreman) {
-                            si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
-                        }
-                        // add frysman
-                        if (cell.getRow().getData()?.frysman) {
-                            si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
-                        }
-                        return si
-                    }}, false);
+            }, false);
 
 
-                table.addColumn({
-                    title: "",
-                    headerSort: false, /*cellClick: function(){  },*/
-                    responsive: 0,
-                    cssClass: "actionCol",
-                    formatter: function (cell, formatterParams, onRendered) {
-                        // ${yrd[cell.getRow().getData().year] && yrd[cell.getRow().getData().year].CompleteData ? 'disabled' : ''}
-                        return `<button class="btn btn-primary btn-floating btn-sm ripple" style="" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}">
-                                    <i class="far fa-edit" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}"></i>
+            table.addColumn({
+                title: "",
+                headerSort: false, /*cellClick: function(){  },*/
+                responsive: 0,
+                cssClass: "actionCol",
+                formatter: function (cell, formatterParams, onRendered) {
+                    // ${yrd[cell.getRow().getData().year] && yrd[cell.getRow().getData().year].CompleteData ? 'disabled' : ''}
+                    return `<button class="btn btn-primary btn-floating btn-sm ripple" style="" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}">
+                                    <i class="fas fa-circle-info" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}"></i>
                                 ` //return the contents of the cell;
-                    }
-                });
+                }
+            });
 
-                table.redraw();
+            table.redraw();
 
-                const editModal = document.getElementById('editRowFormModal');
+            const editModal = document.getElementById('editRowFormModal');
 
-                editModal.addEventListener('show.mdb.modal', (e) => {
-                    // debug(e);
-                    console.log('editForm modal started');
-                    console.log(e.relatedTarget.getAttribute('data-mdb-bib'))
-                    let bib = e.relatedTarget.getAttribute('data-mdb-bib');
+            editModal.addEventListener('show.mdb.modal', (e) => {
+                // debug(e);
+                console.log('editForm modal started');
+                console.log(e.relatedTarget.getAttribute('data-mdb-bib'))
+                let bib = e.relatedTarget.getAttribute('data-mdb-bib');
 
-                    if (bib) {
-                        document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == bib));
-                        setupTabs();
-                    }
-
-                });
-
-                editModal.addEventListener('hidden.mdb.modal', (e) => {
-                    // debug(e);
-                    document.querySelector("#athleteDetails").innerHTML = ''
-                });
+                if (bib) {
+                    document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == bib));
+                    setupTabs();
+                }
 
             });
 
-            const socket = io();
-            const messageList = document.getElementById('message-list');
+            editModal.addEventListener('hidden.mdb.modal', (e) => {
+                // debug(e);
+                document.querySelector("#athleteDetails").innerHTML = ''
+            });
 
-            function displayMessage(message) {
-                let tableBody = document.querySelector('#message-list tbody');
-                let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
-                let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
+        });
 
-                function formatTime(seconds) {
-                    const hours = Math.floor(seconds / 3600);
-                    const minutes = Math.floor((seconds % 3600) / 60);
-                    const remainingSeconds = Math.floor(seconds % 60);
+        const socket = io();
+        const messageList = document.getElementById('message-list');
 
-                    const formattedHours = String(hours).padStart(2, '0');
-                    const formattedMinutes = String(minutes).padStart(2, '0');
-                    const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+        function displayMessage(message) {
+            let tableBody = document.querySelector('#message-list tbody');
+            let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
+            let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
 
-                    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-                }
+            function formatTime(seconds) {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const remainingSeconds = Math.floor(seconds % 60);
 
+                const formattedHours = String(hours).padStart(2, '0');
+                const formattedMinutes = String(minutes).padStart(2, '0');
+                const formattedSeconds = String(remainingSeconds).padStart(2, '0');
 
-                let pdata = {
-                    bib: message.Bib,
-                    chipcode: message.c,
-                    function: message.function,
-                    sourceName: message.sourceName,
-                    name: message.Name,
-                    wave: message.Wave,
-                    cat: message.Cat,
-                    laps: message.l,
-                    time: message.t ? message.t.split(".")[0] : "",
-                    raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
-                    info: message.Info
-                };
-
-                if (startlist.find(s => s.bibnr == message.Bib)) {
-                    Object.assign(pdata, startlist.find(s => s.bibnr == message.Bib));
-                }
-
-                 return pdata;
-
-
-                /*
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${message.b}</td>
-                    <td>${message.c}</td>
-                    <td>${message.function}</td>
-                    <td>${message.sourceName}</td>
-                    <td>&nbsp;</td>
-                    <td>${message.l}</td>
-                    <td>${message.t ? message.t.split(".")[0] : ""}</td>
-                    <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
-                tableBody.prepend(row);
-
-                if ( document.getElementById("message-list").rows.length > 41) {
-                    if(document.getElementById("message-list").rows[42]) {
-                        document.getElementById("message-list").deleteRow(42);
-                    }
-                }
-                */
+                return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
             }
 
-            socket.on('initial data', (messages) => {
-                console.log(messages);
-                let tableData =[];
-                for(const m of messages) {
-                    tableData.push(displayMessage(m));
+
+            let pdata = {
+                bib: message.Bib,
+                chipcode: message.c,
+                function: message.function,
+                sourceName: message.sourceName,
+                name: message.Name,
+                wave: message.Wave,
+                cat: message.Cat,
+                laps: message.l,
+                time: message.t ? message.t.split(".")[0] : "",
+                raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
+                info: message.Info
+            };
+
+            if (startlist.find(s => s.bibnr == message.Bib)) {
+                Object.assign(pdata, startlist.find(s => s.bibnr == message.Bib));
+            }
+
+            return pdata;
+
+
+            /*
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${message.b}</td>
+                <td>${message.c}</td>
+                <td>${message.function}</td>
+                <td>${message.sourceName}</td>
+                <td>&nbsp;</td>
+                <td>${message.l}</td>
+                <td>${message.t ? message.t.split(".")[0] : ""}</td>
+                <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
+            tableBody.prepend(row);
+
+            if ( document.getElementById("message-list").rows.length > 41) {
+                if(document.getElementById("message-list").rows[42]) {
+                    document.getElementById("message-list").deleteRow(42);
                 }
-                table.setData(tableData, true);
-            });
-
-            socket.on('all messages', (messages) => {
-                console.log(messages);
-                messageList.innerHTML = '';
-                messages.forEach(function(m){displayMessage(m)});
-            });
-
-            socket.on('new message', (message) => {
-                console.log(message);
-                let tableData =[];
-                for(const d of message.data) {
-                    d['function'] = message.function;
-                    d['sourceName']= message.sourceName;
-                    tableData.push(displayMessage(d));
-                }
-                table.addData(tableData, true);
-            });
-
+            }
+            */
         }
 
-        main();
+        socket.on('initial data', (messages) => {
+            console.log(messages);
+            let tableData = [];
+            for (const m of messages) {
+                tableData.push(displayMessage(m));
+            }
+            table.setData(tableData, true);
+        });
 
-    </script>
-    <script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/popper.min.js"></script>
-    <script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/mdb.min.js"></script>
+        socket.on('all messages', (messages) => {
+            console.log(messages);
+            messageList.innerHTML = '';
+            messages.forEach(function (m) {
+                displayMessage(m)
+            });
+        });
+
+        socket.on('new message', (message) => {
+            console.log(message);
+            let tableData = [];
+            for (const d of message.data) {
+                d['function'] = message.function;
+                d['sourceName'] = message.sourceName;
+                tableData.push(displayMessage(d));
+            }
+            table.addData(tableData, true);
+        });
+
+    }
+
+    main();
+
+</script>
+<script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/popper.min.js"></script>
+<script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/mdb.min.js"></script>
 <style>
 
-    #athleteDetails  {
+    #athleteDetails {
         margin: 0;
         padding: 5px;
         max-width: 100vw;
         overflow-x: hidden;
     }
+
     #athleteDetails .result {
         padding-top: 50px;
         overflow-x: hidden;
@@ -1454,46 +1639,48 @@
         margin-left: 5px;
         font-family: Helvetica;
         font-weight: 100;
-        z-index:0;
+        z-index: 0;
         line-height: 1.5;
-        width:100%;
+        width: 100%;
     }
 
-    #athleteDetails h3{
+    #athleteDetails h3 {
         font-family: Helvetica;
         font-weight: bold;
 
     }
 
-    table{
+    table {
         border-spacing: 0px;
     }
 
 
-    tr.year:nth-child(even) {background: #CCC}
-    tr.year:nth-child(odd) {background: #FFF}
+    tr.year:nth-child(even) {
+        background: #CCC
+    }
 
-    td, th{
+    tr.year:nth-child(odd) {
+        background: #FFF
+    }
+
+    td, th {
         padding: 5px;
     }
 
-    .almereRecord{
+    .almereRecord {
         background-color: pink !important;
     }
 
-    @font-face {font-family: "Font Awesome 6 Pro Thin";
+    @font-face {
+        font-family: "Font Awesome 6 Pro Thin";
         src: url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.eot"); /* IE9*/
-        src: url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.eot?#iefix") format("embedded-opentype"), /* IE6-IE8 */
-        url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.woff2") format("woff2"), /* chrome、firefox */
-        url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.woff") format("woff"), /* chrome、firefox */
-        url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.ttf") format("truetype"), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
-        url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.svg#Font Awesome 6 Pro Thin") format("svg"); /* iOS 4.1- */
+        src: url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.eot?#iefix") format("embedded-opentype"), /* IE6-IE8 */ url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.woff2") format("woff2"), /* chrome、firefox */ url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.woff") format("woff"), /* chrome、firefox */ url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.ttf") format("truetype"), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/ url("https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/css/1e66caed7f0d4a1bc39c8c2426573134.svg#Font Awesome 6 Pro Thin") format("svg"); /* iOS 4.1- */
     }
 
-    .icon{
+    .icon {
         color: #000;
         line-height: 1.2em;
-        font-family: "Font Awesome 6 Pro Thin"!important;
+        font-family: "Font Awesome 6 Pro Thin" !important;
         font-size: 22px;
         /*background-color: #FFF;*/
         border-top-width: 0px;
@@ -1502,28 +1689,35 @@
         border-left-width: 0px;
     }
 
-    .swim:before{
+    .swim:before {
         content: "\f5c4"
     }
-    .bike:before{
+
+    .bike:before {
         content: "\f84a";
     }
-    .run:before{
+
+    .run:before {
         content: "\f70c";
     }
-    .medal:before{
+
+    .medal:before {
         content: "\f5a2";
     }
-    .ranking:before{
+
+    .ranking:before {
         content: "\e561";
     }
-    .chartup:before{
+
+    .chartup:before {
         content: "\e0e5";
     }
-    .megaphone:before{
-        content:  "\f0a1";
+
+    .megaphone:before {
+        content: "\f0a1";
     }
-    .space-left{
+
+    .space-left {
         margin-left: 15px;
     }
 </style>
