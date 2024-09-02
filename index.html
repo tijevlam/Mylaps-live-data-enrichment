@@ -232,6 +232,10 @@
         let gelremanFinishes = 0;
         let frysmanFinishes = 0;
         let gelremanIn2023 = false
+        let trihardAdamFinishes = 0;
+        let westfrieslandFinishes = 0;
+        let maastrichtFinishes = 0;
+        let brouwersdamFinishes = 0;
         let ldHistory;
         let mdHistory;
 
@@ -289,6 +293,22 @@
                     frysmanFinishes++
                 }
             });
+        }
+
+        if(record.trihardAdam){
+            record.trihardAdam.forEach(function(s){ if(s.raceTime && s.raceTime != " DNF" && ((s.status && !s.status.match(/DNF|DNS|DSQ/)) || !s.status) && s.year != "Total"){ trihardAdamFinishes++ }});
+        }
+
+        if(record.westfriesland){
+            record.westfriesland.forEach(function(s){ if(s.overalltime && s.overalltime != " DNF" && ((s.finisherstatus && !s.finisherstatus.match(/DNF|DNS|DSQ/)) || !s.finisherstatus) && s.year != "Total"){ westfrieslandFinishes++ }});
+        }
+
+        if(record.maastricht){
+            record.maastricht.forEach(function(s){ if(s.overallTime && s.overallTime != " DNF" && ((s.finisherStatus && !s.finisherStatus.match(/DNF|DNS|DSQ/)) || !s.finisherStatus) && s.year != "Total"){ maastrichtFinishes++ }});
+        }
+
+        if(record.brouwersdam){
+            record.brouwersdam.forEach(function(s){ if(s.finishTime && s.finishTime != "-" && ((s.pos && !s.pos.match(/DNF|DNS|DSQ/)) || !s.pos) && s.year != "Total"){ brouwersdamFinishes++ }});
         }
 
         li += "<hr/>";
@@ -434,6 +454,26 @@
             "width": "20",
             "style": "width:20px; height:20px; margin-right: 10px; padding:0;"
         }, `(${frysmanFinishes} / ${record.frysman && record.frysman.length ? record.frysman.length : ''})`);
+        li += createTab(6, {
+            "src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/trihard-icon.png",
+            "width": "20",
+            "style": "width:20px; height:20px; margin-right: 10px; padding:0;"
+        }, `(${trihardAdamFinishes} / ${record.trihardAdam && record.trihardAdam.length ? record.trihardAdam.length : ''})`);
+        li += createTab(7, {
+            "src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png",
+            "width": "20",
+            "style": "width:20px; height:20px; margin-right: 10px; padding:0;"
+        }, `(${maastrichtFinishes} / ${record.maastricht && record.maastricht.length ? record.maastricht.length : ''})`);
+        li += createTab(8, {
+            "src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman73-icon.png",
+            "width": "20",
+            "style": "width:20px; height:20px; margin-right: 10px; padding:0;"
+        }, `(${westfrieslandFinishes} / ${record.westfriesland && record.westfriesland.length ? record.westfriesland.length : ''})`);
+        li += createTab(9, {
+            "src": "https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png",
+            "width": "20",
+            "style": "width:20px; height:20px; margin-right: 10px; padding:0;"
+        }, `(${brouwersdamFinishes} / ${record.brouwersdam && record.brouwersdam.length ? record.brouwersdam.length : ''})`);
 
 
         li += `</ul>
@@ -643,6 +683,66 @@
 							<span class="icon bike space-left"></span> ${gm.bikeTime ? gm.bikeTime : "DNF"}
 							<span class="icon run space-left"></span> ${gm.runTime ? gm.runTime : "DNF"}
 					</td></tr>`
+            });
+            li += "</table></div>";
+        }
+
+        if(record.trihardAdam){
+            li += `<div class="tab-pane fade" id="si-tabs-6" role="tabpanel" aria-labelledby="si-tab-6" >
+			<h3> <img src="assets/img/trihard-icon.png" style="width:20px; height:20px; padding:0;"/> Trihard Amsterdam: </h3><table>`
+            _.orderBy(record.trihardAdam, ['year'], 'desc').forEach(function(gm){
+                li += `<tr>
+						<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
+						<td>${gm.raceTime} (${gm.pos}${gm.posCat ? ", "+gm.cat+": "+gm.posCat : ""})
+						<br/>
+							<span class="icon swim"></span> ${gm.swimTime ? gm.swimTime : "DNF"} <br>
+							<span class="icon bike"></span> ${gm.bikeTime ? gm.bikeTime : "DNF"} <br>
+							<span class="icon run"></span> ${gm.runTime ? gm.runTime : "DNF"}
+					</td></tr>`
+            });
+            li += "</table></div>";
+        }
+
+        if(record.westfriesland){
+            li += `<div class="tab-pane fade" id="si-tabs-7" role="tabpanel" aria-labelledby="si-tab-7" >
+			<h3> <img src="assets/img/ironman73-icon.png" style="height:20px; padding:0;"/> West-Friesland: </h3><table>`
+            _.orderBy(record.westfriesland, ['year'], 'desc').forEach(function(gm){
+                li += `<tr>
+ 						<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
+ 						<td>${gm.overalltime} (${gm.overallrank}${gm.overalldivisionrank ? ", "+gm.division+": "+gm.overalldivisionrank : ""})
+						<br/>
+							<span class="icon swim"></span> ${gm.swimtime ? gm.swimtime : "DNF"} <br>
+							<span class="icon bike"></span> ${gm.biketime ? gm.biketime : "DNF"} <br>
+							<span class="icon run"></span> ${gm.runtime ? gm.runtime : "DNF"}
+					</td></tr>`
+            });
+            li += "</table></div>";
+        }
+
+        if(record.maastricht){
+            li += `<div class="tab-pane fade" id="si-tabs-8" role="tabpanel" aria-labelledby="si-tab-8" >
+			<h3> <img src="assets/img/ironman-icon.png" style="height:20px; padding:0;"/> Maastricht: </h3><table>`
+            _.orderBy(record.maastricht, ['year'], 'desc').forEach(function(gm){
+                li += `<tr>
+						<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
+						<td>${gm.overallTime} (${gm.overallRank}${gm.ageGroupRank ? ", "+gm.ageGroup+": "+gm.ageGroupRank : ""})
+						<br/>
+							<span class="icon swim"></span> ${gm.swimTime ? gm.swimTime : "DNF"} <br>
+							<span class="icon bike"></span> ${gm.bikeTime ? gm.bikeTime : "DNF"}  <br>
+							<span class="icon run"></span> ${gm.runTime ? gm.runTime : "DNF"}
+					</td></tr>`
+            });
+            li += "</table></div>";
+        }
+
+        if(record.brouwersdam){
+            li += `<div class="tab-pane fade" id="si-tabs-9" role="tabpanel" aria-labelledby="si-tab-9" >
+				<h3> <img src="assets/img/brouwersdam-icon.png" style="height:20px; padding:0;"/> Brouwersdam: </h3><table>`
+            _.orderBy(record.brouwersdam, ['year'], 'desc').forEach(function(gm){
+                li += `<tr>
+							<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
+							<td>${gm.finishTime} (${gm.pos}, ${gm.categorie}</td>
+						</tr>`
             });
             li += "</table></div>";
         }
@@ -1304,6 +1404,7 @@
                                  ${ data?.trihardAdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/trihard-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                  ${ data?.westfriesland ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman73-icon.png\" width=\"20\" height=\"20\"  style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                  ${ data?.maastricht ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${ data?.brouwersdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                              </td>
                         </tr>
                         <tr>
