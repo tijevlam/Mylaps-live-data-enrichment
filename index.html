@@ -1248,7 +1248,7 @@
 
                 return definitions;
             },
-            headerVisible: function(){  if(this.browserMobile ||  "ontouchstart" in document.documentElement){ return false;  } else { return true; } },
+            headerVisible: (this.browserMobile ||  "ontouchstart" in document.documentElement ? false : true),
             rowFormatter: function(row){
                 var element = row.getElement(),
                     data = row.getData(),
