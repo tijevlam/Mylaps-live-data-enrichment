@@ -1260,7 +1260,7 @@
 
 
                     rowTable = document.createElement("table")
-                    rowTable.innerHTML = `
+                    rowTable.innerHTML = `<tbody  data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}">
                         <tr>
                             <td>
                                 <span class="badge badge-info mt-2 mb-2"> ${data.sourceName}</span>
@@ -1284,7 +1284,8 @@
                         <tr>
                             <td><span>${data.raceTime}</span></td>
                             <td><span class="badge badge-primary mt-2 mb-2">${data.cat}</span><span class="badge badge-info mt-2 mb-2">${data.wave}</span></td>
-                        </tr>`;
+                        </tr>
+                        </tbody>`;
 
                     rowTable.classList.add("live-mobile");
 
