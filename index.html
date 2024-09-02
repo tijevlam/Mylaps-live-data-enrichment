@@ -1523,11 +1523,11 @@
 
 
         let clickedDetails;
-        table.on("rowTap", function(e, row){
-            let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'));
-            clickedDetails = row.getData();
-            details.show();
-        });
+        // table.on("rowTap", function(e, row){
+        //     let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'));
+        //     clickedDetails = row.getData();
+        //     details.show();
+        // });
 
         table.on("rowClick", function(e, row){
             let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'));
