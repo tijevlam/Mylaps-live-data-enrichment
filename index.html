@@ -1248,7 +1248,7 @@
 
                 return definitions;
             },
-            headerVisible: (this.browserMobile ||  "ontouchstart" in document.documentElement ? false : true),
+            headerVisible: ("ontouchstart" in document.documentElement ? false : true),
             rowFormatter: function(row){
                 var element = row.getElement(),
                     data = row.getData(),
@@ -1276,7 +1276,7 @@
 
 
                     rowTable = document.createElement("table")
-                    rowTable.innerHTML = `<tbody class="passing" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${data.bib}">
+                    rowTable.innerHTML = `<tbody class="passing">
                         <tr>
                             <td>
                                 <span class="badge badge-info mt-2 mb-2"> ${data.sourceName}</span>
@@ -1491,12 +1491,6 @@
 
     table.on("dataProcessed", function () {
         let clickedDetails;
-        // table.on("rowTap", function(e, row){
-        //     let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'));
-        //     clickedDetails = row.getData();
-        //     details.show();
-        // });
-
         table.on("rowClick", function(e, row){
             let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'));
             clickedDetails = row.getData();
