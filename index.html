@@ -1259,11 +1259,12 @@
 
 
                     rowTable = document.createElement("table")
+                    rowTable.classList.add("live-mobile");
 
                     rowTable.innerHTML = `
                         <tr>
                             <td><span class="badge badge-info mt-2 mb-2"> ${data.sourceName}</span></td>
-                            <td>><span class="badge ${setRaceTypeBadge(data.raceType)} mt-2 mb-2 me-2"> ${data.raceType} </span></td>
+                            <td><span class="badge ${setRaceTypeBadge(data.raceType)} mt-2 mb-2 me-2"> ${data.raceType} </span></td>
                         </tr>
                         <tr>
                              <td><h4>${data.bib}</h4></td>
