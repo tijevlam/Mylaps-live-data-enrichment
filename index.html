@@ -1272,7 +1272,6 @@
                              <td><h4>${data.bib}</h4></td>
                              <td>
                                 <h4 style="color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h4>
-                                <span>${data.raceTime}</span>
                              </td>
                              <td>
                                  ${ data?.history ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png\" width=\"20\" style=\"margin-right: 10px; padding:0;\">" : ""}
@@ -1283,7 +1282,7 @@
                              </td>
                         </tr>
                         <tr>
-                            <td>&nbsp;</td>
+                            <td><span>${data.raceTime}</span></td>
                             <td><span class="badge badge-primary mt-2 mb-2">${data.cat}</span><span class="badge badge-info mt-2 mb-2">${data.wave}</span></td>
                         </tr>`;
 
