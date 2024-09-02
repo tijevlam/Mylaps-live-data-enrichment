@@ -1221,7 +1221,7 @@
             autoColumns: true,
             autoColumnsDefinitions: function (definitions) {
                 definitions.forEach((column) => {
-                    column.headerVisible =  ("ontouchstart" in document.documentElement ? false : true);
+                    column.headerVisible =  ("ontouchstart" in document.documentElement ? true : false);
                     column.title = capitalize(column.field);
 
                     if (['bib', 'name', 'sourceName', 'cat', 'laps', 'time', 'raceTime'].includes(column.field)) {
@@ -1249,7 +1249,7 @@
 
                 return definitions;
             },
-            headerVisible: function(){  if(this.browserMobile ||  "ontouchstart" in document.documentElement){ return false;  } else { return true; } },
+            headerVisible: function(){  if(this.browserMobile ||  "ontouchstart" in document.documentElement){ return true;  } else { return false; } },
             rowFormatter: function(row){
                 var element = row.getElement(),
                     data = row.getData(),
@@ -1496,6 +1496,7 @@
             field: "si",
             responsive: 0,
             headerSort: false,
+            headerVisible: ("ontouchstart" in document.documentElement ? true : false),
             formatter: function (cell, formatterParams, onRendered) {
                 cell.getRow(); // get row component
                 let si = '';
