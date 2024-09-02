@@ -162,16 +162,16 @@
             if (record.catEk) {
                 li += ` | EC: ${record.catEk}`;
             }
-            if (record.country && record.country == "NED" && record.catNk) {
+            if (record.nationality && record.nationality == "NED" && record.catNk) {
                 li += ` | NK: ${record.catNk}`;
             }
             li += `</span> `;
 
         }
 
-        if (record.country) {
+        if (record.nationality || record.country){
             record.countryData = _.partition(countries, (a) => {
-                if (a.IOC && a.IOC == record.country || a.FIFA && a.FIFA == record.country || a["ISO 3166-1 alpha2"] == record.country) {
+                if ((a.IOC && a.IOC == record.nationality || a.FIFA && a.FIFA == record.nationality || a["ISO 3166-1 alpha2"] == record.nationality ) || (a.IOC && a.IOC == record.country || a.FIFA && a.FIFA == record.country || a["ISO 3166-1 alpha2"] == record.country)) {
                     return a.IOC
                 }
             })[0][0];
@@ -179,7 +179,7 @@
             // + record.countryData.iso.toLowerCase()
             // +'.gif" height="35"> ';
             // console.log(record.countryData);
-            li += record.countryData.hasOwnProperty("ISO 3166-1 alpha2") ? `<br/><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">` : `<br/>(${record.country})`; // <i class="flag flag-${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}"></i>
+            li += record.countryData.hasOwnProperty("ISO 3166-1 alpha2") ? `<br/><img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/flags/4x3/${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}.svg" style="height:15px; bottom:2px; position:relative; padding:0;" class="me-2">` : `<br/>(${record.nationality || record.country})`; // <i class="flag flag-${record.countryData["ISO 3166-1 alpha2"].toLowerCase()}"></i>
         }
         if (record.domicile) {
             record.domicileData = _.partition(domiciles, (a) => {
@@ -1238,9 +1238,9 @@
                     data = row.getData(),
                     width = element.offsetWidth,
                     rowTable, cellContents;
-                console.log(this.browserMobile);
+                // console.log(this.browserMobile);
                 if(this.browserMobile ||  "ontouchstart" in document.documentElement){
-                    console.log('mobile browser, lets rebuild the rows');
+                    // console.log('mobile browser, lets rebuild the rows');
                     //clear current row data
                     while (element.firstChild) element.removeChild(element.firstChild);
 
@@ -1501,19 +1501,6 @@
         }, false);
 
 
-        table.addColumn({
-            title: "",
-            headerSort: false, /*cellClick: function(){  },*/
-            responsive: 0,
-            cssClass: "actionCol",
-            formatter: function (cell, formatterParams, onRendered) {
-                // ${yrd[cell.getRow().getData().year] && yrd[cell.getRow().getData().year].CompleteData ? 'disabled' : ''}
-                return `<button class="btn btn-primary btn-floating btn-sm ripple" style="" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}">
-                                    <i class="fas fa-circle-info" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}"></i>
-                                ` //return the contents of the cell;
-            }
-        });
-
         let clickedDetails;
         table.on("rowTap", function(e, row){
             let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'));
@@ -1533,11 +1520,9 @@
         const editModal = document.getElementById('editRowFormModal');
 
         editModal.addEventListener('show.mdb.modal', (e) => {
-
             // console.log(e)
             // console.log('editForm modal started');
             // console.log(clickedDetails);
-
             if(clickedDetails && clickedDetails.bib) {
                 document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == clickedDetails.bib));
                 setupTabs();
