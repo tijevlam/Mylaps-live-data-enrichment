@@ -1534,7 +1534,7 @@
         const editModal = document.getElementById('editRowFormModal');
 
         editModal.addEventListener('show.mdb.modal', (e) => {
-            // debug(e);
+            console.log(e)
             console.log('editForm modal started');
             console.log(e.relatedTarget.getAttribute('data-mdb-bib'))
             let bib = e.relatedTarget.getAttribute('data-mdb-bib');
