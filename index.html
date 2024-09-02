@@ -69,12 +69,12 @@
             <!-- Icons -->
 
             <li class="nav-item me-3 me-lg-0">
-                <a class="nav-link" href="index.html">
+                <a class="nav-link" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/index.html">
                     <i class="fas fa-list-ol"></i> Bib lookup
                 </a>
             </li>
             <li class="nav-item me-3 me-lg-0">
-                <a class="nav-link" href="startlist.html">
+                <a class="nav-link" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/startlist.html">
                     <i class="fas fa-arrow-up-a-z"></i> Startlist
                 </a>
             </li>
@@ -1107,7 +1107,7 @@
                             racesPerRaceType += ` <span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${totalFinishesByRaceType[key] ?? '<small>n/a</small>'} / ${value}`
                         }
                     }
-                    li += `<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;"> <a href="index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType} </div>`
+                    li += `<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;"> <a href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType} </div>`
                 })
                 li += `</div></div>`
             }
@@ -1175,7 +1175,7 @@
                             racesPerRaceType += ` <span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${totalFinishesByRaceType[key] ?? '<small>n/a</small>'} / ${value} `
                         }
                     }
-                    li += `<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;">  <a href="index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType} </div>`
+                    li += `<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;">  <a href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType} </div>`
 
                 })
                 li += `</div></div>`;
@@ -1246,7 +1246,7 @@
                             racesPerRaceType += ` <span class="badge badge-light">${key == "O3" ? "O3" : key.match(/\b(\w)/g).join('').toUpperCase()}</span> ${totalFinishesByRaceType[key] ?? '<small>n/a</small>'} / ${value} `
                         }
                     }
-                    li += `<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;">  <a href="index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType}</div>`
+                    li += `<div class="note note-${v.raceType === "long distance" ? 'info' : 'secondary'}" style="padding: 3px !important; margin-bottom: 10px;">  <a href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/index.html?queries[bibnr]=${v.bibnr}"> ${v.fullName}</a></br> ${racesPerRaceType}</div>`
 
                 })
                 li += `</div></div>`;
@@ -1294,6 +1294,7 @@
         if(jQuery('#si-tabs-7').length ==0){ jQuery('#si-tab-7').parent().hide();}
         if(jQuery('#si-tabs-8').length ==0){ jQuery('#si-tab-8').parent().hide();}
         if(jQuery('#si-tabs-9').length ==0){ jQuery('#si-tab-9').parent().hide();}
+
         const triggerTabList = [].slice.call(document.querySelectorAll('#si-tabs a'));
         triggerTabList.forEach((triggerEl) => {
             const tabTrigger = new mdb.Tab(triggerEl);
