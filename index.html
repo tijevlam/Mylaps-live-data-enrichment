@@ -64,6 +64,7 @@
     </div>
 </div>
 
+<script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/popper.min.js"></script>
 <script>
     const capitalize = s => s && s[0].toUpperCase() + s.slice(1);
 
@@ -1259,25 +1260,38 @@
 
 
                     rowTable = document.createElement("table")
-                    rowTable.classList.add("live-mobile");
-
                     rowTable.innerHTML = `
                         <tr>
-                            <td><span class="badge badge-info mt-2 mb-2"> ${data.sourceName}</span></td>
+                            <td>
+                                <span class="badge badge-info mt-2 mb-2"> ${data.sourceName}</span>
+                                ${data.laps ? `<span class="badge badge-light mt-2 mb-2">laps: ${data.laps}</span>` : ""}
+                            </td>
                             <td><span class="badge ${setRaceTypeBadge(data.raceType)} mt-2 mb-2 me-2"> ${data.raceType} </span></td>
                         </tr>
                         <tr>
                              <td><h4>${data.bib}</h4></td>
-                             <td><h4 style="color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h4></td>
+                             <td>
+                                <h4 style="color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h4>
+                                <span>${data.raceTime}</span>
+                             </td>
+                             <td>
+                                 ${ cell.getRow().getData()?.history ? `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;">` : ""}
+                                 ${ cell.getRow().getData()?.worldTriProfile ? `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png" width="20" style="margin-right: 10px; padding:0;">` : ""}
+                                 ${ cell.getRow().getData()?.trirating ? `<span class="icon chartup"></span>\` : ""}
+                                 ${ cell.getRow().getData()?.gelreman ? `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman_icon.png" width="20" style="margin-right: 10px; padding:0;">` : ""}
+                                 ${ cell.getRow().getData()?.frysman ? `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman_icon.png" width="20" style="margin-right: 10px; padding:0;">` : ""}
+                             </td>
                         </tr>
                         <tr>
                             <td>&nbsp;</td>
-                            <td><span class="badge badge-primary mt-2 mb-2"> ${data.Cat}</span></td>
+                            <td><span class="badge badge-primary mt-2 mb-2">${data.cat}</span><span class="badge badge-info mt-2 mb-2">${data.wave}</span></td>
                         </tr>`;
+
+                    rowTable.classList.add("live-mobile");
 
                     console.log(rowTable);
                     element.append(rowTable);
-                } else {
+                    } else {
 
                 }
             },
@@ -1325,37 +1339,37 @@
                             if (subSplits.swim && Object.keys(subSplits.swim).length > 0) {
                                 for (const [key, value] of Object.entries(subSplits.swim)) {
                                     ssContent += `<dt class="col-sm-2"><i class="fas fa-swimmer me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
-                                }
-                            }
-                            if (subSplits.bike && Object.keys(subSplits.bike).length > 0) {
-                                for (const [key, value] of Object.entries(subSplits.bike)) {
-                                    ssContent += `<dt class="col-sm-2"><i class="fas fa-biking me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
-                                }
-                            }
-                            if (subSplits.run && Object.keys(subSplits.run).length > 0) {
-                                for (const [key, value] of Object.entries(subSplits.run)) {
-                                    ssContent += `<dt class="col-sm-2"><i class="fas fa-running me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
-                                }
-                            }
-                        }
-                    } else if (col.field === "speakerInfo") {
+                }
+            }
+            if (subSplits.bike && Object.keys(subSplits.bike).length > 0) {
+            for (const [key, value] of Object.entries(subSplits.bike)) {
+                ssContent += `<dt class="col-sm-2"><i class="fas fa-biking me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
+            }
+        }
+        if (subSplits.run && Object.keys(subSplits.run).length > 0) {
+            for (const [key, value] of Object.entries(subSplits.run)) {
+                ssContent += `<dt class="col-sm-2"><i class="fas fa-running me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
+            }
+        }
+    }
+    } else if (col.field === "speakerInfo") {
 
-                        let speakerInfo = (col.value.length > 0 && col.value != "&nbsp;") ? decodeS(col.value, col.field, rowId) : '';
-                        if (typeof (speakerInfo) === "object") {
-                            for (const [key, value] of Object.entries(speakerInfo)) {
-                                siContent += `<dt class="col-sm-2"><i class="far fa-clipboard me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-10"><small>${value}</small></dd>`;
-                            }
-                        }
-                    } else {
-                        posContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
-                    }
+        let speakerInfo = (col.value.length > 0 && col.value != "&nbsp;") ? decodeS(col.value, col.field, rowId) : '';
+        if (typeof (speakerInfo) === "object") {
+            for (const [key, value] of Object.entries(speakerInfo)) {
+                siContent += `<dt class="col-sm-2"><i class="far fa-clipboard me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-10"><small>${value}</small></dd>`;
+            }
+        }
+    } else {
+        posContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
+    }
 
-                    // }
-                });
+    // }
+    });
 
-                let cardGroup = document.createElement("div");
-                cardGroup.style.padding = "20px";
-                cardGroup.innerHTML = `<!-- Tabs navs -->
+    let cardGroup = document.createElement("div");
+    cardGroup.style.padding = "20px";
+    cardGroup.innerHTML = `<!-- Tabs navs -->
                     <ul class="nav nav-tabs mb-3 border-bottom" id="collaps-${rowId}" role="tablist">
                     <li class="nav-item" role="presentation">
                     <a
@@ -1452,174 +1466,173 @@
                         <!-- Tabs content -->`
 
 
-                return Object.keys(data).length ? cardGroup : "";
-            }
-        });
+    return Object.keys(data).length ? cardGroup : "";
+    }
+    });
 
-        table.on("dataProcessed", function () {
-            table.addColumn({
-                title: "Speaker Info",
-                field: "si",
-                responsive: 0,
-                headerSort: false,
-                formatter: function (cell, formatterParams, onRendered) {
-                    cell.getRow(); // get row component
-                    let si = '';
-                    if (cell.getRow().getData()?.history) {
-                        si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
-                    }
-                    if (cell.getRow().getData()?.worldTriProfile) {
-                        si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png" width="20" style="margin-right: 10px; padding:0;">`;
-                    }
-                    if (cell.getRow().getData()?.trirating) {
-                        si += `<span class="icon chartup"></span>`;
-                    }
-                    // add gelreman
-                    if (cell.getRow().getData()?.gelreman) {
-                        si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
-                    }
-                    // add frysman
-                    if (cell.getRow().getData()?.frysman) {
-                        si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
-                    }
-                    return si
+    table.on("dataProcessed", function () {
+        table.addColumn({
+            title: "Speaker Info",
+            field: "si",
+            responsive: 0,
+            headerSort: false,
+            formatter: function (cell, formatterParams, onRendered) {
+                cell.getRow(); // get row component
+                let si = '';
+                if (cell.getRow().getData()?.history) {
+                    si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
                 }
-            }, false);
+                if (cell.getRow().getData()?.worldTriProfile) {
+                    si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                }
+                if (cell.getRow().getData()?.trirating) {
+                    si += `<span class="icon chartup"></span>`;
+                }
+                // add gelreman
+                if (cell.getRow().getData()?.gelreman) {
+                    si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                }
+                // add frysman
+                if (cell.getRow().getData()?.frysman) {
+                    si += `<img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman_icon.png" width="20" style="margin-right: 10px; padding:0;">`;
+                }
+                return si
+            }
+        }, false);
 
 
-            table.addColumn({
-                title: "",
-                headerSort: false, /*cellClick: function(){  },*/
-                responsive: 0,
-                cssClass: "actionCol",
-                formatter: function (cell, formatterParams, onRendered) {
-                    // ${yrd[cell.getRow().getData().year] && yrd[cell.getRow().getData().year].CompleteData ? 'disabled' : ''}
-                    return `<button class="btn btn-primary btn-floating btn-sm ripple" style="" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}">
+        table.addColumn({
+            title: "",
+            headerSort: false, /*cellClick: function(){  },*/
+            responsive: 0,
+            cssClass: "actionCol",
+            formatter: function (cell, formatterParams, onRendered) {
+                // ${yrd[cell.getRow().getData().year] && yrd[cell.getRow().getData().year].CompleteData ? 'disabled' : ''}
+                return `<button class="btn btn-primary btn-floating btn-sm ripple" style="" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}">
                                     <i class="fas fa-circle-info" data-mdb-toggle="modal" data-mdb-target="#editRowFormModal" data-mdb-bib="${cell.getRow().getData().bib}"></i>
                                 ` //return the contents of the cell;
-                }
-            });
+            }
+        });
 
-            table.redraw();
+        table.redraw();
 
-            const editModal = document.getElementById('editRowFormModal');
+        const editModal = document.getElementById('editRowFormModal');
 
-            editModal.addEventListener('show.mdb.modal', (e) => {
-                // debug(e);
-                console.log('editForm modal started');
-                console.log(e.relatedTarget.getAttribute('data-mdb-bib'))
-                let bib = e.relatedTarget.getAttribute('data-mdb-bib');
+        editModal.addEventListener('show.mdb.modal', (e) => {
+            // debug(e);
+            console.log('editForm modal started');
+            console.log(e.relatedTarget.getAttribute('data-mdb-bib'))
+            let bib = e.relatedTarget.getAttribute('data-mdb-bib');
 
-                if (bib) {
-                    document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == bib));
-                    setupTabs();
-                }
-
-            });
-
-            editModal.addEventListener('hidden.mdb.modal', (e) => {
-                // debug(e);
-                document.querySelector("#athleteDetails").innerHTML = ''
-            });
+            if (bib) {
+                document.querySelector("#athleteDetails").innerHTML = ulWriter('', startlist.find(s => s.bibnr == bib));
+                setupTabs();
+            }
 
         });
 
-        const socket = io();
-        const messageList = document.getElementById('message-list');
+        editModal.addEventListener('hidden.mdb.modal', (e) => {
+            // debug(e);
+            document.querySelector("#athleteDetails").innerHTML = ''
+        });
 
-        function displayMessage(message) {
-            let tableBody = document.querySelector('#message-list tbody');
-            let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
-            let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
+    });
 
-            function formatTime(seconds) {
-                const hours = Math.floor(seconds / 3600);
-                const minutes = Math.floor((seconds % 3600) / 60);
-                const remainingSeconds = Math.floor(seconds % 60);
+    const socket = io();
+    const messageList = document.getElementById('message-list');
 
-                const formattedHours = String(hours).padStart(2, '0');
-                const formattedMinutes = String(minutes).padStart(2, '0');
-                const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+    function displayMessage(message) {
+        let tableBody = document.querySelector('#message-list tbody');
+        let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
+        let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
 
-                return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-            }
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
 
+            const formattedHours = String(hours).padStart(2, '0');
+            const formattedMinutes = String(minutes).padStart(2, '0');
+            const formattedSeconds = String(remainingSeconds).padStart(2, '0');
 
-            let pdata = {
-                bib: message.Bib,
-                chipcode: message.c,
-                function: message.function,
-                sourceName: message.sourceName,
-                name: message.Name,
-                wave: message.Wave,
-                cat: message.Cat,
-                laps: message.l,
-                time: message.t ? message.t.split(".")[0] : "",
-                raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
-                info: message.Info
-            };
-
-            if (startlist.find(s => s.bibnr == message.Bib)) {
-                Object.assign(pdata, startlist.find(s => s.bibnr == message.Bib));
-            }
-
-            return pdata;
-
-
-            /*
-            const row = document.createElement('tr');
-            row.innerHTML = `<td>${message.b}</td>
-                <td>${message.c}</td>
-                <td>${message.function}</td>
-                <td>${message.sourceName}</td>
-                <td>&nbsp;</td>
-                <td>${message.l}</td>
-                <td>${message.t ? message.t.split(".")[0] : ""}</td>
-                <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
-            tableBody.prepend(row);
-
-            if ( document.getElementById("message-list").rows.length > 41) {
-                if(document.getElementById("message-list").rows[42]) {
-                    document.getElementById("message-list").deleteRow(42);
-                }
-            }
-            */
+            return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
         }
 
-        socket.on('initial data', (messages) => {
-            console.log(messages);
-            let tableData = [];
-            for (const m of messages) {
-                tableData.push(displayMessage(m));
-            }
-            table.setData(tableData, true);
-        });
 
-        socket.on('all messages', (messages) => {
-            console.log(messages);
-            messageList.innerHTML = '';
-            messages.forEach(function (m) {
-                displayMessage(m)
-            });
-        });
+        let pdata = {
+            bib: message.Bib,
+            chipcode: message.c,
+            function: message.function,
+            sourceName: message.sourceName,
+            name: message.Name,
+            wave: message.Wave,
+            cat: message.Cat,
+            laps: message.l,
+            time: message.t ? message.t.split(".")[0] : "",
+            raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
+            info: message.Info
+        };
 
-        socket.on('new message', (message) => {
-            console.log(message);
-            let tableData = [];
-            for (const d of message.data) {
-                d['function'] = message.function;
-                d['sourceName'] = message.sourceName;
-                tableData.push(displayMessage(d));
+        if (startlist.find(s => s.bibnr == message.Bib)) {
+            Object.assign(pdata, startlist.find(s => s.bibnr == message.Bib));
+        }
+
+        return pdata;
+
+
+        /*
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${message.b}</td>
+            <td>${message.c}</td>
+            <td>${message.function}</td>
+            <td>${message.sourceName}</td>
+            <td>&nbsp;</td>
+            <td>${message.l}</td>
+            <td>${message.t ? message.t.split(".")[0] : ""}</td>
+            <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
+        tableBody.prepend(row);
+
+        if ( document.getElementById("message-list").rows.length > 41) {
+            if(document.getElementById("message-list").rows[42]) {
+                document.getElementById("message-list").deleteRow(42);
             }
-            table.addData(tableData, true);
+        }
+        */
+    }
+
+    socket.on('initial data', (messages) => {
+        console.log(messages);
+        let tableData = [];
+        for (const m of messages) {
+            tableData.push(displayMessage(m));
+        }
+        table.setData(tableData, true);
+    });
+
+    socket.on('all messages', (messages) => {
+        console.log(messages);
+        messageList.innerHTML = '';
+        messages.forEach(function (m) {
+            displayMessage(m)
         });
+    });
+
+    socket.on('new message', (message) => {
+        console.log(message);
+        let tableData = [];
+        for (const d of message.data) {
+            d['function'] = message.function;
+            d['sourceName'] = message.sourceName;
+            tableData.push(displayMessage(d));
+        }
+        table.addData(tableData, true);
+    });
 
     }
 
     main();
 
 </script>
-<script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/popper.min.js"></script>
 <script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/mdb.min.js"></script>
 <style>
 
