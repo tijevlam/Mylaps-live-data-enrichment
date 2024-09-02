@@ -112,7 +112,7 @@
         e = record;
         document.querySelector('.detailsBib').innerHTML = record.bibnr;
         document.querySelector('.detailsName').style.color = (record?.gender === "Male" ? '#6e99dd' : '#dd6ec5');
-        document.querySelector('.detailsName').innerHTML = record.uniqueName;
+        document.querySelector('.detailsName').innerHTML = record.fullName;
         let li = `<div class="result" style="width:100%">`
 
         if (record?.birthdate || (record?.worldTriProfile && record?.worldTriProfile[0]?.dob)) {
