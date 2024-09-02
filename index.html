@@ -72,7 +72,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title w-100" id="editFormTitle">View Record</h4>
+                <h1 class="modal-title w-100" id="editFormTitle"><h2 class="detailsBib"></h2><span class="detailsName"></span></h1>
                 <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="athleteDetails">
@@ -110,21 +110,9 @@
     function ulWriter(rowIndex, record, columns, cellWriter) {
         window.record = record;
         e = record;
-        var li = `<div class="result" style="width:100%">
-			<h2 style="line-height:0.5em;">${record.bibnr}</h2>
-			<h1 style="color:${(record?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">`;
-
-        if (record.serie && record.serie.toLowerCase().indexOf("relay") > -1) {
-            li += record.uniqueName
-        } else {
-            li += record.firstName ? record.firstName : '';
-            if (record.lastName) {
-                li += ' ' + record.lastName;
-            }
-        }
-
-        li += `</h1>`;
-
+        document.querySelector('.detailsBib').innerHTML = record.bibnr;
+        document.querySelector('.detailsName').style.color = (record?.gender === "Male" ? '#6e99dd' : '#dd6ec5');
+        document.querySelector('.detailsName').innerHTML = record.uniqueName;
 
         if (record?.birthdate || (record?.worldTriProfile && record?.worldTriProfile[0]?.dob)) {
             var t = (record?.worldTriProfile && record?.worldTriProfile[0]?.dob) ? record?.worldTriProfile[0]?.dob.split(/[-]/) : record?.birthdate?.split(/[-]/);
