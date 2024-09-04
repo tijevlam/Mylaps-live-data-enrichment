@@ -245,9 +245,9 @@ function storeMessage(parsedMessage) {
 async function main(){
     const bibs = await parseCsv("Bibs_202408280939.csv");
 
-    app.get('/', (req, res) => {
+    app.get('/:room', (req, res) => {
         console.log("requested index html")
-        console.log(`room name: ${req.query.mat}`)
+        console.log(`room name: ${req.params.room}`)
         res.sendFile(join(__dirname, 'index.html'));
     });
 

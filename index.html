@@ -1712,9 +1712,9 @@
 
         const params = new Proxy(new URLSearchParams(window.location.search), {
             get: (searchParams, prop) => searchParams.get(prop),
-        });
+        }); // params.mat
 
-        const roomName = params.mat || 'everywhere';
+        const roomName = window.location.href.split("/").pop() || 'everywhere';
         console.log(`Connecting to room ${roomName}`);
         const socket = io({
             query: {
