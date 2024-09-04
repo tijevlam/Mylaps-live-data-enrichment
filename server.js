@@ -290,7 +290,7 @@ async function main(){
                     } else {
                         iosocket.emit('new message', chunk);
                     }
-                }
+                });
 
             }
         });
