@@ -1377,6 +1377,42 @@
                         column.sorter = "string";
                     }
 
+                    if(column.field == "Name") {
+
+                        column.formatter = function (cell, formatterParams, onRendered) {
+
+                            var element = cell.getElement(),
+                                data = cell.getRow().getData(),
+                                width = element.offsetWidth,
+                                rowTable, cellContents;
+                            // console.log(this.browserMobile);
+                            if (this.browserMobile || "ontouchstart" in document.documentElement) {
+                                // console.log('mobile browser, lets rebuild the rows');
+                                //clear current row data
+                                while (element.firstChild) element.removeChild(element.firstChild);
+
+
+                                rowTable = document.createElement("table")
+                                rowTable.innerHTML = `<tr><td>${cell.getValue()}</td><td>
+                                    ${data?.history ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    ${data?.worldTriProfile ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png\" width=\"20\" style=\"margin-right: -10px; padding:0; background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    ${data?.trirating ? "<span class=\"icon chartup\"></span>" : ""}
+                                    ${data?.gelreman ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    ${data?.frysman ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman-icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    ${data?.trihardAdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/trihard-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    ${data?.westfriesland ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman73-icon.png\" width=\"20\" height=\"20\"  style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    ${data?.maastricht ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    ${data?.brouwersdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    ${data?.ironmanpro ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    </td></tr>`
+
+                                //console.log(rowTable);
+                                element.append(rowTable);
+                            }
+
+                        };
+                    }
+
                 });
 
                 return definitions;
