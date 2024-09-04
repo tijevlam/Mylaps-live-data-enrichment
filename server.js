@@ -251,20 +251,29 @@ async function main(){
 
     });
 
+
+
+
 // Socket.IO connection
     io.on('connection', (iosocket) => {
         console.log('A user connected');
+
+        let query = socket.handshake.query;
+        let roomName = query.roomName || "everywhere";
+        if(roomName) {
+            socket.join(roomName);
+        }
 
         // Get data from the last 3 minutes
         const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
         console.log(threeMinutesAgo.toISOString())
         //        SELECT * FROM messages        WHERE timestamp >= ?            `, [threeMinutesAgo.toISOString()]
-        db.all(`SELECT * FROM messages ORDER BY timestamp DESC LIMIT 30;`, (err, rows) => {
+        db.all(`SELECT * FROM messages ${roomName ? "WHERE sourceName = \""+roomName+"\"" : ""} ORDER BY timestamp DESC LIMIT 30;`, (err, rows) => {
             if (err) {
                 console.error('Error fetching data:', err);
             } else {
                 console.log(rows);
-                iosocket.emit('initial data', rows);
+                iosocket.to(roomName).emit('initial data', rows);
             }
         });
 
@@ -313,7 +322,7 @@ async function main(){
 
                 if(parsedMessage.function === 'Passing') {
                     storeMessage(parsedMessage);
-                    io.emit('new message', parsedMessage);
+                    io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
                 }
 
             }

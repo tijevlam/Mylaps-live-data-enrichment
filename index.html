@@ -89,7 +89,9 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title w-100" id="editFormTitle"><h2 class="detailsBib me-3" style="display:inline-block;"></h2><h1 class="detailsName" style="display:inline-block;"></h1></div>
+                <div class="modal-title w-100" id="editFormTitle"><h2 class="detailsBib me-3"
+                                                                      style="display:inline-block;"></h2>
+                    <h1 class="detailsName" style="display:inline-block;"></h1></div>
                 <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="athleteDetails">
@@ -192,9 +194,9 @@
 
         }
 
-        if (record.nationality || record.country){
+        if (record.nationality || record.country) {
             record.countryData = _.partition(countries, (a) => {
-                if ((a.IOC && a.IOC == record.nationality || a.FIFA && a.FIFA == record.nationality || a["ISO 3166-1 alpha2"] == record.nationality ) || (a.IOC && a.IOC == record.country || a.FIFA && a.FIFA == record.country || a["ISO 3166-1 alpha2"] == record.country)) {
+                if ((a.IOC && a.IOC == record.nationality || a.FIFA && a.FIFA == record.nationality || a["ISO 3166-1 alpha2"] == record.nationality) || (a.IOC && a.IOC == record.country || a.FIFA && a.FIFA == record.country || a["ISO 3166-1 alpha2"] == record.country)) {
                     return a.IOC
                 }
             })[0][0];
@@ -296,24 +298,44 @@
             });
         }
 
-        if(record.trihardAdam){
-            record.trihardAdam.forEach(function(s){ if(s.raceTime && s.raceTime != " DNF" && ((s.status && !s.status.match(/DNF|DNS|DSQ/)) || !s.status) && s.year != "Total"){ trihardAdamFinishes++ }});
+        if (record.trihardAdam) {
+            record.trihardAdam.forEach(function (s) {
+                if (s.raceTime && s.raceTime != " DNF" && ((s.status && !s.status.match(/DNF|DNS|DSQ/)) || !s.status) && s.year != "Total") {
+                    trihardAdamFinishes++
+                }
+            });
         }
 
-        if(record.westfriesland){
-            record.westfriesland.forEach(function(s){ if(s.overalltime && s.overalltime != " DNF" && ((s.finisherstatus && !s.finisherstatus.match(/DNF|DNS|DSQ/)) || !s.finisherstatus) && s.year != "Total"){ westfrieslandFinishes++ }});
+        if (record.westfriesland) {
+            record.westfriesland.forEach(function (s) {
+                if (s.overalltime && s.overalltime != " DNF" && ((s.finisherstatus && !s.finisherstatus.match(/DNF|DNS|DSQ/)) || !s.finisherstatus) && s.year != "Total") {
+                    westfrieslandFinishes++
+                }
+            });
         }
 
-        if(record.maastricht){
-            record.maastricht.forEach(function(s){ if(s.overallTime && s.overallTime != " DNF" && ((s.finisherStatus && !s.finisherStatus.match(/DNF|DNS|DSQ/)) || !s.finisherStatus) && s.year != "Total"){ maastrichtFinishes++ }});
+        if (record.maastricht) {
+            record.maastricht.forEach(function (s) {
+                if (s.overallTime && s.overallTime != " DNF" && ((s.finisherStatus && !s.finisherStatus.match(/DNF|DNS|DSQ/)) || !s.finisherStatus) && s.year != "Total") {
+                    maastrichtFinishes++
+                }
+            });
         }
 
-        if(record.brouwersdam){
-            record.brouwersdam.forEach(function(s){ if(s.finishTime && s.finishTime != "-" && ((s.pos && !s.pos.match(/DNF|DNS|DSQ/)) || !s.pos) && s.year != "Total"){ brouwersdamFinishes++ }});
+        if (record.brouwersdam) {
+            record.brouwersdam.forEach(function (s) {
+                if (s.finishTime && s.finishTime != "-" && ((s.pos && !s.pos.match(/DNF|DNS|DSQ/)) || !s.pos) && s.year != "Total") {
+                    brouwersdamFinishes++
+                }
+            });
         }
 
-        if(record.ironmanpro){
-            record.ironmanpro.forEach(function(s){ if(s.OverallTime && s.OverallTime != "" && ((s.FinishStatus && !s.FinishStatus.match(/DNF|DNS|DSQ/)) || !s.FinishStatus) && s.year != "Total"){ ironmanFinishes++ }});
+        if (record.ironmanpro) {
+            record.ironmanpro.forEach(function (s) {
+                if (s.OverallTime && s.OverallTime != "" && ((s.FinishStatus && !s.FinishStatus.match(/DNF|DNS|DSQ/)) || !s.FinishStatus) && s.year != "Total") {
+                    ironmanFinishes++
+                }
+            });
         }
 
         li += "<hr/>";
@@ -385,11 +407,11 @@
         }
 
         if (record.speakerinfo2024) {
-            for (var key in record.speakerinfo2024){
-                if(record.speakerinfo2024[key] && record.speakerinfo2024[key] !=""){
+            for (var key in record.speakerinfo2024) {
+                if (record.speakerinfo2024[key] && record.speakerinfo2024[key] != "") {
 
-                    if(key == "swimcap"){
-                        li += `<h5>${key}</h5>${colorSwimcap (record.speakerinfo2024[key])} ${record.speakerinfo2024[key]}<br/><br/>`;
+                    if (key == "swimcap") {
+                        li += `<h5>${key}</h5>${colorSwimcap(record.speakerinfo2024[key])} ${record.speakerinfo2024[key]}<br/><br/>`;
                     } else {
                         li += `<h5>${key}</h5>${record.speakerinfo2024[key]}<br/><br/>`;
                     }
@@ -697,13 +719,13 @@
             li += "</table></div>";
         }
 
-        if(record.trihardAdam){
+        if (record.trihardAdam) {
             li += `<div class="tab-pane fade" id="si-tabs-6" role="tabpanel" aria-labelledby="si-tab-6" >
 			<h3> <img src="assets/img/trihard-icon.png" style="width:20px; height:20px; padding:0;"/> Trihard Amsterdam: </h3><table>`
-            _.orderBy(record.trihardAdam, ['year'], 'desc').forEach(function(gm){
+            _.orderBy(record.trihardAdam, ['year'], 'desc').forEach(function (gm) {
                 li += `<tr class="year">
 						<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
-						<td>${gm.raceTime} (${gm.pos}${gm.posCat ? ", "+gm.cat+": "+gm.posCat : ""})
+						<td>${gm.raceTime} (${gm.pos}${gm.posCat ? ", " + gm.cat + ": " + gm.posCat : ""})
 						<br/>
 							<span class="icon swim"></span> ${gm.swimTime ? gm.swimTime : "DNF"} <br>
 							<span class="icon bike"></span> ${gm.bikeTime ? gm.bikeTime : "DNF"} <br>
@@ -713,13 +735,13 @@
             li += "</table></div>";
         }
 
-        if(record.maastricht){
+        if (record.maastricht) {
             li += `<div class="tab-pane fade" id="si-tabs-7" role="tabpanel" aria-labelledby="si-tab-7" >
 			<h3> <img src="assets/img/ironman-icon.png" style="height:20px; padding:0;"/> Maastricht: </h3><table>`
-            _.orderBy(record.maastricht, ['year'], 'desc').forEach(function(gm){
+            _.orderBy(record.maastricht, ['year'], 'desc').forEach(function (gm) {
                 li += `<tr class="year">
 						<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
-						<td>${gm.overallTime} (${gm.overallRank}${gm.ageGroupRank ? ", "+gm.ageGroup+": "+gm.ageGroupRank : ""})
+						<td>${gm.overallTime} (${gm.overallRank}${gm.ageGroupRank ? ", " + gm.ageGroup + ": " + gm.ageGroupRank : ""})
 						<br/>
 							<span class="icon swim"></span> ${gm.swimTime ? gm.swimTime : "DNF"} <br>
 							<span class="icon bike"></span> ${gm.bikeTime ? gm.bikeTime : "DNF"}  <br>
@@ -729,13 +751,13 @@
             li += "</table></div>";
         }
 
-        if(record.westfriesland){
+        if (record.westfriesland) {
             li += `<div class="tab-pane fade" id="si-tabs-8" role="tabpanel" aria-labelledby="si-tab-8" >
 			<h3> <img src="assets/img/ironman73-icon.png" style="height:20px; padding:0;"/> West-Friesland: </h3><table>`
-            _.orderBy(record.westfriesland, ['year'], 'desc').forEach(function(gm){
+            _.orderBy(record.westfriesland, ['year'], 'desc').forEach(function (gm) {
                 li += `<tr class="year">
  						<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
- 						<td>${gm.overalltime} (${gm.overallrank}${gm.overalldivisionrank ? ", "+gm.division+": "+gm.overalldivisionrank : ""})
+ 						<td>${gm.overalltime} (${gm.overallrank}${gm.overalldivisionrank ? ", " + gm.division + ": " + gm.overalldivisionrank : ""})
 						<br/>
 							<span class="icon swim"></span> ${gm.swimtime ? gm.swimtime : "DNF"} <br>
 							<span class="icon bike"></span> ${gm.biketime ? gm.biketime : "DNF"} <br>
@@ -745,10 +767,10 @@
             li += "</table></div>";
         }
 
-        if(record.brouwersdam){
+        if (record.brouwersdam) {
             li += `<div class="tab-pane fade" id="si-tabs-9" role="tabpanel" aria-labelledby="si-tab-9" >
 				<h3> <img src="assets/img/brouwersdam-icon.png" style="height:20px; padding:0;"/> Brouwersdam: </h3><table>`
-            _.orderBy(record.brouwersdam, ['year'], 'desc').forEach(function(gm){
+            _.orderBy(record.brouwersdam, ['year'], 'desc').forEach(function (gm) {
                 li += `<tr class="year">
 							<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
 							<td>${gm.finishTime} (${gm.pos}, ${gm.categorie}</td>
@@ -757,17 +779,17 @@
             li += "</table></div>";
         }
 
-        if(record.ironmanpro){
+        if (record.ironmanpro) {
             li += `<div class="tab-pane fade" id="si-tabs-10" role="tabpanel" aria-labelledby="si-tab-10" >
 			<h3> <img src="assets/img/ironman-icon.png" style="height:20px; padding:0;"/> Ironman: </h3><table>`
-            _.orderBy(record.ironmanpro, ['year'], 'desc').forEach(function(gm){
+            _.orderBy(record.ironmanpro, ['year'], 'desc').forEach(function (gm) {
                 li += `<tr class="year">
 					<td style="vertical-align: top;">${gm.Race} <br/> <span class="badge badge-light mt-2">${gm.Race.indexOf('70.3') > -1 ? 'middle distance' : 'long distance'}</span></td>
-					<td>${gm.OverallTime ? gm.OverallTime : gm.FinishStatus} ${gm.OverallRank ? `(${gm.OverallRank}${gm.DivisionRank ? ", "+gm.Division+": "+gm.DivisionRank : ""})` : ""}
+					<td>${gm.OverallTime ? gm.OverallTime : gm.FinishStatus} ${gm.OverallRank ? `(${gm.OverallRank}${gm.DivisionRank ? ", " + gm.Division + ": " + gm.DivisionRank : ""})` : ""}
 					<br/>
-						<span class="icon swim"></span> ${gm.SwimTime ? gm.SwimTime : gm.FinishStatus } <br>
-						<span class="icon bike"></span> ${gm.BikeTime ? gm.BikeTime : gm.FinishStatus }  <br>
-						<span class="icon run"></span> ${gm.RunTime ? gm.RunTime : gm.FinishStatus }
+						<span class="icon swim"></span> ${gm.SwimTime ? gm.SwimTime : gm.FinishStatus} <br>
+						<span class="icon bike"></span> ${gm.BikeTime ? gm.BikeTime : gm.FinishStatus}  <br>
+						<span class="icon run"></span> ${gm.RunTime ? gm.RunTime : gm.FinishStatus}
 					</td></tr>`
             });
             li += "</table></div>";
@@ -793,11 +815,11 @@
                 }
 
                 if (csi.year == "2023" && record.speakerinfo2023) {
-                    for (var key in record.speakerinfo2023){
-                        if(record.speakerinfo2023[key] && record.speakerinfo2023[key] !=""){
+                    for (var key in record.speakerinfo2023) {
+                        if (record.speakerinfo2023[key] && record.speakerinfo2023[key] != "") {
 
-                            if(key == "swimcap"){
-                                li += `<h5>${key}</h5>${colorSwimcap (record.speakerinfo2023[key])} ${record.speakerinfo2023[key]}<br/><br/>`;
+                            if (key == "swimcap") {
+                                li += `<h5>${key}</h5>${colorSwimcap(record.speakerinfo2023[key])} ${record.speakerinfo2023[key]}<br/><br/>`;
                             } else {
                                 li += `<h5>${key}</h5>${record.speakerinfo2023[key]}<br/><br/>`;
                             }
@@ -1311,10 +1333,12 @@
     }
 
 
-    function setupTabs(tabs){
+    function setupTabs(tabs) {
 
-        for(i=0; i <= tabs; i++){
-            if(jQuery('#si-tabs-'+i).length ==0){ jQuery('#si-tab-'+i).parent().hide();}
+        for (i = 0; i <= tabs; i++) {
+            if (jQuery('#si-tabs-' + i).length == 0) {
+                jQuery('#si-tab-' + i).parent().hide();
+            }
         }
 
         const triggerTabList = [].slice.call(document.querySelectorAll('#si-tabs a'));
@@ -1347,7 +1371,7 @@
             height: "100%",
             maxHeight: "100%",
             pagination: "local",
-            paginationSize: 20,
+            paginationSize: 40,
             paginationSizeSelector: false,
             responsiveLayout: "collapse",
             responsiveLayoutCollapseStartOpen: false,
@@ -1377,7 +1401,7 @@
                         column.sorter = "string";
                     }
 
-                    if(column.field == "name") {
+                    if (column.field == "name") {
 
                         column.formatter = function (cell, formatterParams, onRendered) {
 
@@ -1410,13 +1434,13 @@
                 return definitions;
             },
             headerVisible: ("ontouchstart" in document.documentElement ? false : true),
-            rowFormatter: function(row){
+            rowFormatter: function (row) {
                 var element = row.getElement(),
                     data = row.getData(),
                     width = element.offsetWidth,
                     rowTable, cellContents;
                 // console.log(this.browserMobile);
-                if(this.browserMobile ||  "ontouchstart" in document.documentElement){
+                if (this.browserMobile || "ontouchstart" in document.documentElement) {
                     // console.log('mobile browser, lets rebuild the rows');
                     //clear current row data
                     while (element.firstChild) element.removeChild(element.firstChild);
@@ -1451,16 +1475,16 @@
                                 <h4 style="color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h4>
                              </td>
                              <td>
-                                 ${ data?.history ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
-                                 ${ data?.worldTriProfile ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png\" width=\"20\" style=\"margin-right: -10px; padding:0; background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
-                                 ${ data?.trirating ? "<span class=\"icon chartup\"></span>" : ""}
-                                 ${ data?.gelreman ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
-                                 ${ data?.frysman ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman-icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
-                                 ${ data?.trihardAdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/trihard-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
-                                 ${ data?.westfriesland ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman73-icon.png\" width=\"20\" height=\"20\"  style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
-                                 ${ data?.maastricht ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
-                                 ${ data?.brouwersdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
-                                 ${ data?.ironmanpro ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${data?.history ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${data?.worldTriProfile ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png\" width=\"20\" style=\"margin-right: -10px; padding:0; background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${data?.trirating ? "<span class=\"icon chartup\"></span>" : ""}
+                                 ${data?.gelreman ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${data?.frysman ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/frysman-icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${data?.trihardAdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/trihard-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${data?.westfriesland ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman73-icon.png\" width=\"20\" height=\"20\"  style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${data?.maastricht ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${data?.brouwersdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${data?.ironmanpro ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
 
                              </td>
                         </tr>
@@ -1474,7 +1498,7 @@
 
                     //console.log(rowTable);
                     element.append(rowTable);
-                    } else {
+                } else {
 
                 }
             },
@@ -1522,37 +1546,37 @@
                             if (subSplits.swim && Object.keys(subSplits.swim).length > 0) {
                                 for (const [key, value] of Object.entries(subSplits.swim)) {
                                     ssContent += `<dt class="col-sm-2"><i class="fas fa-swimmer me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
-                }
-            }
-            if (subSplits.bike && Object.keys(subSplits.bike).length > 0) {
-            for (const [key, value] of Object.entries(subSplits.bike)) {
-                ssContent += `<dt class="col-sm-2"><i class="fas fa-biking me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
-            }
-        }
-        if (subSplits.run && Object.keys(subSplits.run).length > 0) {
-            for (const [key, value] of Object.entries(subSplits.run)) {
-                ssContent += `<dt class="col-sm-2"><i class="fas fa-running me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
-            }
-        }
-    }
-    } else if (col.field === "speakerInfo") {
+                                }
+                            }
+                            if (subSplits.bike && Object.keys(subSplits.bike).length > 0) {
+                                for (const [key, value] of Object.entries(subSplits.bike)) {
+                                    ssContent += `<dt class="col-sm-2"><i class="fas fa-biking me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
+                                }
+                            }
+                            if (subSplits.run && Object.keys(subSplits.run).length > 0) {
+                                for (const [key, value] of Object.entries(subSplits.run)) {
+                                    ssContent += `<dt class="col-sm-2"><i class="fas fa-running me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-2"><small>${value}</small></dd>`;
+                                }
+                            }
+                        }
+                    } else if (col.field === "speakerInfo") {
 
-        let speakerInfo = (col.value.length > 0 && col.value != "&nbsp;") ? decodeS(col.value, col.field, rowId) : '';
-        if (typeof (speakerInfo) === "object") {
-            for (const [key, value] of Object.entries(speakerInfo)) {
-                siContent += `<dt class="col-sm-2"><i class="far fa-clipboard me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-10"><small>${value}</small></dd>`;
-            }
-        }
-    } else {
-        posContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
-    }
+                        let speakerInfo = (col.value.length > 0 && col.value != "&nbsp;") ? decodeS(col.value, col.field, rowId) : '';
+                        if (typeof (speakerInfo) === "object") {
+                            for (const [key, value] of Object.entries(speakerInfo)) {
+                                siContent += `<dt class="col-sm-2"><i class="far fa-clipboard me-2"></i><small>${capitalize(key)}</small></dt><dd class="col-sm-10"><small>${value}</small></dd>`;
+                            }
+                        }
+                    } else {
+                        posContent += `<dt class="col-sm-2"><small>${capitalize(col.title)}</small></dt><dd class="col-sm-2"><small>${col.value === "&nbsp;" ? '<span class="text-muted opacity-40">N/A</span>' : col.value}</small></dd>`;
+                    }
 
-    // }
-    });
+                    // }
+                });
 
-    let cardGroup = document.createElement("div");
-    cardGroup.style.padding = "20px";
-    cardGroup.innerHTML = `<!-- Tabs navs -->
+                let cardGroup = document.createElement("div");
+                cardGroup.style.padding = "20px";
+                cardGroup.innerHTML = `<!-- Tabs navs -->
                     <ul class="nav nav-tabs mb-3 border-bottom" id="collaps-${rowId}" role="tablist">
                     <li class="nav-item" role="presentation">
                     <a
@@ -1649,132 +1673,152 @@
                         <!-- Tabs content -->`
 
 
-    return Object.keys(data).length ? cardGroup : "";
-    }
-    });
-
-    table.on("dataProcessed", function () {
-        let clickedDetails;
-        table.on("rowClick", function(e, row){
-            row.getElement().classList.add("opened");
-            let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'))
-            clickedDetails = row.getData();
-            details.show();
+                return Object.keys(data).length ? cardGroup : "";
+            }
         });
 
+        table.on("dataProcessed", function () {
+            let clickedDetails;
+            table.on("rowClick", function (e, row) {
+                row.getElement().classList.add("opened");
+                let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'))
+                clickedDetails = row.getData();
+                details.show();
+            });
 
-        table.redraw();
 
-        const editModal = document.getElementById('editRowFormModal');
+            table.redraw();
 
-        editModal.addEventListener('show.mdb.modal', (e) => {
-            // console.log(e)
-            // console.log('editForm modal started');
-            // console.log(clickedDetails);
-            if(clickedDetails && clickedDetails.bib) {
-                document.querySelector("#athleteDetails").innerHTML = ulWriter('', clickedDetails);
-                setupTabs(10);
+            const editModal = document.getElementById('editRowFormModal');
+
+            editModal.addEventListener('show.mdb.modal', (e) => {
+                // console.log(e)
+                // console.log('editForm modal started');
+                // console.log(clickedDetails);
+                if (clickedDetails && clickedDetails.bib) {
+                    document.querySelector("#athleteDetails").innerHTML = ulWriter('', clickedDetails);
+                    setupTabs(10);
+                }
+
+            });
+
+            editModal.addEventListener('hidden.mdb.modal', (e) => {
+                // debug(e);
+                document.querySelector("#athleteDetails").innerHTML = ''
+                clickedDetails = null;
+            });
+
+        });
+
+        const params = new Proxy(new URLSearchParams(window.location.search), {
+            get: (searchParams, prop) => searchParams.get(prop),
+        });
+
+        const roomName = params.mat || 'everywhere';
+        const socket = io({
+            query: {
+                roomName: roomName,
+            },
+        });
+
+        // const socket = io();
+
+
+        const messageList = document.getElementById('message-list');
+
+        function displayMessage(message) {
+            let tableBody = document.querySelector('#message-list tbody');
+            let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
+            let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
+
+            function formatTime(seconds) {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const remainingSeconds = Math.floor(seconds % 60);
+
+                const formattedHours = String(hours).padStart(2, '0');
+                const formattedMinutes = String(minutes).padStart(2, '0');
+                const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+
+                return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
             }
 
-        });
 
-        editModal.addEventListener('hidden.mdb.modal', (e) => {
-            // debug(e);
-            document.querySelector("#athleteDetails").innerHTML = ''
-            clickedDetails = null;
-        });
+            let pdata = {
+                bib: message.Bib,
+                chipcode: message.c,
+                function: message.function,
+                sourceName: message.sourceName,
+                name: message.Name,
+                wave: message.Wave,
+                cat: message.Cat,
+                laps: message.l,
+                time: message.t ? message.t.split(".")[0] : "",
+                raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
+                info: message.Info
+            };
 
-    });
-
-    const socket = io();
-    const messageList = document.getElementById('message-list');
-
-    function displayMessage(message) {
-        let tableBody = document.querySelector('#message-list tbody');
-        let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
-        let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
-
-        function formatTime(seconds) {
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.floor((seconds % 3600) / 60);
-            const remainingSeconds = Math.floor(seconds % 60);
-
-            const formattedHours = String(hours).padStart(2, '0');
-            const formattedMinutes = String(minutes).padStart(2, '0');
-            const formattedSeconds = String(remainingSeconds).padStart(2, '0');
-
-            return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-        }
-
-
-        let pdata = {
-            bib: message.Bib,
-            chipcode: message.c,
-            function: message.function,
-            sourceName: message.sourceName,
-            name: message.Name,
-            wave: message.Wave,
-            cat: message.Cat,
-            laps: message.l,
-            time: message.t ? message.t.split(".")[0] : "",
-            raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
-            info: message.Info
-        };
-
-        if (startlist.find(s => s.bibnr == message.Bib)) {
-            Object.assign(pdata, startlist.find(s => s.bibnr == message.Bib));
-        }
-
-        return pdata;
-
-
-        /*
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${message.b}</td>
-            <td>${message.c}</td>
-            <td>${message.function}</td>
-            <td>${message.sourceName}</td>
-            <td>&nbsp;</td>
-            <td>${message.l}</td>
-            <td>${message.t ? message.t.split(".")[0] : ""}</td>
-            <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
-        tableBody.prepend(row);
-
-        if ( document.getElementById("message-list").rows.length > 41) {
-            if(document.getElementById("message-list").rows[42]) {
-                document.getElementById("message-list").deleteRow(42);
+            if (startlist.find(s => s.bibnr == message.Bib)) {
+                Object.assign(pdata, startlist.find(s => s.bibnr == message.Bib));
             }
-        }
-        */
-    }
 
-    socket.on('initial data', (messages) => {
-        console.log(messages);
-        let tableData = [];
-        for (const m of messages) {
-            tableData.push(displayMessage(m));
-        }
-        table.setData(tableData, true);
-    });
+            return pdata;
 
-    socket.on('all messages', (messages) => {
-        console.log(messages);
-        messageList.innerHTML = '';
-        messages.forEach(function (m) {
-            displayMessage(m)
+
+            /*
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${message.b}</td>
+                <td>${message.c}</td>
+                <td>${message.function}</td>
+                <td>${message.sourceName}</td>
+                <td>&nbsp;</td>
+                <td>${message.l}</td>
+                <td>${message.t ? message.t.split(".")[0] : ""}</td>
+                <td>${formatTime(cTime.diff(startTime, 'seconds').toObject().seconds)}</td>`;
+            tableBody.prepend(row);
+
+            if ( document.getElementById("message-list").rows.length > 41) {
+                if(document.getElementById("message-list").rows[42]) {
+                    document.getElementById("message-list").deleteRow(42);
+                }
+            }
+            */
+
+        socket.on('initial data', (messages) => {
+            console.log(messages);
+            let tableData = [];
+            for (const m of messages) {
+                tableData.push(displayMessage(m));
+            }
+            table.setData(tableData, true);
         });
-    });
 
-    socket.on('new message', (message) => {
-        console.log(message);
-        let tableData = [];
-        for (const d of message.data) {
-            d['function'] = message.function;
-            d['sourceName'] = message.sourceName;
-            tableData.push(displayMessage(d));
-        }
-        table.addData(tableData, true);
-    });
+        socket.on('all messages', (messages) => {
+            console.log(messages);
+            messageList.innerHTML = '';
+            messages.forEach(function (m) {
+                displayMessage(m)
+            });
+        });
+
+        socket.on('new message', (message) => {
+            console.log(message);
+            let tableData = [];
+            for (const d of message.data) {
+                d['function'] = message.function;
+                d['sourceName'] = message.sourceName;
+                tableData.push(displayMessage(d));
+            }
+            table.addData(tableData, true);
+        });
+
+        document.getElementById('pause').addEventListener('click', function () {
+            socket.disconnect();
+        });
+
+        document.getElementById('start').addEventListener('click', function () {
+            socket.connect();
+        });
 
     }
 
@@ -1881,14 +1925,16 @@
     .space-left {
         margin-left: 15px;
     }
+
     .opened, .opened table, .opened tr, .opened td {
         background-color: #fdc8c8 !important;
     }
 
     .passing td, .passing table {
         padding-top: 0px;
-        padding-bottom:0px;
+        padding-bottom: 0px;
     }
+
     .passing * {
         margin-top: 0px;
         margin-bottom: 0px;
