@@ -104,8 +104,8 @@ function parseMessage(bibs, rawMessage, socket) {
     return { error: 'Invalid message format' };
   }
 
-  const sourceName = parts[0];
-  const function_ = parts[1];
+  const sourceName = parts[0].trim();
+  const function_ = parts[1].trim();
   const data = ['Store','Passing'].includes(function_) ? parts.slice(2, -2).join('@') : parts.slice(2, -1).join('@'); // Join in case data contains '@'
   const messageNumber = ['Store','Passing'].includes(function_) ? parts[parts.length - 2] : undefined;
   
@@ -272,7 +272,7 @@ async function main(){
         const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
         console.log(threeMinutesAgo.toISOString())
         //        SELECT * FROM messages        WHERE timestamp >= ?            `, [threeMinutesAgo.toISOString()]
-        db.all(`SELECT * FROM messages ${roomName && roomName != "everywhere" ? "WHERE sourceName = \""+roomName+"\"" : ""} ORDER BY timestamp DESC LIMIT 30;`, (err, rows) => {
+        db.all(`SELECT * FROM messages ${roomName && roomName != "everywhere" ? "WHERE sourceName LIKE \"%"+roomName+"%\"" : ""} ORDER BY timestamp DESC LIMIT 30;`, (err, rows) => {
             if (err) {
                 console.error('Error fetching data:', err);
             } else {
