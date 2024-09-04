@@ -265,10 +265,8 @@ async function main(){
 
         let query = iosocket.handshake.query;
         let roomName = query.roomName || "everywhere"; // TimeFinish, TimeR1
-        if(roomName) {
-            iosocket.join(roomName);
+           iosocket.join(roomName);
             console.log(`User joined room: ${roomName}`);
-        }
 
         // Get data from the last 3 minutes
         const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
@@ -279,7 +277,21 @@ async function main(){
                 console.error('Error fetching data:', err);
             } else {
                 console.log(rows);
-                iosocket.to(roomName).emit('initial data', rows);
+                // split rows in packages of 20
+                let chunks = [];
+                let i = 0;
+                let n = rows.length;
+                while (i < n) {
+                    chunks.push(rows.slice(i, i += 20));
+                }
+                chunks.forEach(function (chunk, i) {
+                    if(i===0) {
+                        iosocket.emit('initial messages', chunk);
+                    } else {
+                        iosocket.emit('new message', chunk);
+                    }
+                }
+
             }
         });
 
