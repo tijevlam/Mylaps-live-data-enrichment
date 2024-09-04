@@ -1803,6 +1803,13 @@
                 });
             });
 
+        ocket.on('more messages', (messages) => {
+            console.log(messages);
+            messages.forEach(function (m) {
+                displayMessage(m)
+            });
+        });
+
             socket.on('new message', (message) => {
                 console.log(message);
                 let tableData = [];

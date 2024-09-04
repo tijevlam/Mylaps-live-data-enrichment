@@ -288,7 +288,7 @@ async function main(){
                     if(i===0) {
                         iosocket.emit('initial messages', chunk);
                     } else {
-                        iosocket.emit('new message', chunk);
+                        iosocket.emit('more messages', chunk);
                     }
                 });
 
