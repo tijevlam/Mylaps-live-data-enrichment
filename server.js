@@ -250,6 +250,11 @@ async function main(){
         console.log(`room name: ${req.params.room}`)
         res.sendFile(join(__dirname, 'index.html'));
     });
+    app.get('/', (req, res) => {
+        console.log("requested index html")
+        console.log(`room name: everywhere (non specified)`)
+        res.sendFile(join(__dirname, 'index.html'));
+    });
 
 
 
