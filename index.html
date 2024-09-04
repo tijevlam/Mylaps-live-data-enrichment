@@ -1798,16 +1798,24 @@
             socket.on('all messages', (messages) => {
                 console.log(messages);
                 messageList.innerHTML = '';
-                messages.forEach(function (m) {
-                    displayMessage(m)
-                });
+                let tableData = [];
+                for (const m of messages) {
+                    tableData.push(displayMessage(m));
+                }
+                table.setData(tableData, true);
             });
 
         socket.on('more messages', (messages) => {
             console.log(messages);
+            let tableData = [];
+            for (const m of messages) {
+                tableData.push(displayMessage(m));
+            }
             messages.forEach(function (m) {
                 displayMessage(m)
             });
+            table.setData(tableData, true);
+
         });
 
             socket.on('new message', (message) => {
