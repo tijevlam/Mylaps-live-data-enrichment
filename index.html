@@ -1386,7 +1386,7 @@
                                 width = element.offsetWidth,
                                 rowTable, cellContents;
                             // console.log(this.browserMobile);
-                            if (this.browserMobile || "ontouchstart" in document.documentElement) {
+                            if (!this.browserMobile || !"ontouchstart" in document.documentElement) {
                                 // console.log('mobile browser, lets rebuild the rows');
                                 //clear current row data
                                 while (element.firstChild) element.removeChild(element.firstChild);
