@@ -236,6 +236,7 @@
         let westfrieslandFinishes = 0;
         let maastrichtFinishes = 0;
         let brouwersdamFinishes = 0;
+        let ironmanFinishes = 0;
         let ldHistory;
         let mdHistory;
 
@@ -311,6 +312,10 @@
             record.brouwersdam.forEach(function(s){ if(s.finishTime && s.finishTime != "-" && ((s.pos && !s.pos.match(/DNF|DNS|DSQ/)) || !s.pos) && s.year != "Total"){ brouwersdamFinishes++ }});
         }
 
+        if(record.ironmanpro){
+            record.ironmanpro.forEach(function(s){ if(s.OverallTime && s.OverallTime != "" && ((s.FinishStatus && !s.FinishStatus.match(/DNF|DNS|DSQ/)) || !s.FinishStatus) && s.year != "Total"){ ironmanFinishes++ }});
+        }
+
         li += "<hr/>";
 
         if (record.serie && record.serie.toLowerCase().indexOf("relay") > -1) {
@@ -379,14 +384,14 @@
 					</svg>`
         }
 
-        if (record.speakerinfo2023) {
-            for (var key in record.speakerinfo2023) {
-                if (record.speakerinfo2023[key] && record.speakerinfo2023[key] != "") {
+        if (record.speakerinfo2024) {
+            for (var key in record.speakerinfo2024){
+                if(record.speakerinfo2024[key] && record.speakerinfo2024[key] !=""){
 
-                    if (key == "swimcap") {
-                        li += `<h5>${key}</h5>${colorSwimcap(record.speakerinfo2023[key])} ${record.speakerinfo2023[key]}<br/><br/>`;
+                    if(key == "swimcap"){
+                        li += `<h5>${key}</h5>${colorSwimcap (record.speakerinfo2024[key])} ${record.speakerinfo2024[key]}<br/><br/>`;
                     } else {
-                        li += `<h5>${key}</h5>${record.speakerinfo2023[key]}<br/><br/>`;
+                        li += `<h5>${key}</h5>${record.speakerinfo2024[key]}<br/><br/>`;
                     }
                 }
             }
@@ -474,6 +479,11 @@
             "width": "20",
             "style": "width:20px; height:20px; margin-right: 10px; padding:0;"
         }, `(${brouwersdamFinishes} / ${record.brouwersdam && record.brouwersdam.length ? record.brouwersdam.length : ''})`);
+        li += createTab(10, {
+            "src": "assets/img/ironman-icon.png",
+            "height": "20",
+            "style": "height:20px; margin-right: 10px; padding:0;"
+        }, `(${ironmanFinishes} / ${record.ironmanpro && record.ironmanpro.length ? record.ironmanpro.length : ''})`);
 
 
         li += `</ul>
@@ -675,7 +685,7 @@
             li += `<div class="tab-pane fade" id="si-tabs-4" role="tabpanel" aria-labelledby="si-tab-4" >
 			<h3> <img src="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/gelreman.png" style="width:20px; height:20px; padding:0;"/> Gelreman: </h3><table>`
             _.orderBy(record.gelreman, ['year'], 'desc').forEach(function (gm) {
-                li += `<tr>
+                li += `<tr class="year">
 						<td>${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
 						<td>${gm.raceTime} (${gm.pos}${gm.posCat ? ", " + gm.cat + ": " + gm.posCat : ""})
 						<br/>
@@ -691,7 +701,7 @@
             li += `<div class="tab-pane fade" id="si-tabs-6" role="tabpanel" aria-labelledby="si-tab-6" >
 			<h3> <img src="assets/img/trihard-icon.png" style="width:20px; height:20px; padding:0;"/> Trihard Amsterdam: </h3><table>`
             _.orderBy(record.trihardAdam, ['year'], 'desc').forEach(function(gm){
-                li += `<tr>
+                li += `<tr class="year">
 						<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
 						<td>${gm.raceTime} (${gm.pos}${gm.posCat ? ", "+gm.cat+": "+gm.posCat : ""})
 						<br/>
@@ -707,7 +717,7 @@
             li += `<div class="tab-pane fade" id="si-tabs-7" role="tabpanel" aria-labelledby="si-tab-7" >
 			<h3> <img src="assets/img/ironman-icon.png" style="height:20px; padding:0;"/> Maastricht: </h3><table>`
             _.orderBy(record.maastricht, ['year'], 'desc').forEach(function(gm){
-                li += `<tr>
+                li += `<tr class="year">
 						<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
 						<td>${gm.overallTime} (${gm.overallRank}${gm.ageGroupRank ? ", "+gm.ageGroup+": "+gm.ageGroupRank : ""})
 						<br/>
@@ -723,7 +733,7 @@
             li += `<div class="tab-pane fade" id="si-tabs-8" role="tabpanel" aria-labelledby="si-tab-8" >
 			<h3> <img src="assets/img/ironman73-icon.png" style="height:20px; padding:0;"/> West-Friesland: </h3><table>`
             _.orderBy(record.westfriesland, ['year'], 'desc').forEach(function(gm){
-                li += `<tr>
+                li += `<tr class="year">
  						<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
  						<td>${gm.overalltime} (${gm.overallrank}${gm.overalldivisionrank ? ", "+gm.division+": "+gm.overalldivisionrank : ""})
 						<br/>
@@ -739,7 +749,7 @@
             li += `<div class="tab-pane fade" id="si-tabs-9" role="tabpanel" aria-labelledby="si-tab-9" >
 				<h3> <img src="assets/img/brouwersdam-icon.png" style="height:20px; padding:0;"/> Brouwersdam: </h3><table>`
             _.orderBy(record.brouwersdam, ['year'], 'desc').forEach(function(gm){
-                li += `<tr>
+                li += `<tr class="year">
 							<td style="vertical-align: top;">${gm.year} <br/> <span class="badge badge-light mt-2">${gm.raceType ? gm.raceType : 'long distance'}</span></td>
 							<td>${gm.finishTime} (${gm.pos}, ${gm.categorie}</td>
 						</tr>`
@@ -747,6 +757,21 @@
             li += "</table></div>";
         }
 
+        if(record.ironmanpro){
+            li += `<div class="tab-pane fade" id="si-tabs-10" role="tabpanel" aria-labelledby="si-tab-10" >
+			<h3> <img src="assets/img/ironman-icon.png" style="height:20px; padding:0;"/> Ironman: </h3><table>`
+            _.orderBy(record.ironmanpro, ['year'], 'desc').forEach(function(gm){
+                li += `<tr class="year">
+					<td style="vertical-align: top;">${gm.Race} <br/> <span class="badge badge-light mt-2">${gm.Race.indexOf('70.3') > -1 ? 'middle distance' : 'long distance'}</span></td>
+					<td>${gm.OverallTime ? gm.OverallTime : gm.FinishStatus} ${gm.OverallRank ? `(${gm.OverallRank}${gm.DivisionRank ? ", "+gm.Division+": "+gm.DivisionRank : ""})` : ""}
+					<br/>
+						<span class="icon swim"></span> ${gm.SwimTime ? gm.SwimTime : gm.FinishStatus } <br>
+						<span class="icon bike"></span> ${gm.BikeTime ? gm.BikeTime : gm.FinishStatus }  <br>
+						<span class="icon run"></span> ${gm.RunTime ? gm.RunTime : gm.FinishStatus }
+					</td></tr>`
+            });
+            li += "</table></div>";
+        }
 
         let psi = false;
         _.orderBy(record.history, ['year'], 'desc').forEach(function (csi) {
@@ -767,6 +792,18 @@
                     }
                 }
 
+                if (csi.year == "2023" && record.speakerinfo2023) {
+                    for (var key in record.speakerinfo2023){
+                        if(record.speakerinfo2023[key] && record.speakerinfo2023[key] !=""){
+
+                            if(key == "swimcap"){
+                                li += `<h5>${key}</h5>${colorSwimcap (record.speakerinfo2023[key])} ${record.speakerinfo2023[key]}<br/><br/>`;
+                            } else {
+                                li += `<h5>${key}</h5>${record.speakerinfo2023[key]}<br/><br/>`;
+                            }
+                        }
+                    }
+                }
 
                 li += '</div></td></tr>';
 
@@ -1274,26 +1311,11 @@
     }
 
 
-    function setupTabs() {
-        if (jQuery('#si-tabs-1').length == 0) {
-            jQuery('#si-tab-1').parent().hide();
+    function setupTabs(tabs){
+
+        for(i=0; i <= tabs; i++){
+            if(jQuery('#si-tabs-'+i).length ==0){ jQuery('#si-tab-'+i).parent().hide();}
         }
-        if (jQuery('#si-tabs-2').length == 0) {
-            jQuery('#si-tab-2').parent().hide();
-        }
-        if (jQuery('#si-tabs-3').length == 0) {
-            jQuery('#si-tab-3').parent().hide();
-        }
-        if (jQuery('#si-tabs-4').length == 0) {
-            jQuery('#si-tab-4').parent().hide();
-        }
-        if (jQuery('#si-tabs-5').length == 0) {
-            jQuery('#si-tab-5').parent().hide();
-        }
-        if(jQuery('#si-tabs-6').length ==0){ jQuery('#si-tab-6').parent().hide();}
-        if(jQuery('#si-tabs-7').length ==0){ jQuery('#si-tab-7').parent().hide();}
-        if(jQuery('#si-tabs-8').length ==0){ jQuery('#si-tab-8').parent().hide();}
-        if(jQuery('#si-tabs-9').length ==0){ jQuery('#si-tab-9').parent().hide();}
 
         const triggerTabList = [].slice.call(document.querySelectorAll('#si-tabs a'));
         triggerTabList.forEach((triggerEl) => {
@@ -1410,6 +1432,8 @@
                                  ${ data?.westfriesland ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman73-icon.png\" width=\"20\" height=\"20\"  style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                  ${ data?.maastricht ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                  ${ data?.brouwersdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                 ${ data?.ironmanpro ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+
                              </td>
                         </tr>
                         <tr>
@@ -1621,7 +1645,7 @@
             // console.log(clickedDetails);
             if(clickedDetails && clickedDetails.bib) {
                 document.querySelector("#athleteDetails").innerHTML = ulWriter('', clickedDetails);
-                setupTabs();
+                setupTabs(10);
             }
 
         });
