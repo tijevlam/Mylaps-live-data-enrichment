@@ -259,9 +259,10 @@ async function main(){
         console.log('A user connected');
 
         let query = iosocket.handshake.query;
-        let roomName = query.roomName || "everywhere";
+        let roomName = query.roomName || "everywhere"; // TimeFinish, TimeR1
         if(roomName) {
             iosocket.join(roomName);
+            console.log(`User joined room: ${roomName}`);
         }
 
         // Get data from the last 3 minutes
