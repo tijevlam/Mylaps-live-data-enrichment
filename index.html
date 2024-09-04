@@ -1803,7 +1803,7 @@
                 });
             });
 
-        ocket.on('more messages', (messages) => {
+        socket.on('more messages', (messages) => {
             console.log(messages);
             messages.forEach(function (m) {
                 displayMessage(m)
