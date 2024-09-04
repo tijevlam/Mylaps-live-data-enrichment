@@ -1784,44 +1784,45 @@
                 }
             }
             */
+        }
 
-        socket.on('initial data', (messages) => {
-            console.log(messages);
-            let tableData = [];
-            for (const m of messages) {
-                tableData.push(displayMessage(m));
-            }
-            table.setData(tableData, true);
-        });
-
-        socket.on('all messages', (messages) => {
-            console.log(messages);
-            messageList.innerHTML = '';
-            messages.forEach(function (m) {
-                displayMessage(m)
+            socket.on('initial data', (messages) => {
+                console.log(messages);
+                let tableData = [];
+                for (const m of messages) {
+                    tableData.push(displayMessage(m));
+                }
+                table.setData(tableData, true);
             });
-        });
 
-        socket.on('new message', (message) => {
-            console.log(message);
-            let tableData = [];
-            for (const d of message.data) {
-                d['function'] = message.function;
-                d['sourceName'] = message.sourceName;
-                tableData.push(displayMessage(d));
-            }
-            table.addData(tableData, true);
-        });
+            socket.on('all messages', (messages) => {
+                console.log(messages);
+                messageList.innerHTML = '';
+                messages.forEach(function (m) {
+                    displayMessage(m)
+                });
+            });
 
-        document.getElementById('pause').addEventListener('click', function () {
-            socket.disconnect();
-        });
+            socket.on('new message', (message) => {
+                console.log(message);
+                let tableData = [];
+                for (const d of message.data) {
+                    d['function'] = message.function;
+                    d['sourceName'] = message.sourceName;
+                    tableData.push(displayMessage(d));
+                }
+                table.addData(tableData, true);
+            });
 
-        document.getElementById('start').addEventListener('click', function () {
-            socket.connect();
-        });
+            document.getElementById('pause').addEventListener('click', function () {
+                socket.disconnect();
+            });
 
-    }
+            document.getElementById('start').addEventListener('click', function () {
+                socket.connect();
+            });
+        }
+
 
     main();
 
