@@ -286,7 +286,7 @@ async function main(){
                 }
                 chunks.forEach(function (chunk, i) {
                     if(i===0) {
-                        iosocket.emit('initial messages', chunk);
+                        iosocket.emit('initial data', chunk);
                     } else {
                         iosocket.emit('more messages', chunk);
                     }
