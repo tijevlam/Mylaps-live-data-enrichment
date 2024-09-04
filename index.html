@@ -1715,6 +1715,7 @@
         });
 
         const roomName = params.mat || 'everywhere';
+        console.log(`Connecting to room ${roomName}`);
         const socket = io({
             query: {
                 roomName: roomName,

@@ -247,8 +247,8 @@ async function main(){
 
     app.get('/', (req, res) => {
         console.log("requested index html")
+        console.log(`room name: ${req.query.mat}`)
         res.sendFile(join(__dirname, 'index.html'));
-
     });
 
 
