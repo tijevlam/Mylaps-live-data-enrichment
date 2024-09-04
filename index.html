@@ -1377,7 +1377,7 @@
                         column.sorter = "string";
                     }
 
-                    if(column.field == "Name") {
+                    if(column.field == "name") {
 
                         column.formatter = function (cell, formatterParams, onRendered) {
 
@@ -1387,7 +1387,7 @@
                                 rowTable, cellContents;
                             // console.log(this.browserMobile);
                             if (!this.browserMobile || !"ontouchstart" in document.documentElement) {
-                                
+
                                 return `<table><tr><td>${cell.getValue()}</td><td>
                                     ${data?.history ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                     ${data?.worldTriProfile ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png\" width=\"20\" style=\"margin-right: -10px; padding:0; background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
