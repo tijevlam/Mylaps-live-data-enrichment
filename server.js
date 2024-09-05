@@ -15,7 +15,7 @@ async function setupServer() {
   const yesHttps = await import('yes-https');
   app.use(yesHttps.default());
 }
-await setupServer();
+setupServer();
 const server = app.listen(443);
 
 
