@@ -9,13 +9,13 @@ const { Server } = require('socket.io');
 
 const app = express();
 
-// const server = createServer(app);
-const options = {
-  key: fs.readFileSync('key.pem'),
-  cert: fs.readFileSync('cert.pem')
-};
+const server = createServer(app);
+// const options = {
+//   key: fs.readFileSync('key.pem'),
+//   cert: fs.readFileSync('cert.pem')
+// };
 
-const server = https.createServer(options, app);
+// const server = https.createServer(options, app);
 const io = new Server(server);
 
 
@@ -368,13 +368,13 @@ async function main(){
 
 
     // Start the HTTP Server to start the web interface
-    // server.listen(80);
+    server.listen(80, () => {
+        console.log('HTTP-server luistert op poort 443');
+      });
 
-    
-
-    server.listen(443, () => {
-      console.log('HTTPS-server luistert op poort 443');
-    });
+    // server.listen(443, () => {
+    //   console.log('HTTPS-server luistert op poort 443');
+    // });
 
 
 
