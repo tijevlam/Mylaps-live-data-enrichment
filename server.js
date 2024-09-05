@@ -3,14 +3,12 @@ const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
-const yesHttps = require('yes-https');
-
 
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
 const app = express();
-app.use(yesHttps());
+
 const server = createServer(app);
 const io = new Server(server);
 
@@ -248,6 +246,9 @@ function storeMessage(parsedMessage) {
 
 async function main(){
     const bibs = await parseCsv("Bibs_202408280939.csv");
+
+    const yesHttps = await import('yes-https');
+    app.use(yesHttps.default());
 
     app.get('/:room', (req, res) => {
         console.log("requested index html")
