@@ -3,7 +3,7 @@ const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
-const yes = require('yes-https');
+import yes from 'yes-https';
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
