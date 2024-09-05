@@ -15,11 +15,7 @@ async function setupServer() {
   const yesHttps = await import('yes-https');
   app.use(yesHttps.default());
 }
-setupServer();
-const server = app.listen(443);
 
-
-const io = new Server(server);
 
 const {Logging} = require('@google-cloud/logging');
 
@@ -269,6 +265,11 @@ async function main(){
     });
 
 
+    setupServer();
+const server = app.listen(443);
+
+
+const io = new Server(server);
 
 
 // Socket.IO connection
