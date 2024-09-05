@@ -3,15 +3,14 @@ const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
-// rewrite the import of yes-https to a require or dynamic import
-const yes = (...args) => require('yes-https')(...args);
+const yesHttps = require('yes-https');
 
-// const yes = (...args) => import('yes-https').then(({default: yes}) => yes(...args));
+
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
 const app = express();
-app.use(yes());
+app.use(yesHttps());
 const server = createServer(app);
 const io = new Server(server);
 
