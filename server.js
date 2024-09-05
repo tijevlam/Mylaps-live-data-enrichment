@@ -369,7 +369,7 @@ async function main(){
 
     // Start the HTTP Server to start the web interface
     server.listen(80, () => {
-        console.log('HTTP-server luistert op poort 443');
+        console.log('HTTP-server luistert op poort 80');
       });
 
     // server.listen(443, () => {

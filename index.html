@@ -506,6 +506,7 @@
             "height": "20",
             "style": "height:20px; margin-right: 10px; padding:0;"
         }, `(${ironmanFinishes} / ${record.ironmanpro && record.ironmanpro.length ? record.ironmanpro.length : ''})`);
+        li += createTab(11, {"src": "assets/img/pto-icon.png", "height": "20", "style": "height:20px; margin-right: 10px; padding:0;"}, `#${record?.pto?.PTO}`);
 
 
         li += `</ul>
@@ -793,6 +794,13 @@
 					</td></tr>`
             });
             li += "</table></div>";
+        }
+
+        if(record.pto){
+            li += `<div class="tab-pane fade" id="si-tabs-11" role="tabpanel" aria-labelledby="si-tab-11" >
+			<h3> <img src="assets/img/pto-icon.png" style="height:20px; padding:0;"/> Rank: ${record.pto.PTO}</h3>
+			${record.pto.pto_results}
+			</div>`;
         }
 
         let psi = false;
@@ -1423,6 +1431,7 @@
                                     ${data?.maastricht ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                     ${data?.brouwersdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                     ${data?.ironmanpro ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
+                                    ${data?.pto ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/pto-icon.png\" height=\"20\" style=\"margin-right: -10px; padding:0;\">" : ""
                                     </td></tr><table></table>`
                             }
 
@@ -1485,7 +1494,7 @@
                                  ${data?.maastricht ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                  ${data?.brouwersdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                  ${data?.ironmanpro ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
-
+                                 ${ data?.pto ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/pto-icon.png\" height=\"20\" style=\"margin-right: -10px; padding:0;\">" : ""}
                              </td>
                         </tr>
                         <tr>
@@ -1697,7 +1706,7 @@
                 // console.log(clickedDetails);
                 if (clickedDetails && clickedDetails.bib) {
                     document.querySelector("#athleteDetails").innerHTML = ulWriter('', clickedDetails);
-                    setupTabs(10);
+                    setupTabs(11);
                 }
 
             });
