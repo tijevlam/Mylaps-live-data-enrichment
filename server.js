@@ -4,11 +4,12 @@ const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
 const yes = require('yes-https');
+const yyes = new yes.default();
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
 const app = express();
-app.use(yes());
+app.use(yyes());
 const server = createServer(app);
 const io = new Server(server);
 
