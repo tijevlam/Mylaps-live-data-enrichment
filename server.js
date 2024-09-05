@@ -266,7 +266,7 @@ async function main(){
 
 
     setupServer();
-const server = app.listen(443);
+const server = app.listen(80);
 
 
 const io = new Server(server);
