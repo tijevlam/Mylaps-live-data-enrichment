@@ -3,18 +3,20 @@ const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
-
+const https = require('https');
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
 const app = express();
 
 // const server = createServer(app);
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+};
 
-async function setupServer() {
-  const yesHttps = await import('yes-https');
-  app.use(yesHttps.default());
-}
+const server = https.createServer(options, app);
+const io = new Server(server);
 
 
 const {Logging} = require('@google-cloud/logging');
@@ -265,12 +267,6 @@ async function main(){
     });
 
 
-    setupServer();
-const server = app.listen(80);
-
-
-const io = new Server(server);
-
 
 // Socket.IO connection
     io.on('connection', (iosocket) => {
@@ -373,6 +369,14 @@ const io = new Server(server);
 
     // Start the HTTP Server to start the web interface
     // server.listen(80);
+
+    
+
+    server.listen(443, () => {
+      console.log('HTTPS-server luistert op poort 443');
+    });
+
+
 
     // Start the TCP/IP Server to listen to Mylaps Exporter
     tcpServer.listen(TCP_PORT, () => {
