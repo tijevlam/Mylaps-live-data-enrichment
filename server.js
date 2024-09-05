@@ -364,7 +364,7 @@ async function main(){
 
 
     // Start the HTTP Server to start the web interface
-    server.listen(443);
+    server.listen(80);
 
     // Start the TCP/IP Server to listen to Mylaps Exporter
     tcpServer.listen(TCP_PORT, () => {
