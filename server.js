@@ -9,7 +9,16 @@ const { Server } = require('socket.io');
 
 const app = express();
 
-const server = createServer(app);
+// const server = createServer(app);
+
+async function setupServer() {
+  const yesHttps = await import('yes-https');
+  app.use(yesHttps.default());
+}
+await setupServer();
+const server = app.listen(443);
+
+
 const io = new Server(server);
 
 const {Logging} = require('@google-cloud/logging');
@@ -247,8 +256,6 @@ function storeMessage(parsedMessage) {
 async function main(){
     const bibs = await parseCsv("Bibs_202408280939.csv");
 
-    const yesHttps = await import('yes-https');
-    app.use(yesHttps.default());
 
     app.get('/:room', (req, res) => {
         console.log("requested index html")
