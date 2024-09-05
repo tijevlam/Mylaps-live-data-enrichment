@@ -3,10 +3,12 @@ const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
+const yes = require('yes-https');
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
 const app = express();
+app.use(yes());
 const server = createServer(app);
 const io = new Server(server);
 
@@ -359,7 +361,7 @@ async function main(){
 
 
     // Start the HTTP Server to start the web interface
-    server.listen(80);
+    server.listen(443);
 
     // Start the TCP/IP Server to listen to Mylaps Exporter
     tcpServer.listen(TCP_PORT, () => {
