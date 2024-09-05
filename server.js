@@ -3,7 +3,10 @@ const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
-const yes = (...args) => import('yes-https').then(({default: yes}) => yes(...args));
+// rewrite the import of yes-https to a require or dynamic import
+const yes = (...args) => require('yes-https')(...args);
+
+// const yes = (...args) => import('yes-https').then(({default: yes}) => yes(...args));
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
@@ -310,17 +313,17 @@ async function main(){
         log.write(clog);
 
 
-        var rawData = ""; // variable that collects chunks
-        var sep = "$";
+        let rawData = ""; // variable that collects chunks
+        const sep = "$";
 
         socket.on('data', function(chunk) {
             rawData += chunk;
 
-            var sepIndex = rawData.indexOf(sep);
-            var didFindMsg = sepIndex != -1;
+            let sepIndex = rawData.indexOf(sep);
+            let didFindMsg = sepIndex !== -1;
 
             if (didFindMsg) {
-                var pass = rawData.slice(0, sepIndex);
+                let pass = rawData.slice(0, sepIndex);
                 rawData = rawData.slice(sepIndex + 1);
 
                 console.log(pass);
