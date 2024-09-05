@@ -3,13 +3,12 @@ const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
-const yes = require('yes-https');
-const yyes = new yes.default();
+const yes = (...args) => import('yes-https').then(({default: yes}) => yes(...args));
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
 const app = express();
-app.use(yyes());
+app.use(yes());
 const server = createServer(app);
 const io = new Server(server);
 
