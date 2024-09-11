@@ -254,7 +254,7 @@ function storeMessage(parsedMessage) {
 async function main(){
     const bibs2023 = await parseCsv("Bibs_202408280939.csv");
     const bibs2024 = await parseCsv("Bibs_2024.csv");
-    const bibs = {...bibs2023, ...bibs2024};
+    const bibs = [...bibs2023, ...bibs2024];
 
 
     app.get('/:room', (req, res) => {
