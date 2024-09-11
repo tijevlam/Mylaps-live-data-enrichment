@@ -273,7 +273,8 @@ async function main(){
     io.on('connection', (iosocket) => {
         console.log('A user connected');
 
-        let query = iosocket.handshake.query;
+        let query = iosocket.handshake.query
+        console.log(query);
         let roomName = query.roomName || "everywhere"; // TimeFinish, TimeR1
            iosocket.join(roomName);
             console.log(`User joined room: ${roomName}`);
@@ -282,7 +283,7 @@ async function main(){
         const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
         console.log(threeMinutesAgo.toISOString())
         //        SELECT * FROM messages        WHERE timestamp >= ?            `, [threeMinutesAgo.toISOString()]
-        db.all(`SELECT * FROM messages ${roomName && roomName != "everywhere" ? "WHERE sourceName LIKE \"%"+roomName+"%\"" : ""} ${query?.laps ? `AND l ${query.filter} ${query.laps}` : ""} ORDER BY timestamp DESC LIMIT 30;`, (err, rows) => {
+        db.all(`SELECT * FROM messages ${roomName && roomName != "everywhere" ? `WHERE sourceName LIKE "%${roomName}%"`: ""} ${query.laps ? `AND l ${query.filter} ${query.laps}` : ""} ORDER BY timestamp DESC LIMIT 30;`, (err, rows) => {
             if (err) {
                 console.error('Error fetching data:', err);
             } else {
