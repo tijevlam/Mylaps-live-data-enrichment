@@ -1864,11 +1864,11 @@
                 socket.connect();
             });
         document.getElementById('filterSwimExit').addEventListener('click', function () {
-            table.setFilter('sourceName', '=', 'TimeSwimExit');
+            table.setFilter('sourceName', '=', 'TimeSE');
         });
 
         document.getElementById('filterT2').addEventListener('click', function () {
-            table.setFilter('sourceName', '=', 'TimeBikeExit');
+            table.setFilter('sourceName', '=', 'TimeBE');
         });
         document.getElementById('filterEnterStadium').addEventListener('click', function () {
             table.setFilter('sourceName', '=', 'TimeR1');
@@ -1877,7 +1877,7 @@
         document.getElementById('filterFinish').addEventListener('click', function () {
             table.setFilter('sourceName', '=', 'TimeFinish');
         });
-        }
+    }
 
 
     main();
