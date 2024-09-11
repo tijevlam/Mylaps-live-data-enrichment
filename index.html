@@ -1732,9 +1732,13 @@
         let query = { roomName: roomName };
         if (params?.bibnr) {
             query.bibnr = params.bibnr;
+            // filter tabulator table
+            table.setFilter("bib", "=", params.bibnr);
+
         }
         if(params?.laps) {
             query.laps = params.laps;
+            table.setFilter("laps", ">", params.laps);
         }
 
         const socket = io({
