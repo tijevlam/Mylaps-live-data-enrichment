@@ -1726,7 +1726,7 @@
             get: (searchParams, prop) => searchParams.get(prop),
         }); // params.mat
 
-        const roomName = window.location.href.split("/").pop() || 'everywhere';
+        const roomName = window.location.href.split("/").pop().split("?")[0] || 'everywhere';
         console.log(`Connecting to room ${roomName}`);
         const socket = io({
             query: {
