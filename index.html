@@ -63,24 +63,24 @@
 <!--    </div>-->
 <!--</nav>-->
 
-<nav class="navbar fixed-bottom navbar-dark bg-dark" style="background-color: red; height: 50px;">
-    <div class="container-fluid d-flex justify-content-around">
-        <ul class="container-fluid navbar-nav d-flex flex-row justify-content-around ">
-            <!-- Icons -->
+<!--<nav class="navbar fixed-bottom navbar-dark bg-dark" style="background-color: red; height: 50px;">-->
+<!--    <div class="container-fluid d-flex justify-content-around">-->
+<!--        <ul class="container-fluid navbar-nav d-flex flex-row justify-content-around ">-->
+<!--            &lt;!&ndash; Icons &ndash;&gt;-->
 
-            <li class="nav-item me-3 me-lg-0">
-                <a class="nav-link" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/index.html">
-                    <i class="fas fa-list-ol"></i> Bib lookup
-                </a>
-            </li>
-            <li class="nav-item me-3 me-lg-0">
-                <a class="nav-link" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/startlist.html">
-                    <i class="fas fa-arrow-up-a-z"></i> Startlist
-                </a>
-            </li>
-        </ul>
-    </div>
-</nav>
+<!--            <li class="nav-item me-3 me-lg-0">-->
+<!--                <a class="nav-link" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/index.html">-->
+<!--                    <i class="fas fa-list-ol"></i> Bib lookup-->
+<!--                </a>-->
+<!--            </li>-->
+<!--            <li class="nav-item me-3 me-lg-0">-->
+<!--                <a class="nav-link" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/startlist.html">-->
+<!--                    <i class="fas fa-arrow-up-a-z"></i> Startlist-->
+<!--                </a>-->
+<!--            </li>-->
+<!--        </ul>-->
+<!--    </div>-->
+<!--</nav>-->
 <div id="mylaps" class="table tabulator"></div>
 
 <!-- Edit Modal -->
@@ -1495,6 +1495,9 @@
                                  ${data?.brouwersdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                  ${data?.ironmanpro ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                  ${ data?.pto ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/pto-icon.png\" height=\"20\" style=\"margin-right: -10px; padding:0;\">" : ""}
+
+                                 ${ data?.si24 || data?.speakerinfo ? " <i class=\"fas fa-circle-info\" height=\"20\" style=\"margin-right: -10px; padding:0;\"></i>": ""}
+
                              </td>
                         </tr>
                         <tr>

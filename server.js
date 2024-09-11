@@ -257,7 +257,7 @@ async function main(){
 
     app.get('/:room', (req, res) => {
         console.log("requested index html")
-        console.log(`room name: ${req.params.room}`)
+        console.log(`room name: ${req.params.room.split("?")[0]}`)
         res.sendFile(join(__dirname, 'index.html'));
     });
     app.get('/', (req, res) => {
