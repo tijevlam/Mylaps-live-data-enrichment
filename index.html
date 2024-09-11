@@ -1864,18 +1864,18 @@
                 socket.connect();
             });
         document.getElementById('filterSwimExit').addEventListener('click', function () {
-            table.setFilter('function', '=', 'TimeSwimExit');
+            table.setFilter('sourceName', '=', 'TimeSwimExit');
         });
 
         document.getElementById('filterT2').addEventListener('click', function () {
-            table.setFilter('function', '=', 'TimeBikeExit');
+            table.setFilter('sourceName', '=', 'TimeBikeExit');
         });
         document.getElementById('filterEnterStadium').addEventListener('click', function () {
-            table.setFilter('function', '=', 'TimeR1');
+            table.setFilter('sourceName', '=', 'TimeR1');
         });
 
         document.getElementById('filterFinish').addEventListener('click', function () {
-            table.setFilter('function', '=', 'TimeFinish');
+            table.setFilter('sourceName', '=', 'TimeFinish');
         });
         }
 
