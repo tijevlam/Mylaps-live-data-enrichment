@@ -84,7 +84,7 @@ async function parseCsv(file) {
 }
 
 function matchChipToBib(bibs, chip) {
-    const bib = bibs.find(bib => bib.Chip === chip);
+    const bib = bibs[chip]; //bibs.find(bib => bib.Chip === chip);
     return bib ? bib : null;
 }
 
@@ -252,9 +252,10 @@ function storeMessage(parsedMessage) {
 
 
 async function main(){
-    const bibs2023 = await parseCsv("Bibs_202408280939.csv");
-    const bibs2024 = await parseCsv("Bibs_2024.csv");
-    const bibs = [...bibs2023, ...bibs2024];
+    const bibs2023 = JSON.parse(fs.readFileSync('bib2023.json', 'utf8')); // await parseCsv("Bibs_202408280939.csv");
+    const bibs2024 =  JSON.parse(fs.readFileSync('bib2024.json', 'utf8')); //await parseCsv("Bibs_2024.csv");
+    // const bibs = [...bibs2023, ...bibs2024];
+    const bibs = {...bibs2023, ...bibs2024};
 
 
     app.get('/:room', (req, res) => {
