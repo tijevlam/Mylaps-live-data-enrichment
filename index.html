@@ -1728,11 +1728,17 @@
 
         const roomName = window.location.href.split("/").pop().split("?")[0] || 'everywhere';
         console.log(`Connecting to room ${roomName}`);
+
+        let query = { roomName: roomName };
+        if (params?.bibnr) {
+            query.bibnr = params.bibnr;
+        }
+        if(params?.laps) {
+            query.laps = params.laps;
+        }
+
         const socket = io({
-            query: {
-                roomName: roomName,
-                laps: params?.laps
-            },
+            query: query
         });
 
         // const socket = io();
