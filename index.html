@@ -46,41 +46,41 @@
     </script>
 </head>
 <body>
-<!--<nav class="navbar fixed-top navbar-dark bg-dark" style="background-color: red; height: 50px;">-->
-<!--    <div class="container-fluid d-flex justify-content-around">-->
-<!--        <ul class="container-fluid navbar-nav d-flex flex-row justify-content-around ">-->
-<!--            <li class="nav-item me-3 me-lg-0">-->
-<!--                <button class="nav-link" id="filterEnterStadium">-->
-<!--                    <i class="fas fa-arrow-right-to-bracket"></i> Entering Stadium-->
-<!--                </button>-->
-<!--            </li>-->
-<!--            <li class="nav-item me-3 me-lg-0">-->
-<!--                <button class="nav-link" id="filterFinish">-->
-<!--                    <i class="fas fa-flag-checkered"></i> Finish-->
-<!--                </button>-->
-<!--            </li>-->
-<!--        </ul>-->
-<!--    </div>-->
-<!--</nav>-->
+<nav class="navbar fixed-top navbar-dark bg-dark" style="background-color: red; height: 50px;">
+    <div class="container-fluid d-flex justify-content-around">
+        <ul class="container-fluid navbar-nav d-flex flex-row justify-content-around ">
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="pause">
+                    <i class="far fa-circle-pause"></i> Pause
+                </button>
+                <button class="nav-link" id="play" style="display:none;">
+                    <i class="far fa-circle-play"></i> Start
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterSwimExit">
+                    <i class="fas fa-water-ladder"></i> Swim Exit
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterT2">
+                    <i class="fas fa-persons-biking"></i> Enter T2
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterEnterStadium">
+                    <i class="fas fa-arrow-right-to-bracket"></i> Entering Stadium
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterFinish">
+                    <i class="fas fa-flag-checkered"></i> Finish
+                </button>
+            </li>
+        </ul>
+    </div>
+</nav>
 
-<!--<nav class="navbar fixed-bottom navbar-dark bg-dark" style="background-color: red; height: 50px;">-->
-<!--    <div class="container-fluid d-flex justify-content-around">-->
-<!--        <ul class="container-fluid navbar-nav d-flex flex-row justify-content-around ">-->
-<!--            &lt;!&ndash; Icons &ndash;&gt;-->
-
-<!--            <li class="nav-item me-3 me-lg-0">-->
-<!--                <a class="nav-link" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/index.html">-->
-<!--                    <i class="fas fa-list-ol"></i> Bib lookup-->
-<!--                </a>-->
-<!--            </li>-->
-<!--            <li class="nav-item me-3 me-lg-0">-->
-<!--                <a class="nav-link" href="https://challengealmere.s3.eu-west-1.amazonaws.com/2024/startlist.html">-->
-<!--                    <i class="fas fa-arrow-up-a-z"></i> Startlist-->
-<!--                </a>-->
-<!--            </li>-->
-<!--        </ul>-->
-<!--    </div>-->
-<!--</nav>-->
 <div id="mylaps" class="table tabulator"></div>
 
 <!-- Edit Modal -->
@@ -1852,13 +1852,31 @@
                 table.addData(tableData, true);
             });
 
-            // document.getElementById('pause').addEventListener('click', function () {
-            //     socket.disconnect();
-            // });
-            //
-            // document.getElementById('start').addEventListener('click', function () {
-            //     socket.connect();
-            // });
+            document.getElementById('pause').addEventListener('click', function () {
+                jQuery('#pause').hide();
+                jQuery('#play').show();
+                socket.disconnect();
+            });
+
+            document.getElementById('play').addEventListener('click', function () {
+                jQuery('#play').hide();
+                jQuery('#pause').show();
+                socket.connect();
+            });
+        document.getElementById('filterSwimExit').addEventListener('click', function () {
+            table.setFilter('function', '=', 'TimeSwimExit');
+        });
+
+        document.getElementById('filterT2').addEventListener('click', function () {
+            table.setFilter('function', '=', 'TimeBikeExit');
+        });
+        document.getElementById('filterEnterStadium').addEventListener('click', function () {
+            table.setFilter('function', '=', 'TimeR1');
+        });
+
+        document.getElementById('filterFinish').addEventListener('click', function () {
+            table.setFilter('function', '=', 'TimeFinish');
+        });
         }
 
 
