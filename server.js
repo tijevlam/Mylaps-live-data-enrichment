@@ -264,7 +264,7 @@ function storeMessage(parsedMessage) {
 function storeMarker(parsedMessage) {
     for(const d of parsedMessage.data) {
         db.run(`
-        INSERT INTO markers (sourceName, function, messageNumber, marketTime, markerType, markerName)
+        INSERT INTO markers (sourceName, function, messageNumber, markerTime, markerType, markerName)
         VALUES (?, ?, ?, ?,?, ?)
       `, [parsedMessage.sourceName, parsedMessage.function, parsedMessage.messageNumber, d.t, d.mt, d.n])
     }
