@@ -60,6 +60,19 @@ db.run(`
   )
 `);
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS markers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    sourceName TEXT,
+    function TEXT,
+    messageNumber TEXT,
+    markerTime TEXT,
+    markerType TEXT,
+    markerName TEXT
+  )
+`);
+
 const TCP_PORT = 3389; //3097; // Use the PORT environment variable for App Engine
 
 // read bibs csv file and store in memory
@@ -115,16 +128,16 @@ function parseMessage(bibs, rawMessage, socket) {
 
   const sourceName = parts[0].trim();
   const function_ = parts[1].trim();
-  const data = ['Store','Passing'].includes(function_) ? parts.slice(2, -2).join('@') : parts.slice(2, -1).join('@'); // Join in case data contains '@'
-  const messageNumber = ['Store','Passing'].includes(function_) ? parts[parts.length - 2] : undefined;
+  const data = ['Store','Passing','Marker'].includes(function_) ? parts.slice(2, -2).join('@') : parts.slice(2, -1).join('@'); // Join in case data contains '@'
+  const messageNumber = ['Store','Passing', 'Marker'].includes(function_) ? parts[parts.length - 2] : undefined;
   
   if (function_ === "Pong"){
     socket.write('Tije@AckPong@Version2.1@$');
       let pongLog = log.entry(metadata, 'ackpong written');
       log.write(pongLog);
   } else if (function_.indexOf('Ack') === -1){
-    socket.write(`Tije@Ack${function_}${['Store','Passing'].includes(function_) ? '@'+messageNumber:''}@$`);
-    console.log(`Tije@Ack${function_}${['Store','Passing'].includes(function_) ? '@'+messageNumber:''}@$`);
+    socket.write(`Tije@Ack${function_}${['Store','Passing', 'Marker'].includes(function_) ? '@'+messageNumber:''}@$`);
+    console.log(`Tije@Ack${function_}${['Store','Passing', 'Marker'].includes(function_) ? '@'+messageNumber:''}@$`);
   }
 
   let parsedData;
@@ -248,7 +261,14 @@ function storeMessage(parsedMessage) {
     }
 }
 
-
+function storeMarker(parsedMessage) {
+    for(const d of parsedMessage.data) {
+        db.run(`
+        INSERT INTO markers (sourceName, function, messageNumber, marketTime, markerType, markerName)
+        VALUES (?, ?, ?, ?,?, ?)
+      `, [parsedMessage.sourceName, parsedMessage.function, parsedMessage.messageNumber, d.t, d.mt, d.n])
+    }
+}
 
 
 async function main(){
@@ -355,6 +375,10 @@ async function main(){
                 if(parsedMessage.function === 'Passing') {
                     storeMessage(parsedMessage);
                     io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
+                }
+
+                if(parsedMessage.function === 'Marker') {
+                    storeMarker(parsedMessage);
                 }
 
             }
