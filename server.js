@@ -342,12 +342,13 @@ async function main(){
                     chunks.push(rows.slice(i, i += 20));
                 }
                 chunks.forEach(function (chunk, i) {
-                    if(i===0) {
+                    if (i === 0) {
                         iosocket.emit('initial markers', chunk);
                     } else {
                         iosocket.emit('more markers', chunk);
                     }
                 });
+            }
         })
 
 
