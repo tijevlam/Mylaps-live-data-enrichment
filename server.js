@@ -327,9 +327,31 @@ async function main(){
                 });
 
             }
-        });
+        })
 
-        iosocket.on('disconnect', () => {
+        db.all(`SELECT * FROM markers`, (err, rows) => {
+            if(err) {
+                console.error('Error fetching data:', err);
+            }  else {
+                console.log(rows);
+                // split rows in packages of 20
+                let chunks = [];
+                let i = 0;
+                let n = rows.length;
+                while (i < n) {
+                    chunks.push(rows.slice(i, i += 20));
+                }
+                chunks.forEach(function (chunk, i) {
+                    if(i===0) {
+                        iosocket.emit('initial markers', chunk);
+                    } else {
+                        iosocket.emit('more markers', chunk);
+                    }
+                });
+        })
+
+
+            iosocket.on('disconnect', () => {
             console.log('user disconnected');
         });
     });

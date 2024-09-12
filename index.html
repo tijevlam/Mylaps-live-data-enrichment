@@ -1808,6 +1808,23 @@
             */
         }
 
+        let markerData = [];
+        socket.on('initial markers', (markers) => {
+            console.log(markers);
+            for (const m of markers) {
+                markerData.push(m);
+            }
+        });
+
+        socket.on('more markers', (markers) => {
+            console.log(markers);
+            for (const m of markers) {
+                markerData.push(m);
+            }
+        });
+
+
+
             socket.on('initial data', (messages) => {
                 console.log(messages);
                 let tableData = [];
