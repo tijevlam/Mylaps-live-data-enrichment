@@ -1420,7 +1420,8 @@
                             // console.log(this.browserMobile);
                             if (!this.browserMobile || !"ontouchstart" in document.documentElement) {
 
-                                return `<table><tr><td>${cell.getValue()}</td><td>
+
+                                return `<table><tr><td>${cell.getValue()} ${data.birthdate && (new Date(data.birthdate).getMonth() == 8 && new Date(data.birthdate).getDate() == 14  ) ? "<i class=\"fas fa-birthday-cake\" style=\"color:blueviolet;\"></i>" : (data.birthdate && (new Date(data.birthdate).getMonth() == 8 && new Date(data.birthdate).getDate() > 6  && new Date(data.birthdate).getDate() < 22) ? "<i class=\"fas fa-birthday-cake\" style=\"color:blueviolet; opacity:0.5;\"></i>" : "")}</td><td>
                                     ${data?.history ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                     ${data?.worldTriProfile ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png\" width=\"20\" style=\"margin-right: -10px; padding:0; background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                     ${data?.trirating ? "<span class=\"icon chartup\"></span>" : ""}
