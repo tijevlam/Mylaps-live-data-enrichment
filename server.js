@@ -277,6 +277,7 @@ async function main(){
     // const bibs = [...bibs2023, ...bibs2024];
     const bibs = {...bibs2023, ...bibs2024};
 
+    app.use(express.static('public'));
 
     app.get('/:room', (req, res) => {
         console.log("requested index html")
