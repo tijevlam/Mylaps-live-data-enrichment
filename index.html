@@ -1753,7 +1753,22 @@
         function displayMessage(message) {
             let tableBody = document.querySelector('#message-list tbody');
             let cTime = luxon.DateTime.fromISO(`2024-09-14T${message.t}`);
-            let startTime = luxon.DateTime.fromISO("2024-09-14T07:00:00.000");
+            let starttimes = {
+                "ECLDEF": "07:10:00",
+                "ECLDEM": "07:25:00",
+                "LDP": "07:27:00",
+                "ECLDM": "07:30:00",
+                "ECLDW": "07:30:00",
+                "LDM": "07:50:00",
+                "LDW": "07:50:00",
+                "LDA": "07:50:00",
+                "MDP": "07:27:00",
+                "MDM": "09:50:00",
+                "MDA": "09:50:00",
+                "MDW": "09:50:00"
+            };
+
+            let startTime = luxon.DateTime.fromISO(`2024-09-14T${starttimes[message.Wave] || "07:10:00"}.000`);
 
             function formatTime(seconds) {
                 const hours = Math.floor(seconds / 3600);
