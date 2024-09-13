@@ -1768,7 +1768,7 @@
                 "MDW": "09:50:00"
             };
 
-            let startTime = luxon.DateTime.fromISO(`2024-09-14T${starttimes[message.Wave] || "07:10:00"}.000`);
+            let startTime = luxon.DateTime.fromISO(`2024-09-14T${message.startTime || starttimes[message.Wave] || "07:10:00"}.000`);
 
             function formatTime(seconds) {
                 const hours = Math.floor(seconds / 3600);

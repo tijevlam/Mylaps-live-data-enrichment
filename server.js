@@ -56,7 +56,10 @@ db.run(`
     Name TEXT,
     Info TEXT,
     Cat TEXT,
-    Wave TEXT
+    Wave TEXT,
+    CatEK TEXT,
+    startTime TEXT,
+    Serie TEXT
   )
 `);
 
@@ -255,9 +258,9 @@ function parsePongMessage(data) {
 function storeMessage(parsedMessage) {
     for(const d of parsedMessage.data) {
         db.run(`
-        INSERT INTO messages (sourceName, function, messageNumber, c, d, l, b, n, t, Bib, Name, Info, Cat, Wave)
+        INSERT INTO messages (sourceName, function, messageNumber, c, d, l, b, n, t, Bib, Name, Info, Cat, Wave, CatEK, StartTime, Serie)
         VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [parsedMessage.sourceName, parsedMessage.function, parsedMessage.messageNumber, d.c, d.d, d.l, d.b, d.n, d.t, d.Bib, d.Name, d.Info, d.Cat, d.Wave])
+      `, [parsedMessage.sourceName, parsedMessage.function, parsedMessage.messageNumber, d.c, d.d, d.l, d.b, d.n, d.t, d.Bib, d.Name, d.Info, d.Cat, d.Wave, d.CatEK, d.StartTime, d.Serie])
     }
 }
 
