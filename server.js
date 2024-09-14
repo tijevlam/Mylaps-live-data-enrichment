@@ -100,7 +100,7 @@ async function parseCsv(file) {
 }
 
 function matchChipToBib(bibs, chip) {
-    const bib = bibs[chip][0]; //bibs.find(bib => bib.Chip === chip);
+    const bib = bibs[chip]; //bibs.find(bib => bib.Chip === chip);
     return bib ? bib : null;
 }
 
