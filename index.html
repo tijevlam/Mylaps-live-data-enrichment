@@ -1797,7 +1797,7 @@
                 Serie: message.Serie,
                 laps: message.l,
                 time: message.t ? message.t.split(".")[0] : "",
-                raceTime: formatTime(cTime.diff(message.startTime, 'seconds').toObject().seconds),
+                raceTime: formatTime(cTime.diff(startTime, 'seconds').toObject().seconds),
                 info: message.Info
             };
 
