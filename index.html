@@ -1801,8 +1801,8 @@
                 info: message.Info
             };
 
-            if (startlist.find(s => s.bibnr == message.Bib)) {
-                Object.assign(pdata, startlist.find(s => s.bibnr == message.Bib));
+            if (startlist.find(s => s.bibnr == pdata.bib)) {
+                Object.assign(pdata, startlist.find(s => s.bibnr == pdata.bib));
             }
 
             return pdata;
