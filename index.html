@@ -1689,8 +1689,9 @@
             }
         });
 
+        let clickedDetails;
+
         table.on("dataProcessed", function () {
-            let clickedDetails;
             table.on("rowClick", function (e, row) {
                 row.getElement().classList.add("opened");
                 let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'))
