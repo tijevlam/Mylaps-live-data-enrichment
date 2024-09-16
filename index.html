@@ -1114,9 +1114,9 @@
 
         if (record.bibnr != "0") {
             li += `<div class="accordion accordion-flush" id="sameNamers">`;
-
+            console.log(record);
             let achternamers = _.partition(startlist, (a) => {
-                if (a.lastName && a.lastName.toLowerCase() == record.lastName.toLowerCase() && a.athleteId != record.athleteId) {
+                if (a.lastName && record.lastName && a.lastName.toLowerCase() == record.lastName.toLowerCase() && a.athleteId && record.athleteId && a.athleteId != record.athleteId) {
                     return a.lastName
                 }
             })[0];
