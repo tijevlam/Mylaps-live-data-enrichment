@@ -37,7 +37,7 @@ const metadata = {
 };
 
 // Redis Configuration
-const redisHost = process.env.REDIS_HOST || '127.0.0.1';
+const redisHost = process.env.REDIS_HOST || 'localhost';
 const redisPort = process.env.REDIS_PORT || 6379;
 const redisClient = redis.createClient({
     url: `redis://${redisHost}:${redisPort}`
