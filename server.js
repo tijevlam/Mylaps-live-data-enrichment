@@ -463,8 +463,8 @@ async function main(){
         try {
             // Fetch initial messages
             let messageKeys = [];
-            if (roomNameParam && roomNameParam !== "everywhere") {
-                messageKeys = await redisClient.zRange(`z:messages:source:${roomNameParam}`, 0, fetchLimit -1, { REV: true });
+            if (roomName && roomName !== "everywhere") {
+                messageKeys = await redisClient.zRange(`z:messages:source:${roomName}`, 0, fetchLimit -1, { REV: true });
             } else {
                 messageKeys = await redisClient.zRange(`z:messages:everywhere`, 0, fetchLimit -1, { REV: true });
             }
@@ -487,7 +487,7 @@ async function main(){
             }
             // sourceName LIKE filter (als roomName niet "everywhere" was, is dit al deels gebeurd door de key keuze)
             // Voor nu is dit een simpele filter, LIKE is lastiger.
-            if (roomNameParam && roomNameParam !== "everywhere" && query.roomName && query.roomName.includes('%')) {
+            if (roomName && roomName !== "everywhere" && query.roomName && query.roomName.includes('%')) {
                 // Dit is een placeholder. Echte LIKE functionaliteit is complexer.
                 // We filteren hier op de reeds geselecteerde sourceName berichten.
                 // Als query.roomName een patroon is, zou je verder moeten filteren.
@@ -617,7 +617,7 @@ async function main(){
 
     // Start the HTTP Server to start the web interface
     server.listen(8080, () => {
-        console.log('HTTP-server luistert op poort 80');
+        console.log('HTTP-server luistert op poort 8080');
       });
 
     // server.listen(443, () => {
