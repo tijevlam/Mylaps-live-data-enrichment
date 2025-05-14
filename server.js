@@ -1,5 +1,7 @@
 const net = require('net');
 const sqlite3 = require('sqlite3').verbose(); // For SQLite
+const redis = require('redis');
+const { v4: uuidv4 } = require('uuid'); // Voor unieke IDs
 const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
@@ -8,7 +10,6 @@ const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
 const app = express();
-
 const server = createServer(app);
 // const options = {
 //   key: fs.readFileSync('key.pem'),
@@ -35,8 +36,16 @@ const metadata = {
   severity: 'INFO',
 };
 
-// Database Configuration (replace with your actual path)
-const db = new sqlite3.Database('mylaps_data.db'); // Use /tmp for App Engine
+// Redis Configuration
+const redisHost = process.env.REDIS_HOST || '127.0.0.1';
+const redisPort = process.env.REDIS_PORT || 6379;
+const redisClient = redis.createClient({
+    url: `redis://${redisHost}:${redisPort}`
+});
+
+
+// SQLite3 Database Configuration (replace with your actual path)
+/* const db = new sqlite3.Database('mylaps_data.db'); // Use /tmp for App Engine
 
 // Create the table if it doesn't exist
 db.run(`
@@ -75,10 +84,13 @@ db.run(`
     markerName TEXT
   )
 `);
+*/
 
 const TCP_PORT = 3389; //3097; // Use the PORT environment variable for App Engine
 
-// read bibs csv file and store in memory
+/*
+// read bibs csv file and store in memory with import of CSV
+/*
 const Papa = require("papaparse");
 async function parseCsv(file) {
     return new Promise((resolve, reject) => {
@@ -98,6 +110,7 @@ async function parseCsv(file) {
         })
     })
 }
+*/
 
 function matchChipToBib(bibs, chip) {
     const bib = bibs[chip]; //bibs.find(bib => bib.Chip === chip);
@@ -254,7 +267,8 @@ function parsePongMessage(data) {
   }
 }
 
-// Store messages in the database
+// Store messages in the SQLite3 database
+/*
 function storeMessage(parsedMessage) {
     for(const d of parsedMessage.data) {
         db.run(`
@@ -272,9 +286,96 @@ function storeMarker(parsedMessage) {
       `, [parsedMessage.sourceName, parsedMessage.function, parsedMessage.messageNumber, d.t, d.mt, d.n])
     }
 }
+*/
+
+
+// Store messages in Redis
+async function storeMessageInRedis(parsedMessage) {
+    if (!parsedMessage.data || !Array.isArray(parsedMessage.data)) return;
+
+    const receivedTimestamp = Date.now();
+    const multi = redisClient.multi();
+
+    for (const item of parsedMessage.data) {
+        const messageId = `message:${uuidv4()}`;
+        const messagePayload = {
+            ...item, // velden c, d, l, b, n, t, Bib, Name, etc.
+            sourceName: parsedMessage.sourceName,
+            function: parsedMessage.function,
+            originalMessageNumber: parsedMessage.messageNumber || '', // Van het TCP packet
+            receivedTimestamp: receivedTimestamp.toString() // Sla op als string
+        };
+
+        // Verwijder null/undefined waarden om Redis opslag cleaner te houden
+        for (const key in messagePayload) {
+            if (messagePayload[key] == null) {
+                delete messagePayload[key];
+            }
+        }
+
+
+        multi.hSet(messageId, messagePayload);
+        multi.zAdd(`z:messages:source:${parsedMessage.sourceName}`, { score: receivedTimestamp, value: messageId });
+        multi.zAdd(`z:messages:everywhere`, { score: receivedTimestamp, value: messageId });
+        // Optioneel: trim oude berichten om de sets beheersbaar te houden
+        // multi.zRemRangeByRank(`z:messages:source:${parsedMessage.sourceName}`, 0, -1001); // Behoud de laatste 1000
+        // multi.zRemRangeByRank(`z:messages:everywhere`, 0, -5001); // Behoud de laatste 5000
+    }
+
+    try {
+        await multi.exec();
+        console.log(`Stored ${parsedMessage.data.length} message(s) in Redis for ${parsedMessage.sourceName}`);
+    } catch (err) {
+        console.error('Redis multi exec error (storeMessage):', err);
+        let xlog = log.entry(metadata, { severity: 'ERROR', message: `Redis multi exec error (storeMessage): ${err.message}` });
+        log.write(xlog);
+    }
+}
+
+async function storeMarkerInRedis(parsedMessage) {
+    if (!parsedMessage.data || !Array.isArray(parsedMessage.data)) return;
+
+    const receivedTimestamp = Date.now();
+    const multi = redisClient.multi();
+
+    for (const item of parsedMessage.data) {
+        const markerId = `marker:${uuidv4()}`;
+        // Belangrijk: zorg dat 't' (markerTime) goed geconverteerd wordt als je die als score wilt.
+        // Voor nu gebruiken we receivedTimestamp voor consistentie.
+        const markerPayload = {
+            ...item, // velden t, mt, n
+            sourceName: parsedMessage.sourceName,
+            function: parsedMessage.function,
+            originalMessageNumber: parsedMessage.messageNumber || '',
+            receivedTimestamp: receivedTimestamp.toString()
+        };
+
+        for (const key in markerPayload) {
+            if (markerPayload[key] == null) {
+                delete markerPayload[key];
+            }
+        }
+
+        multi.hSet(markerId, markerPayload);
+        multi.zAdd(`z:markers:all`, { score: receivedTimestamp, value: markerId });
+        // multi.zRemRangeByRank(`z:markers:all`, 0, -1001); // Behoud de laatste 1000 markers
+    }
+
+    try {
+        await multi.exec();
+        console.log(`Stored ${parsedMessage.data.length} marker(s) in Redis for ${parsedMessage.sourceName}`);
+    } catch (err) {
+        console.error('Redis multi exec error (storeMarker):', err);
+        let xlog = log.entry(metadata, { severity: 'ERROR', message: `Redis multi exec error (storeMarker): ${err.message}` });
+        log.write(xlog);
+    }
+}
 
 
 async function main(){
+
+    await redisClient.connect();
+
     const bibs2023 = JSON.parse(fs.readFileSync('bib2023.json', 'utf8')); // await parseCsv("Bibs_202408280939.csv");
     const bibs2024 =  JSON.parse(fs.readFileSync('bib2024.json', 'utf8')); //await parseCsv("Bibs_2024.csv");
     // const bibs = [...bibs2023, ...bibs2024];
@@ -283,21 +384,18 @@ async function main(){
     app.use(express.static('public'));
 
     app.get('/:room', (req, res) => {
-        console.log("requested index html")
-        console.log(`room name: ${req.params.room.split("?")[0]}`)
-        console.log(req.query)
+        console.log("Requested index html: ", `room name: ${req.params.room.split("?")[0]}`, `, query: ${req.query}`)
         res.sendFile(join(__dirname, 'index.html'));
     });
     app.get('/', (req, res) => {
-        console.log("requested index html")
-        console.log(`room name: everywhere (non specified)`)
+        console.log("Requested index html: ", `room name: everywhere (non specified)`)
         res.sendFile(join(__dirname, 'index.html'));
     });
 
 
 
 // Socket.IO connection
-    io.on('connection', (iosocket) => {
+    io.on('connection', async (iosocket) => {
         console.log('A user connected');
 
         let query = iosocket.handshake.query
@@ -306,7 +404,9 @@ async function main(){
            iosocket.join(roomName);
             console.log(`User joined room: ${roomName}`);
 
+        /* // SQLITE3 Versie
         // Get data from the last 3 minutes
+
         const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
         console.log(threeMinutesAgo.toISOString())
         //        SELECT * FROM messages        WHERE timestamp >= ?            `, [threeMinutesAgo.toISOString()]
@@ -354,6 +454,88 @@ async function main(){
                 });
             }
         })
+        */
+
+
+        const fetchLimit = 100; // Haal meer op om te filteren, stuur max 30
+        const sendLimit = 30;
+
+        try {
+            // Fetch initial messages
+            let messageKeys = [];
+            if (roomNameParam && roomNameParam !== "everywhere") {
+                messageKeys = await redisClient.zRange(`z:messages:source:${roomNameParam}`, 0, fetchLimit -1, { REV: true });
+            } else {
+                messageKeys = await redisClient.zRange(`z:messages:everywhere`, 0, fetchLimit -1, { REV: true });
+            }
+
+            let messages = [];
+            if (messageKeys.length > 0) {
+                const multiGet = redisClient.multi();
+                messageKeys.forEach(key => multiGet.hGetAll(key));
+                const rawMessages = await multiGet.exec();
+                messages = rawMessages.map(msg => msg).filter(msg => msg != null); // Verwijder nulls als een key niet gevonden werd
+            }
+
+            // Filter messages
+            let filteredMessages = messages;
+            if (query.bibnr) {
+                filteredMessages = filteredMessages.filter(msg => msg.Bib === query.bibnr);
+            }
+            if (query.laps) {
+                filteredMessages = filteredMessages.filter(msg => msg.l && parseInt(msg.l) > parseInt(query.laps));
+            }
+            // sourceName LIKE filter (als roomName niet "everywhere" was, is dit al deels gebeurd door de key keuze)
+            // Voor nu is dit een simpele filter, LIKE is lastiger.
+            if (roomNameParam && roomNameParam !== "everywhere" && query.roomName && query.roomName.includes('%')) {
+                // Dit is een placeholder. Echte LIKE functionaliteit is complexer.
+                // We filteren hier op de reeds geselecteerde sourceName berichten.
+                // Als query.roomName een patroon is, zou je verder moeten filteren.
+                const pattern = new RegExp(query.roomName.replace(/%/g, '.*'));
+                filteredMessages = filteredMessages.filter(msg => msg.sourceName && pattern.test(msg.sourceName));
+            }
+
+
+            // Sorteer opnieuw op tijd (receivedTimestamp) DESC na filtering, indien nodig.
+            // De ZREVRANGE doet dit al, maar filtering kan de volgorde verstoren als niet alle items voldoen.
+            // In de praktijk is de volgorde van Redis meestal al goed genoeg.
+            // Hier sorteren we de in-memory array
+            filteredMessages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
+
+
+            const finalMessages = filteredMessages.slice(0, sendLimit);
+
+            if (finalMessages.length > 0) {
+                // Opsplitsen in chunks is niet meer nodig zoals bij SQLite db.all
+                iosocket.emit('initial data', finalMessages);
+            } else {
+                iosocket.emit('initial data', []);
+            }
+
+            // Fetch initial markers
+            const markerKeys = await redisClient.zRange('z:markers:all', 0, fetchLimit -1, { REV: true });
+            let markers = [];
+            if (markerKeys.length > 0) {
+                const multiGetMarkers = redisClient.multi();
+                markerKeys.forEach(key => multiGetMarkers.hGetAll(key));
+                const rawMarkers = await multiGetMarkers.exec();
+                markers = rawMarkers.map(m => m).filter(m => m !=null);
+                markers.sort((a,b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp)); // Sorteer
+            }
+
+            if (markers.length > 0) {
+                iosocket.emit('initial markers', markers.slice(0, sendLimit));
+            } else {
+                iosocket.emit('initial markers', []);
+            }
+
+        } catch (err) {
+            console.error('Error fetching initial data from Redis:', err);
+            iosocket.emit('initial data', []); // Stuur lege data bij error
+            iosocket.emit('initial markers', []);
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching initial data from Redis: ${err.message}` });
+            log.write(xlog);
+        }
 
 
             iosocket.on('disconnect', () => {
@@ -363,7 +545,7 @@ async function main(){
 
 
 // TCP server
-    const tcpServer = net.createServer((socket) => {
+    const tcpServer = net.createServer(async (socket) => {
         console.log('TCP client connected');
         let clog = log.entry(metadata, 'TCP client connected');
         log.write(clog);
@@ -372,7 +554,7 @@ async function main(){
         let rawData = ""; // variable that collects chunks
         const sep = "$";
 
-        socket.on('data', function(chunk) {
+        socket.on('data', async function(chunk) {
             rawData += chunk;
 
             let sepIndex = rawData.indexOf(sep);
@@ -400,12 +582,18 @@ async function main(){
 
 
                 if(parsedMessage.function === 'Passing') {
-                    storeMessage(parsedMessage);
+                    // storeMessage(parsedMessage);
+                    await storeMessageInRedis(parsedMessage);
+                    // Stuur het volledige parsedMessage object naar de clients.
+                    // De clients moeten de 'data' array binnen dit object verwerken.
                     io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
                 }
 
                 if(parsedMessage.function === 'Marker') {
-                    storeMarker(parsedMessage);
+                    // storeMarker(parsedMessage);
+                    await storeMarkerInRedis(parsedMessage);
+                    // Stuur het volledige parsedMessage object naar de clients
+                    io.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
                 }
 
             }
@@ -414,10 +602,14 @@ async function main(){
 
         socket.on('end', () => {
             console.log('Client disconnected');
+            let xlog = log.entry(metadata, 'TCP client disconnected');
+            log.write(xlog);
         });
 
         socket.on('error', (err) => {
             console.error('Socket error:', err);
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `TCP Socket error: ${err.message}` });
+            log.write(xlog);
         });
 
     });
@@ -441,4 +633,33 @@ async function main(){
 
 }
 
-main();
+main().catch(err => {
+    console.error("Failed to start main application:", err);
+    let xlog = log.entry(metadata, { severity: 'CRITICAL', message: `Failed to start main application: ${err.message}` });
+    log.write(xlog);
+    if (redisClient.isOpen) {
+        redisClient.quit();
+    }
+    process.exit(1);
+});
+
+// Graceful shutdown
+// Graceful shutdown handler
+async function shutdownGracefully(signal) {
+    console.log(`${signal} signal received: closing Redis client and servers.`);
+    try {
+        if (redisClient.isOpen) {
+            await redisClient.quit();
+        }
+        let xlog = log.entry(metadata, `${signal} signal received, shutting down.`);
+        log.write(xlog);
+        server.close(() => console.log('HTTP server closed.'));
+        tcpServer.close(() => console.log('TCP server closed.'));
+    } catch (err) {
+        console.error(`Error during shutdown: ${err.message}`);
+    }
+    process.exit(0);
+}
+
+process.on('SIGTERM', () => shutdownGracefully('SIGTERM'));
+process.on('SIGINT', () => shutdownGracefully('SIGINT'));
