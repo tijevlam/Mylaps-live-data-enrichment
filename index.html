@@ -1446,7 +1446,7 @@
                                 const subline = [data.cat, data.Serie, data.wave].filter(Boolean).join(' • ');
 
                                 return `<table><tr><td>${cell.getValue()} ${data.birthday ? "<i class=\"fas fa-birthday-cake\" style=\"color:blueviolet;\"></i>" : (data.birthdate && (new Date(data.birthdate).getMonth() == 8 && new Date(data.birthdate).getDate() > 6  && new Date(data.birthdate).getDate() < 22) ? "<i class=\"fas fa-birthday-cake\" style=\"color:blueviolet; opacity:0.5;\"></i>" : "")}
-                                    
+
                                     ${chips.length ? `<div style=\"display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;\">${chips.join('')}</div>` : ''}
                                     </td><td>
                                     ${data?.history ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
@@ -1537,7 +1537,6 @@
                              <td><h4>${data.bib}</h4></td>
                              <td>
                                 <h4 style=\"color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};\">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h4>
-                                ${subline ? `<div style=\"font-size:10px;color:#555;\">${subline}</div>` : ''}
                                 ${chips.length ? `<div style=\"display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;\">${chips.join('')}</div>` : ''}
                              </td>
                              <td>
