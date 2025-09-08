@@ -119,7 +119,7 @@ function matchChipToBib(bibs, chip) {
             bib[k] = bib[k].toString();
         }
     }
-    console.log(bib);
+    // console.log(bib);
     return bib && bib[0] ? bib[0] : null;
 }
 
