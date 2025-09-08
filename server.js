@@ -113,14 +113,16 @@ async function parseCsv(file) {
 */
 
 function matchChipToBib(bibs, chip) {
+    // console.log(bibs[0], chip)
     const bib = bibs[chip]; //bibs.find(bib => bib.Chip === chip);
+    // console.log(bib);
     for (const k in bib) {
         if (bib.hasOwnProperty(k) && bib[k] != null) {
             bib[k] = bib[k].toString();
         }
     }
     // console.log(bib);
-    return bib && bib[0] ? bib[0] : null;
+    return bib ? bib : null;
 }
 
 function bufferToString(buffer) {
