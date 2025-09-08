@@ -1749,16 +1749,18 @@
 
         let clickedDetails;
 
-        // table.on("dataProcessed", function () {
-        //     table.on("rowClick", function (e, row) {
-        //         row.getElement().classList.add("opened");
-        //         let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'))
-        //         clickedDetails = row.getData();
-        //         details.show();
-        //     });
-        //
-        //
-        //     table.redraw();
+        table.on("dataProcessed", function () {
+            table.on("rowClick", function (e, row) {
+                row.getElement().classList.add("opened");
+                // let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'))
+                // clickedDetails = row.getData();
+                // details.show();
+                // open new screen with https://challengealmere.s3.dualstack.eu-west-1.amazonaws.com/2025/index.html?bib=$bib
+                window.open(`https://challengealmere.s3.dualstack.eu-west-1.amazonaws.com/2024/index.html?bibnr=${row.getData().bib}`, '_blank');
+            });
+
+
+            table.redraw();
         //
         //     const editModal = document.getElementById('editRowFormModal');
         //
