@@ -464,9 +464,9 @@ async function main(){
             // Fetch initial messages
             let messageKeys = [];
             if (roomName && roomName !== "everywhere") {
-                messageKeys = await redisClient.zRange(`z:messages:source:${roomName}`, 0, fetchLimit -1, { REV: true });
+                messageKeys = await redisClient.zRevRange(`z:messages:source:${roomName}`, 0, fetchLimit -1);
             } else {
-                messageKeys = await redisClient.zRange(`z:messages:everywhere`, 0, fetchLimit -1, { REV: true });
+                messageKeys = await redisClient.zRevRange(`z:messages:everywhere`, 0, fetchLimit -1);
             }
 
             let messages = [];
@@ -513,7 +513,7 @@ async function main(){
             }
 
             // Fetch initial markers
-            const markerKeys = await redisClient.zRange('z:markers:all', 0, fetchLimit -1, { REV: true });
+            const markerKeys = await redisClient.zRevRange('z:markers:all', 0, fetchLimit -1);
             let markers = [];
             if (markerKeys.length > 0) {
                 const multiGetMarkers = redisClient.multi();
