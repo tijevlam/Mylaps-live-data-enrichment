@@ -214,6 +214,13 @@ function parsePassingMessage(bibs, data) {
             const bib = matchChipToBib(bibs, passingData.c);
             if (bib) {
                 Object.assign(passingData, bib);
+                // convert all data in bib to strings
+                for (const k in passingData) {
+                    if (passingData.hasOwnProperty(k) && passingData[k] != null) {
+                        passingData[k] = passingData[k].toString();
+                    }
+                }
+
             }
         }
         return passingData;
