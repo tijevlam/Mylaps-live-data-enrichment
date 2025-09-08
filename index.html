@@ -1421,7 +1421,34 @@
                             if (!this.browserMobile || !"ontouchstart" in document.documentElement) {
 
 
-                                return `<table><tr><td>${cell.getValue()} ${data.birthdate && (new Date(data.birthdate).getMonth() == 8 && new Date(data.birthdate).getDate() == 14  ) ? "<i class=\"fas fa-birthday-cake\" style=\"color:blueviolet;\"></i>" : (data.birthdate && (new Date(data.birthdate).getMonth() == 8 && new Date(data.birthdate).getDate() > 6  && new Date(data.birthdate).getDate() < 22) ? "<i class=\"fas fa-birthday-cake\" style=\"color:blueviolet; opacity:0.5;\"></i>" : "")}</td><td>
+                                const chips = [];
+                                if (data.isKikaParticipant) {
+                                    chips.push(`<span class=\"badge badge-light\" style=\"border:1px solid #f8c2d0;color:#b0004f;background:#ffe6ef;\">Kika</span>`);
+                                }
+                                if (data.tripleDutch) {
+                                    chips.push(`<span class=\"badge badge-light\" style=\"border:1px solid #f5a1a1;color:#9a0000;background:#ffe2e2;\">Triple</span>`);
+                                } else if (data.hadTripleOrQuadrupleDutch) {
+                                    chips.push(`<span class=\"badge badge-light\" style=\"border:1px solid #f2c38f;color:#8a4b00;background:#fff0da;\">Triple (past)</span>`);
+                                }
+                                if (typeof data.ironmanpro === 'number' && data.ironmanpro > 0) {
+                                    chips.push(`<span class=\"badge badge-light\">IM x${data.ironmanpro}</span>`);
+                                }
+                                if (typeof data.westfriesland === 'number' && data.westfriesland > 0) {
+                                    chips.push(`<span class=\"badge badge-light\">WF x${data.westfriesland}</span>`);
+                                }
+                                if (typeof data.nieuwkoop === 'number' && data.nieuwkoop > 0) {
+                                    chips.push(`<span class=\"badge badge-light\">NK x${data.nieuwkoop}</span>`);
+                                }
+                                if (typeof data.totalRaces === 'number' && data.totalRaces >= 3) {
+                                    chips.push(`<span class=\"badge badge-light\" style=\"border:1px solid #c9b1fb;color:#3b1f91;background:#f0eaff;\">Total x${data.totalRaces}</span>`);
+                                }
+
+                                const subline = [data.cat, data.Serie, data.wave].filter(Boolean).join(' • ');
+
+                                return `<table><tr><td>${cell.getValue()} ${data.birthday ? "<i class=\"fas fa-birthday-cake\" style=\"color:blueviolet;\"></i>" : (data.birthdate && (new Date(data.birthdate).getMonth() == 8 && new Date(data.birthdate).getDate() > 6  && new Date(data.birthdate).getDate() < 22) ? "<i class=\"fas fa-birthday-cake\" style=\"color:blueviolet; opacity:0.5;\"></i>" : "")}
+                                    ${subline ? `<div style=\"font-size:10px;color:#555;\">${subline}</div>` : ''}
+                                    ${chips.length ? `<div style=\"display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;\">${chips.join('')}</div>` : ''}
+                                    </td><td>
                                     ${data?.history ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                     ${data?.worldTriProfile ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/world-triathlon.png\" width=\"20\" style=\"margin-right: -10px; padding:0; background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                     ${data?.trirating ? "<span class=\"icon chartup\"></span>" : ""}
@@ -1433,6 +1460,7 @@
                                     ${data?.brouwersdam ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/brouwersdam-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                     ${data?.ironmanpro ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/ironman-icon.png\" width=\"20\" height=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
                                     ${data?.pto ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/pto-icon.png\" height=\"20\" style=\"margin-right: -10px; padding:0;\">" : ""}
+                                    ${(data?.hasSpeakerInfo || data?.speakerinfo24 || data?.speakerInfo) ? "<i class=\"fas fa-circle-info\" height=\"20\" style=\"margin-right: -10px; padding:0; color:#1b5e20;\"></i>" : ""}
                                     </td></tr><table></table>`
                             }
 
@@ -1471,7 +1499,33 @@
 
 
                     rowTable = document.createElement("table")
-                    rowTable.innerHTML = `<tbody class="passing">
+                    const chips = [];
+                    if (data.isKikaParticipant) {
+                        chips.push(`<span class=\"badge badge-light\" style=\"border:1px solid #f8c2d0;color:#b0004f;background:#ffe6ef;\">Kika</span>`);
+                    }
+                    if (data.tripleDutch) {
+                        chips.push(`<span class=\"badge badge-light\" style=\"border:1px solid #f5a1a1;color:#9a0000;background:#ffe2e2;\">Triple</span>`);
+                    } else if (data.hadTripleOrQuadrupleDutch) {
+                        chips.push(`<span class=\"badge badge-light\" style=\"border:1px solid #f2c38f;color:#8a4b00;background:#fff0da;\">Triple (past)</span>`);
+                    }
+                    if (typeof data.ironmanpro === 'number' && data.ironmanpro > 0) {
+                        chips.push(`<span class=\"badge badge-light\">IM x${data.ironmanpro}</span>`);
+                    }
+                    if (typeof data.westfriesland === 'number' && data.westfriesland > 0) {
+                        chips.push(`<span class=\"badge badge-light\">WF x${data.westfriesland}</span>`);
+                    }
+                    if (typeof data.nieuwkoop === 'number' && data.nieuwkoop > 0) {
+                        chips.push(`<span class=\"badge badge-light\">NK x${data.nieuwkoop}</span>`);
+                    }
+                    if (typeof data.totalRaces === 'number' && data.totalRaces >= 3) {
+                        chips.push(`<span class=\"badge badge-light\" style=\"border:1px solid #c9b1fb;color:#3b1f91;background:#f0eaff;\">Total x${data.totalRaces}</span>`);
+                    }
+
+                    const subline = [data.cat, data.Serie, data.wave].filter(Boolean).join(' • ');
+
+                    const bgClass = data.tripleDutch ? 'bg-triple' : (data.hadTripleOrQuadrupleDutch ? 'bg-historic' : '');
+
+                    rowTable.innerHTML = `<tbody class=\"passing ${bgClass}\"> 
                         <tr>
                             <td>
                                 <span class="badge badge-info mt-2 mb-2"> ${data.sourceName}</span>
@@ -1482,7 +1536,9 @@
                         <tr>
                              <td><h4>${data.bib}</h4></td>
                              <td>
-                                <h4 style="color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h4>
+                                <h4 style=\"color:${(data?.gender === "Male" ? '#6e99dd' : '#dd6ec5')};\">${data.name}${data.birthday ? "<i class=\"fas fa-cake-candles\"></i>" : ""}</h4>
+                                ${subline ? `<div style=\"font-size:10px;color:#555;\">${subline}</div>` : ''}
+                                ${chips.length ? `<div style=\"display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;\">${chips.join('')}</div>` : ''}
                              </td>
                              <td>
                                  ${data?.history ? "<img src=\"https://challengealmere.s3.eu-west-1.amazonaws.com/2024/assets/img/challenge_icon.png\" width=\"20\" style=\"margin-right: -10px; padding:0;  background-color: white; filter: opacity(1) drop-shadow(0 0 0 white); border-radius: 50%;\">" : ""}
@@ -1511,7 +1567,10 @@
                     //console.log(rowTable);
                     element.append(rowTable);
                 } else {
-
+                    const bgClass = data.tripleDutch ? 'bg-triple' : (data.hadTripleOrQuadrupleDutch ? 'bg-historic' : '');
+                    if (bgClass) {
+                        element.classList.add(bgClass);
+                    }
                 }
             },
             responsiveLayoutCollapseFormatter: function (data) {
@@ -1802,9 +1861,20 @@
                 info: message.Info
             };
 
+            // Merge any additional enriched bib/startlist fields from the message itself
+            // (e.g., tripleDutch, hadTripleOrQuadrupleDutch, isKikaParticipant, totals, counts)
+            try { Object.assign(pdata, message); } catch(e) {}
+
             if (startlist.find(s => s.bibnr == pdata.bib)) {
                 Object.assign(pdata, startlist.find(s => s.bibnr == pdata.bib));
             }
+
+            // Compute birthday flag if not provided by enrichment
+            try {
+                pdata.birthday = pdata.hasBirthday || (
+                    pdata.birthdate && (new Date(pdata.birthdate).getMonth() == 8 && new Date(pdata.birthdate).getDate() == 14)
+                );
+            } catch(e) {}
 
             return pdata;
 
@@ -2033,6 +2103,26 @@
     .passing * {
         margin-top: 0px;
         margin-bottom: 0px;
+    }
+
+    /* Row background highlights */
+    .bg-triple {
+        background-image: repeating-linear-gradient(
+                -45deg,
+                rgba(255, 0, 0, 0.08),
+                rgba(255, 0, 0, 0.08) 6px,
+                rgba(255, 0, 0, 0.02) 6px,
+                rgba(255, 0, 0, 0.02) 12px
+        );
+    }
+    .bg-historic {
+        background-image: repeating-linear-gradient(
+                -45deg,
+                rgba(255, 165, 0, 0.08),
+                rgba(255, 165, 0, 0.08) 6px,
+                rgba(255, 165, 0, 0.02) 6px,
+                rgba(255, 165, 0, 0.02) 12px
+        );
     }
 
 </style>
