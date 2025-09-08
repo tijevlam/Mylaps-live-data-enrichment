@@ -206,7 +206,7 @@ function parsePassingMessage(bibs, data) {
         pairs.forEach(pair => {
             const [key, value] = pair.split('=');
             if(['c','d','l','b','n','t'].includes(key)) {
-                passingData[key] = value;
+                passingData[key] = value.toString();
             }
 
         });
