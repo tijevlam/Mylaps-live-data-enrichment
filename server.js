@@ -1,11 +1,11 @@
 const net = require('net');
-const sqlite3 = require('sqlite3').verbose(); // For SQLite
+// const sqlite3 = require('sqlite3').verbose(); // For SQLite
 const redis = require('redis');
 const { v4: uuidv4 } = require('uuid'); // Voor unieke IDs
 const fs = require('fs');
 const { join } = require('node:path');
 const express = require('express');
-const https = require('https');
+// const https = require('https');
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 
