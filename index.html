@@ -1750,37 +1750,37 @@
 
         let clickedDetails;
 
-        table.on("dataProcessed", function () {
-            table.on("rowClick", function (e, row) {
-                row.getElement().classList.add("opened");
-                let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'))
-                clickedDetails = row.getData();
-                details.show();
-            });
-
-
-            table.redraw();
-
-            const editModal = document.getElementById('editRowFormModal');
-
-            editModal.addEventListener('show.mdb.modal', (e) => {
-                // console.log(e)
-                // console.log('editForm modal started');
-                console.log(clickedDetails);
-                if (clickedDetails && clickedDetails.bib) {
-                    document.querySelector("#athleteDetails").innerHTML = ulWriter('', clickedDetails);
-                    setupTabs(11);
-                }
-
-            });
-
-            editModal.addEventListener('hidden.mdb.modal', (e) => {
-                // debug(e);
-                document.querySelector("#athleteDetails").innerHTML = ''
-                clickedDetails = null;
-            });
-
-        });
+        // table.on("dataProcessed", function () {
+        //     table.on("rowClick", function (e, row) {
+        //         row.getElement().classList.add("opened");
+        //         let details = mdb.Modal.getOrCreateInstance(document.querySelector('#editRowFormModal'))
+        //         clickedDetails = row.getData();
+        //         details.show();
+        //     });
+        //
+        //
+        //     table.redraw();
+        //
+        //     const editModal = document.getElementById('editRowFormModal');
+        //
+        //     editModal.addEventListener('show.mdb.modal', (e) => {
+        //         // console.log(e)
+        //         // console.log('editForm modal started');
+        //         console.log(clickedDetails);
+        //         if (clickedDetails && clickedDetails.bib) {
+        //             document.querySelector("#athleteDetails").innerHTML = ulWriter('', clickedDetails);
+        //             setupTabs(11);
+        //         }
+        //
+        //     });
+        //
+        //     editModal.addEventListener('hidden.mdb.modal', (e) => {
+        //         // debug(e);
+        //         document.querySelector("#athleteDetails").innerHTML = ''
+        //         clickedDetails = null;
+        //     });
+        //
+        // });
 
         const params = new Proxy(new URLSearchParams(window.location.search), {
             get: (searchParams, prop) => searchParams.get(prop),

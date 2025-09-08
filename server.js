@@ -376,10 +376,10 @@ async function main(){
 
     await redisClient.connect();
 
-    const bibs2023 = JSON.parse(fs.readFileSync('bib2023.json', 'utf8')); // await parseCsv("Bibs_202408280939.csv");
-    const bibs2024 =  JSON.parse(fs.readFileSync('bib2024.json', 'utf8')); //await parseCsv("Bibs_2024.csv");
+    // const bibs2023 = JSON.parse(fs.readFileSync('bib2023.json', 'utf8')); // await parseCsv("Bibs_202408280939.csv");
+    const bibs2024 =  JSON.parse(fs.readFileSync('bib2024_enhanced.json', 'utf8')); //await parseCsv("Bibs_2024.csv");
     // const bibs = [...bibs2023, ...bibs2024];
-    const bibs = {...bibs2023, ...bibs2024};
+    const bibs = bibs2024; //{...bibs2023, ...bibs2024};
 
     app.use(express.static('public'));
 
