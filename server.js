@@ -114,6 +114,11 @@ async function parseCsv(file) {
 
 function matchChipToBib(bibs, chip) {
     const bib = bibs[chip]; //bibs.find(bib => bib.Chip === chip);
+    for (const k in bib) {
+        if (bib.hasOwnProperty(k) && bib[k] != null) {
+            bib[k] = bib[k].toString();
+        }
+    }
     return bib && bib[0] ? bib[0] : null;
 }
 
@@ -214,13 +219,6 @@ function parsePassingMessage(bibs, data) {
             const bib = matchChipToBib(bibs, passingData.c);
             if (bib) {
                 Object.assign(passingData, bib);
-                // convert all data in bib to strings
-                for (const k in passingData) {
-                    if (passingData.hasOwnProperty(k) && passingData[k] != null) {
-                        passingData[k] = passingData[k].toString();
-                    }
-                }
-
             }
         }
         return passingData;
