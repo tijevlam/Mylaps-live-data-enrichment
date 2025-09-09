@@ -568,8 +568,8 @@ async function main(){
 
     const httpsOptions = {
         key: fs.readFileSync('/etc/letsencrypt/live/live.find-it.nl/privkey.pem'),
-        cert: fs.readFileSync('/etc/letsencrypt/live/live.find-it.nl/fullchain.pem')
-
+        cert: fs.readFileSync('/etc/letsencrypt/live/live.find-it.nl/fullchain.pem'),
+    }
 
     https.createServer(httpsOptions, app).listen(8443, () => {
         console.log('HTTPS-server luistert op poort 8443');
