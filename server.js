@@ -567,8 +567,8 @@ async function main(){
     // also make it available on https
 
     const httpsOptions = {
-        key: fs.readFileSync('/etc/letsencrypt/live/live.find-it.nl/privkey.pem'),
-        cert: fs.readFileSync('/etc/letsencrypt/live/live.find-it.nl/fullchain.pem'),
+        key: fs.readFileSync('privkey.pem'),
+        cert: fs.readFileSync('fullchain.pem'),
     }
 
     https.createServer(httpsOptions, app).listen(8443, () => {
