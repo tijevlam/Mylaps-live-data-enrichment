@@ -50,6 +50,14 @@ const io = new Server(server, {
     }
 });
 
+const httpsio = new Server(https, {
+    cors: {
+        origin: finalAllowedOrigins.includes('*') ? '*' : finalAllowedOrigins,
+        methods: ['GET', 'POST'],
+        credentials: false
+    }
+});
+
 // -----------------------------------------------------------------
 
 const {Logging} = require('@google-cloud/logging');
@@ -416,6 +424,86 @@ async function main(){
 
     // Socket.IO connection
     io.on('connection', async (iosocket) => {
+        console.log('A user connected from origin:', iosocket.handshake.headers.origin);
+
+        const query = iosocket.handshake.query || {};
+        let roomName = (query.roomName || "everywhere").toString();
+
+        // Basic room whitelist to avoid unbounded growth
+        const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1']);
+        if (!allowedRooms.has(roomName)) {
+            roomName = 'everywhere';
+        }
+
+        iosocket.join(roomName);
+        console.log(`User joined room: ${roomName}`);
+
+        const fetchLimit = 100; // internal fetch size
+        const sendLimit = 30;   // what we actually send to client
+
+        try {
+            // Fetch initial messages
+            let messageKeys = [];
+            if (roomName && roomName !== "everywhere") {
+                messageKeys = await redisClient.zRange(`z:messages:source:${roomName}`, 0, fetchLimit -1, { REV: true });
+            } else {
+                messageKeys = await redisClient.zRange(`z:messages:everywhere`, 0, fetchLimit -1, { REV: true });
+            }
+
+            let messages = [];
+            if (messageKeys.length > 0) {
+                const multiGet = redisClient.multi();
+                messageKeys.forEach(key => multiGet.hGetAll(key));
+                const rawMessages = await multiGet.exec();
+                messages = rawMessages.map(msg => msg).filter(msg => msg != null);
+            }
+
+            // Filtering
+            let filteredMessages = messages;
+            if (query.bibnr) {
+                filteredMessages = filteredMessages.filter(msg => msg.Bib === query.bibnr);
+            }
+            if (query.laps) {
+                filteredMessages = filteredMessages.filter(msg => msg.l && parseInt(msg.l) > parseInt(query.laps));
+            }
+            if (roomName && roomName !== "everywhere" && query.roomName && query.roomName.includes('%')) {
+                const pattern = new RegExp(query.roomName.replace(/%/g, '.*'));
+                filteredMessages = filteredMessages.filter(msg => msg.sourceName && pattern.test(msg.sourceName));
+            }
+
+            filteredMessages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
+
+            const finalMessages = filteredMessages.slice(0, sendLimit);
+
+            iosocket.emit('initial data', finalMessages);
+
+            // Fetch initial markers
+            const markerKeys = await redisClient.zRange('z:markers:all', 0, fetchLimit -1, { REV: true });
+            let markers = [];
+            if (markerKeys.length > 0) {
+                const multiGetMarkers = redisClient.multi();
+                markerKeys.forEach(key => multiGetMarkers.hGetAll(key));
+                const rawMarkers = await multiGetMarkers.exec();
+                markers = rawMarkers.map(m => m).filter(m => m !=null);
+                markers.sort((a,b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
+            }
+
+            iosocket.emit('initial markers', markers.slice(0, sendLimit));
+
+        } catch (err) {
+            console.error('Error fetching initial data from Redis:', err);
+            iosocket.emit('initial data', []);
+            iosocket.emit('initial markers', []);
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching initial data from Redis: ${err.message}` });
+            log.write(xlog);
+        }
+
+        iosocket.on('disconnect', () => {
+            console.log('user disconnected');
+        });
+    });
+
+    httpsio.on('connection', async (iosocket) => {
         console.log('A user connected from origin:', iosocket.handshake.headers.origin);
 
         const query = iosocket.handshake.query || {};
