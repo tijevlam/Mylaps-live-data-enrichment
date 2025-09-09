@@ -50,14 +50,6 @@ const io = new Server(server, {
     }
 });
 
-const httpsio = new Server(https, {
-    cors: {
-        origin: finalAllowedOrigins.includes('*') ? '*' : finalAllowedOrigins,
-        methods: ['GET', 'POST'],
-        credentials: false
-    }
-});
-
 // -----------------------------------------------------------------
 
 const {Logging} = require('@google-cloud/logging');
@@ -402,6 +394,8 @@ async function storeMarkerInRedis(parsedMessage) {
     }
 }
 
+let httpsServer;
+let tcpServer;
 
 async function main(){
 
@@ -503,6 +497,23 @@ async function main(){
         });
     });
 
+    // Create HTTPS server
+    const httpsOptions = {
+        key: fs.readFileSync('privkey.pem'),
+        cert: fs.readFileSync('fullchain.pem'),
+    };
+
+    httpsServer = https.createServer(httpsOptions, app);
+
+    // Socket.IO for HTTPS (WSS)
+    const httpsio = new Server(httpsServer, {
+        cors: {
+            origin: finalAllowedOrigins.includes('*') ? '*' : finalAllowedOrigins,
+            methods: ['GET', 'POST'],
+            credentials: false
+        }
+    });
+
     httpsio.on('connection', async (iosocket) => {
         console.log('A user connected from origin:', iosocket.handshake.headers.origin);
 
@@ -585,7 +596,7 @@ async function main(){
 
 
     // TCP server
-    const tcpServer = net.createServer(async (socket) => {
+    tcpServer = net.createServer(async (socket) => {
         console.log('TCP client connected');
         let clog = log.entry(metadata, 'TCP client connected');
         log.write(clog);
@@ -622,11 +633,13 @@ async function main(){
                 if(parsedMessage.function === 'Passing') {
                     await storeMessageInRedis(parsedMessage);
                     io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
+                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
                 }
 
                 if(parsedMessage.function === 'Marker') {
                     await storeMarkerInRedis(parsedMessage);
                     io.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
+                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
                 }
 
             }
@@ -652,17 +665,10 @@ async function main(){
         console.log('HTTP-server luistert op poort 8080');
     });
 
-    // also make it available on https
-
-    const httpsOptions = {
-        key: fs.readFileSync('privkey.pem'),
-        cert: fs.readFileSync('fullchain.pem'),
-    }
-
-    https.createServer(httpsOptions, app).listen(8443, () => {
+    // Start the HTTPS Server
+    httpsServer.listen(8443, () => {
         console.log('HTTPS-server luistert op poort 8443');
     });
-
 
     // Start the TCP/IP Server to listen to Mylaps Exporter
     tcpServer.listen(TCP_PORT, () => {
@@ -688,10 +694,17 @@ async function shutdownGracefully(signal) {
         if (redisClient.isOpen) {
             await redisClient.quit();
         }
+        if (server) {
+            server.close(() => console.log('HTTP server closed.'));
+        }
+        if (httpsServer) {
+            httpsServer.close(() => console.log('HTTPS server closed.'));
+        }
+        if (tcpServer) {
+            tcpServer.close(() => console.log('TCP server closed.'));
+        }
         let xlog = log.entry(metadata, `${signal} signal received, shutting down.`);
         log.write(xlog);
-        server.close(() => console.log('HTTP server closed.'));
-        // tcpServer is inside main scope; if you need graceful close, elevate its scope.
     } catch (err) {
         console.error(`Error during shutdown: ${err.message}`);
     }
