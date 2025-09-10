@@ -8,17 +8,49 @@ const express = require('express');
 // const https = require('https');
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
+const cors = require('cors'); // NEW: enable cross-site access for Socket.IO + Express
 
 const app = express();
 const server = createServer(app);
-// const options = {
-//   key: fs.readFileSync('key.pem'),
-//   cert: fs.readFileSync('cert.pem')
-// };
 
-// const server = https.createServer(options, app);
-const io = new Server(server);
+// ---------------- CORS / Cross-site configuration ----------------
+const allowedOriginsEnv = process.env.ALLOWED_ORIGINS;
+const allowedOrigins = allowedOriginsEnv
+    ? allowedOriginsEnv.split(',').map(o => o.trim()).filter(Boolean)
+    : [];
 
+const defaultAllowedOrigins = [
+    'https://history.hollandtriathlon.nl',
+    'https://challengealmere.s3.eu-west-1.amazonaws.com',
+    '*'
+];
+
+// If you want to allow any origin for testing, you can set ALLOWED_ORIGINS=*
+const finalAllowedOrigins = allowedOrigins.length ? allowedOrigins : defaultAllowedOrigins;
+
+// Express-level CORS (mainly for static + any future REST endpoints)
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true); // Allow non-browser or same-origin
+        if (finalAllowedOrigins.includes('*') || finalAllowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Origin not allowed by CORS: ' + origin));
+    },
+    methods: ['GET', 'POST'],
+    credentials: false
+}));
+
+// Socket.IO with explicit CORS
+const io = new Server(server, {
+    cors: {
+        origin: finalAllowedOrigins.includes('*') ? '*' : finalAllowedOrigins,
+        methods: ['GET', 'POST'],
+        credentials: false
+    }
+});
+
+// -----------------------------------------------------------------
 
 const {Logging} = require('@google-cloud/logging');
 
@@ -31,9 +63,9 @@ const logging = new Logging({projectId});
 const log = logging.log(logName);
 
 const metadata = {
-  resource: {type: 'global'},
-  // See: https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity
-  severity: 'INFO',
+    resource: {type: 'global'},
+    // See: https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity
+    severity: 'INFO',
 };
 
 // Redis Configuration
@@ -89,7 +121,7 @@ db.run(`
 const TCP_PORT = 3389; //3097; // Use the PORT environment variable for App Engine
 
 /*
-// read bibs csv file and store in memory with import of CSV
+ // read bibs csv file and store in memory with import of CSV
 /*
 const Papa = require("papaparse");
 async function parseCsv(file) {
@@ -113,81 +145,88 @@ async function parseCsv(file) {
 */
 
 function matchChipToBib(bibs, chip) {
+    // console.log(bibs[0], chip)
     const bib = bibs[chip]; //bibs.find(bib => bib.Chip === chip);
-    return bib && bib[0] ? bib[0] : null;
+    // console.log(bib);
+    for (const k in bib) {
+        if (bib.hasOwnProperty(k) && bib[k] != null) {
+            bib[k] = bib[k].toString();
+        }
+    }
+    // console.log(bib);
+    return bib ? bib : null;
 }
 
 function bufferToString(buffer) {
-  return buffer.toString(); // Assuming UTF-8 encoding
+    return buffer.toString(); // Assuming UTF-8 encoding
 }
 
-
 function handleAckPing(socket, message) {
-  // Extract the version and parameters from the parsed message
-  const version = message.data.version;
-  const parameters = message.data.parameters;
+    // Extract the version and parameters from the parsed message
+    const version = message.data.version;
+    const parameters = message.data.parameters;
 
-  // Construct the AckPong message (Version 2)
-  const ackPongMessage = `T&S@AckPong@${version || 'Version2.1'}@${parameters && parameters.length > 0 ? parameters.join('|') : ''}$`;
+    // Construct the AckPong message (Version 2)
+    const ackPongMessage = `T&S@AckPong@${version || 'Version2.1'}@${parameters && parameters.length > 0 ? parameters.join('|') : ''}$`;
 
-  // Send the AckPong message
-  socket.write(ackPongMessage);
+    // Send the AckPong message
+    socket.write(ackPongMessage);
 
-  console.log('Sent AckPong message:', ackPongMessage);
+    console.log('Sent AckPong message:', ackPongMessage);
 }
 
 function parseMessage(bibs, rawMessage, socket) {
-  const parts = rawMessage.split('@');
-  if (parts.length < 3) {
-    return { error: 'Invalid message format' };
-  }
+    const parts = rawMessage.split('@');
+    if (parts.length < 3) {
+        return { error: 'Invalid message format' };
+    }
 
-  const sourceName = parts[0].trim();
-  const function_ = parts[1].trim();
-  const data = ['Store','Passing','Marker'].includes(function_) ? parts.slice(2, -2).join('@') : parts.slice(2, -1).join('@'); // Join in case data contains '@'
-  const messageNumber = ['Store','Passing', 'Marker'].includes(function_) ? parts[parts.length - 2] : undefined;
-  
-  if (function_ === "Pong"){
-    socket.write('Tije@AckPong@Version2.1@$');
-      let pongLog = log.entry(metadata, 'ackpong written');
-      log.write(pongLog);
-  } else if (function_.indexOf('Ack') === -1){
-    socket.write(`Tije@Ack${function_}${['Store','Passing', 'Marker'].includes(function_) ? '@'+messageNumber:''}@$`);
-    console.log(`Tije@Ack${function_}${['Store','Passing', 'Marker'].includes(function_) ? '@'+messageNumber:''}@$`);
-  }
+    const sourceName = parts[0].trim();
+    const function_ = parts[1].trim();
+    const data = ['Store','Passing','Marker'].includes(function_) ? parts.slice(2, -2).join('@') : parts.slice(2, -1).join('@'); // Join in case data contains '@'
+    const messageNumber = ['Store','Passing', 'Marker'].includes(function_) ? parts[parts.length - 2] : undefined;
 
-  let parsedData;
-  switch (function_) {
-    case 'Store':
-      parsedData = parseStoreMessage(data);
-      break;
-    case 'Passing':
-      parsedData = parsePassingMessage(bibs, data);
-      break;
-    case 'Marker':
-      parsedData = parseMarkerMessage(data);
-      break;
-    case 'GetInfo':
-    case 'AckGetInfo':
-      parsedData = parseGetInfoMessage(data);
-      break;
-    case 'Pong':
-      parsedData = parsePongMessage(data);
-      break;
-    case 'AckPong':
-    default:
-      parsedData = { rawData: data };
-  }
+    if (function_ === "Pong"){
+        socket.write('Tije@AckPong@Version2.1@$');
+        let pongLog = log.entry(metadata, 'ackpong written');
+        log.write(pongLog);
+    } else if (function_.indexOf('Ack') === -1){
+        socket.write(`Tije@Ack${function_}${['Store','Passing', 'Marker'].includes(function_) ? '@'+messageNumber:''}@$`);
+        console.log(`Tije@Ack${function_}${['Store','Passing', 'Marker'].includes(function_) ? '@'+messageNumber:''}@$`);
+    }
 
-  let parsedDataLog = log.entry(metadata, parsedData);
-  log.write(parsedDataLog);
+    let parsedData;
+    switch (function_) {
+        case 'Store':
+            parsedData = parseStoreMessage(data);
+            break;
+        case 'Passing':
+            parsedData = parsePassingMessage(bibs, data);
+            break;
+        case 'Marker':
+            parsedData = parseMarkerMessage(data);
+            break;
+        case 'GetInfo':
+        case 'AckGetInfo':
+            parsedData = parseGetInfoMessage(data);
+            break;
+        case 'Pong':
+            parsedData = parsePongMessage(data);
+            break;
+        case 'AckPong':
+        default:
+            parsedData = { rawData: data };
+    }
 
-  return {
-    sourceName: sourceName,
-    function: function_,
-    data: parsedData,
-    messageNumber: messageNumber,
-  };
+    let parsedDataLog = log.entry(metadata, parsedData);
+    log.write(parsedDataLog);
+
+    return {
+        sourceName: sourceName,
+        function: function_,
+        data: parsedData,
+        messageNumber: messageNumber,
+    };
 }
 
 function parseStoreMessage(data) {
@@ -234,37 +273,32 @@ function parseMarkerMessage(data) {
 }
 
 function parseGetInfoMessage(data) {
-  const parts = data.split('@');
-  if (parts.length < 2) {
-    return { error: 'Invalid GetInfo message format' };
-  }
-  const deviceName = parts[0];
-  const status = parts[1];
-  const computerName = parts[2] || null;
-  // Handle additional parameters for Version 2 if needed
-  // ...
-
-  return { deviceName, status, computerName };
+    const parts = data.split('@');
+    if (parts.length < 2) {
+        return { error: 'Invalid GetInfo message format' };
+    }
+    const deviceName = parts[0];
+    const status = parts[1];
+    const computerName = parts[2] || null;
+    return { deviceName, status, computerName };
 }
 
 function parsePongMessage(data) {
-  const parts = data.split('@');
-  const version = parts[0] || null; // Extract version (e.g., 'Version2.1')
-  const parameters = parts[1] ? parts[1].split('|') : []; // Extract parameters
+    const parts = data.split('@');
+    const version = parts[0] || null; // Extract version (e.g., 'Version2.1')
+    const parameters = parts[1] ? parts[1].split('|') : []; // Extract parameters
 
-  // Check if it's a Version 2 message
-  if (version && version.startsWith('Version2')) {
-    return {
-      version: version,
-      parameters: parameters,
-    };
-  } else {
-    // Handle as Version 1 message
-    return {
-      version: null, // No version specified in Version 1
-      parameters: [],
-    };
-  }
+    if (version && version.startsWith('Version2')) {
+        return {
+            version: version,
+            parameters: parameters,
+        };
+    } else {
+        return {
+            version: null,
+            parameters: [],
+        };
+    }
 }
 
 // Store messages in the SQLite3 database
@@ -299,27 +333,25 @@ async function storeMessageInRedis(parsedMessage) {
     for (const item of parsedMessage.data) {
         const messageId = `message:${uuidv4()}`;
         const messagePayload = {
-            ...item, // velden c, d, l, b, n, t, Bib, Name, etc.
+            ...item,
             sourceName: parsedMessage.sourceName,
             function: parsedMessage.function,
-            originalMessageNumber: parsedMessage.messageNumber || '', // Van het TCP packet
-            receivedTimestamp: receivedTimestamp.toString() // Sla op als string
+            originalMessageNumber: parsedMessage.messageNumber || '',
+            receivedTimestamp: receivedTimestamp.toString()
         };
 
-        // Verwijder null/undefined waarden om Redis opslag cleaner te houden
         for (const key in messagePayload) {
             if (messagePayload[key] == null) {
                 delete messagePayload[key];
             }
         }
 
-
         multi.hSet(messageId, messagePayload);
         multi.zAdd(`z:messages:source:${parsedMessage.sourceName}`, { score: receivedTimestamp, value: messageId });
         multi.zAdd(`z:messages:everywhere`, { score: receivedTimestamp, value: messageId });
-        // Optioneel: trim oude berichten om de sets beheersbaar te houden
-        // multi.zRemRangeByRank(`z:messages:source:${parsedMessage.sourceName}`, 0, -1001); // Behoud de laatste 1000
-        // multi.zRemRangeByRank(`z:messages:everywhere`, 0, -5001); // Behoud de laatste 5000
+        // Optionally trim (commented)
+        // multi.zRemRangeByRank(`z:messages:source:${parsedMessage.sourceName}`, 0, -1001);
+        // multi.zRemRangeByRank(`z:messages:everywhere`, 0, -5001);
     }
 
     try {
@@ -340,10 +372,8 @@ async function storeMarkerInRedis(parsedMessage) {
 
     for (const item of parsedMessage.data) {
         const markerId = `marker:${uuidv4()}`;
-        // Belangrijk: zorg dat 't' (markerTime) goed geconverteerd wordt als je die als score wilt.
-        // Voor nu gebruiken we receivedTimestamp voor consistentie.
         const markerPayload = {
-            ...item, // velden t, mt, n
+            ...item,
             sourceName: parsedMessage.sourceName,
             function: parsedMessage.function,
             originalMessageNumber: parsedMessage.messageNumber || '',
@@ -358,7 +388,7 @@ async function storeMarkerInRedis(parsedMessage) {
 
         multi.hSet(markerId, markerPayload);
         multi.zAdd(`z:markers:all`, { score: receivedTimestamp, value: markerId });
-        // multi.zRemRangeByRank(`z:markers:all`, 0, -1001); // Behoud de laatste 1000 markers
+        // multi.zRemRangeByRank(`z:markers:all`, 0, -1001);
     }
 
     try {
@@ -371,20 +401,23 @@ async function storeMarkerInRedis(parsedMessage) {
     }
 }
 
+let httpsServer;
+let tcpServer;
 
 async function main(){
 
     await redisClient.connect();
 
-    const bibs2023 = JSON.parse(fs.readFileSync('bib2023.json', 'utf8')); // await parseCsv("Bibs_202408280939.csv");
-    const bibs2024 =  JSON.parse(fs.readFileSync('bib2024.json', 'utf8')); //await parseCsv("Bibs_2024.csv");
-    // const bibs = [...bibs2023, ...bibs2024];
-    const bibs = {...bibs2023, ...bibs2024};
+    const bibs2023 = JSON.parse(fs.readFileSync('bib2023.json', 'utf8'));
+    const bibs2024 = JSON.parse(fs.readFileSync('bib2024.json', 'utf8'));
+    const bibs2025 =  JSON.parse(fs.readFileSync('bibs2024_enhanced.json', 'utf8')); //await parseCsv("Bibs_2024.csv");
+
+    const bibs = bibs2025;
 
     app.use(express.static('public'));
 
     app.get('/:room', (req, res) => {
-        console.log("Requested index html: ", `room name: ${req.params.room.split("?")[0]}`, `, query: ${req.query}`)
+        console.log("Requested index html: ", `room name: ${req.params.room.split("?")[0]}`, `, query: ${JSON.stringify(req.query)}`)
         res.sendFile(join(__dirname, 'index.html'));
     });
     app.get('/', (req, res) => {
@@ -392,73 +425,24 @@ async function main(){
         res.sendFile(join(__dirname, 'index.html'));
     });
 
-
-
-// Socket.IO connection
+    // Socket.IO connection
     io.on('connection', async (iosocket) => {
-        console.log('A user connected');
+        console.log('A user connected from origin:', iosocket.handshake.headers.origin);
 
-        let query = iosocket.handshake.query
-        console.log(query);
-        let roomName = query.roomName || "everywhere"; // TimeFinish, TimeR1
-           iosocket.join(roomName);
-            console.log(`User joined room: ${roomName}`);
+        const query = iosocket.handshake.query || {};
+        let roomName = (query.roomName || "everywhere").toString();
 
-        /* // SQLITE3 Versie
-        // Get data from the last 3 minutes
+        // Basic room whitelist to avoid unbounded growth
+        const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1']);
+        if (!allowedRooms.has(roomName)) {
+            roomName = 'everywhere';
+        }
 
-        const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
-        console.log(threeMinutesAgo.toISOString())
-        //        SELECT * FROM messages        WHERE timestamp >= ?            `, [threeMinutesAgo.toISOString()]
-        db.all(`SELECT * FROM messages ${roomName && roomName != "everywhere" ? `WHERE sourceName LIKE "%${roomName}%"`: ""} ${query.bibnr ? `AND Bib = ${query.bibnr}` : ""} ${query.laps ? `AND l > ${query.laps}` : ""}  ORDER BY t DESC LIMIT 30;`, (err, rows) => {
-            if (err) {
-                console.error('Error fetching data:', err);
-            } else {
-                console.log(rows);
-                // split rows in packages of 20
-                let chunks = [];
-                let i = 0;
-                let n = rows.length;
-                while (i < n) {
-                    chunks.push(rows.slice(i, i += 20));
-                }
-                chunks.forEach(function (chunk, i) {
-                    if(i===0) {
-                        iosocket.emit('initial data', chunk);
-                    } else {
-                        iosocket.emit('more messages', chunk);
-                    }
-                });
+        iosocket.join(roomName);
+        console.log(`User joined room: ${roomName}`);
 
-            }
-        })
-
-        db.all(`SELECT * FROM markers`, (err, rows) => {
-            if(err) {
-                console.error('Error fetching data:', err);
-            }  else {
-                console.log(rows);
-                // split rows in packages of 20
-                let chunks = [];
-                let i = 0;
-                let n = rows.length;
-                while (i < n) {
-                    chunks.push(rows.slice(i, i += 20));
-                }
-                chunks.forEach(function (chunk, i) {
-                    if (i === 0) {
-                        iosocket.emit('initial markers', chunk);
-                    } else {
-                        iosocket.emit('more markers', chunk);
-                    }
-                });
-            }
-        })
-        */
-
-
-        const fetchLimit = 100; // Haal meer op om te filteren, stuur max 30
-        const sendLimit = 30;
+        const fetchLimit = 100; // internal fetch size
+        const sendLimit = 30;   // what we actually send to client
 
         try {
             // Fetch initial messages
@@ -474,10 +458,10 @@ async function main(){
                 const multiGet = redisClient.multi();
                 messageKeys.forEach(key => multiGet.hGetAll(key));
                 const rawMessages = await multiGet.exec();
-                messages = rawMessages.map(msg => msg).filter(msg => msg != null); // Verwijder nulls als een key niet gevonden werd
+                messages = rawMessages.map(msg => msg).filter(msg => msg != null);
             }
 
-            // Filter messages
+            // Filtering
             let filteredMessages = messages;
             if (query.bibnr) {
                 filteredMessages = filteredMessages.filter(msg => msg.Bib === query.bibnr);
@@ -485,32 +469,16 @@ async function main(){
             if (query.laps) {
                 filteredMessages = filteredMessages.filter(msg => msg.l && parseInt(msg.l) > parseInt(query.laps));
             }
-            // sourceName LIKE filter (als roomName niet "everywhere" was, is dit al deels gebeurd door de key keuze)
-            // Voor nu is dit een simpele filter, LIKE is lastiger.
             if (roomName && roomName !== "everywhere" && query.roomName && query.roomName.includes('%')) {
-                // Dit is een placeholder. Echte LIKE functionaliteit is complexer.
-                // We filteren hier op de reeds geselecteerde sourceName berichten.
-                // Als query.roomName een patroon is, zou je verder moeten filteren.
                 const pattern = new RegExp(query.roomName.replace(/%/g, '.*'));
                 filteredMessages = filteredMessages.filter(msg => msg.sourceName && pattern.test(msg.sourceName));
             }
 
-
-            // Sorteer opnieuw op tijd (receivedTimestamp) DESC na filtering, indien nodig.
-            // De ZREVRANGE doet dit al, maar filtering kan de volgorde verstoren als niet alle items voldoen.
-            // In de praktijk is de volgorde van Redis meestal al goed genoeg.
-            // Hier sorteren we de in-memory array
             filteredMessages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
-
 
             const finalMessages = filteredMessages.slice(0, sendLimit);
 
-            if (finalMessages.length > 0) {
-                // Opsplitsen in chunks is niet meer nodig zoals bij SQLite db.all
-                iosocket.emit('initial data', finalMessages);
-            } else {
-                iosocket.emit('initial data', []);
-            }
+            iosocket.emit('initial data', finalMessages);
 
             // Fetch initial markers
             const markerKeys = await redisClient.zRange('z:markers:all', 0, fetchLimit -1, { REV: true });
@@ -520,38 +488,129 @@ async function main(){
                 markerKeys.forEach(key => multiGetMarkers.hGetAll(key));
                 const rawMarkers = await multiGetMarkers.exec();
                 markers = rawMarkers.map(m => m).filter(m => m !=null);
-                markers.sort((a,b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp)); // Sorteer
+                markers.sort((a,b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
             }
 
-            if (markers.length > 0) {
-                iosocket.emit('initial markers', markers.slice(0, sendLimit));
-            } else {
-                iosocket.emit('initial markers', []);
-            }
+            iosocket.emit('initial markers', markers.slice(0, sendLimit));
 
         } catch (err) {
             console.error('Error fetching initial data from Redis:', err);
-            iosocket.emit('initial data', []); // Stuur lege data bij error
+            iosocket.emit('initial data', []);
             iosocket.emit('initial markers', []);
             let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching initial data from Redis: ${err.message}` });
             log.write(xlog);
         }
 
+        iosocket.on('disconnect', () => {
+            console.log('user disconnected');
+        });
+    });
 
-            iosocket.on('disconnect', () => {
+    // Create HTTPS server
+    const httpsOptions = {
+        key: fs.readFileSync('privkey.pem'),
+        cert: fs.readFileSync('fullchain.pem'),
+    };
+
+    httpsServer = https.createServer(httpsOptions, app);
+
+    // Socket.IO for HTTPS (WSS)
+    const httpsio = new Server(httpsServer, {
+        cors: {
+            origin: finalAllowedOrigins.includes('*') ? '*' : finalAllowedOrigins,
+            methods: ['GET', 'POST'],
+            credentials: false
+        }
+    });
+
+    httpsio.on('connection', async (iosocket) => {
+        console.log('A user connected from origin:', iosocket.handshake.headers.origin);
+
+        const query = iosocket.handshake.query || {};
+        let roomName = (query.roomName || "everywhere").toString();
+
+        // Basic room whitelist to avoid unbounded growth
+        const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1']);
+        if (!allowedRooms.has(roomName)) {
+            roomName = 'everywhere';
+        }
+
+        iosocket.join(roomName);
+        console.log(`User joined room: ${roomName}`);
+
+        const fetchLimit = 100; // internal fetch size
+        const sendLimit = 30;   // what we actually send to client
+
+        try {
+            // Fetch initial messages
+            let messageKeys = [];
+            if (roomName && roomName !== "everywhere") {
+                messageKeys = await redisClient.zRange(`z:messages:source:${roomName}`, 0, fetchLimit -1, { REV: true });
+            } else {
+                messageKeys = await redisClient.zRange(`z:messages:everywhere`, 0, fetchLimit -1, { REV: true });
+            }
+
+            let messages = [];
+            if (messageKeys.length > 0) {
+                const multiGet = redisClient.multi();
+                messageKeys.forEach(key => multiGet.hGetAll(key));
+                const rawMessages = await multiGet.exec();
+                messages = rawMessages.map(msg => msg).filter(msg => msg != null);
+            }
+
+            // Filtering
+            let filteredMessages = messages;
+            if (query.bibnr) {
+                filteredMessages = filteredMessages.filter(msg => msg.Bib === query.bibnr);
+            }
+            if (query.laps) {
+                filteredMessages = filteredMessages.filter(msg => msg.l && parseInt(msg.l) > parseInt(query.laps));
+            }
+            if (roomName && roomName !== "everywhere" && query.roomName && query.roomName.includes('%')) {
+                const pattern = new RegExp(query.roomName.replace(/%/g, '.*'));
+                filteredMessages = filteredMessages.filter(msg => msg.sourceName && pattern.test(msg.sourceName));
+            }
+
+            filteredMessages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
+
+            const finalMessages = filteredMessages.slice(0, sendLimit);
+
+            iosocket.emit('initial data', finalMessages);
+
+            // Fetch initial markers
+            const markerKeys = await redisClient.zRange('z:markers:all', 0, fetchLimit -1, { REV: true });
+            let markers = [];
+            if (markerKeys.length > 0) {
+                const multiGetMarkers = redisClient.multi();
+                markerKeys.forEach(key => multiGetMarkers.hGetAll(key));
+                const rawMarkers = await multiGetMarkers.exec();
+                markers = rawMarkers.map(m => m).filter(m => m !=null);
+                markers.sort((a,b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
+            }
+
+            iosocket.emit('initial markers', markers.slice(0, sendLimit));
+
+        } catch (err) {
+            console.error('Error fetching initial data from Redis:', err);
+            iosocket.emit('initial data', []);
+            iosocket.emit('initial markers', []);
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching initial data from Redis: ${err.message}` });
+            log.write(xlog);
+        }
+
+        iosocket.on('disconnect', () => {
             console.log('user disconnected');
         });
     });
 
 
-// TCP server
-    const tcpServer = net.createServer(async (socket) => {
+    // TCP server
+    tcpServer = net.createServer(async (socket) => {
         console.log('TCP client connected');
         let clog = log.entry(metadata, 'TCP client connected');
         log.write(clog);
 
-
-        let rawData = ""; // variable that collects chunks
+        let rawData = "";
         const sep = "$";
 
         socket.on('data', async function(chunk) {
@@ -580,25 +639,20 @@ async function main(){
                     handleAckPing(socket, parsedMessage);
                 }
 
-
                 if(parsedMessage.function === 'Passing') {
-                    // storeMessage(parsedMessage);
                     await storeMessageInRedis(parsedMessage);
-                    // Stuur het volledige parsedMessage object naar de clients.
-                    // De clients moeten de 'data' array binnen dit object verwerken.
                     io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
+                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
                 }
 
                 if(parsedMessage.function === 'Marker') {
-                    // storeMarker(parsedMessage);
                     await storeMarkerInRedis(parsedMessage);
-                    // Stuur het volledige parsedMessage object naar de clients
                     io.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
+                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
                 }
 
             }
         });
-
 
         socket.on('end', () => {
             console.log('Client disconnected');
@@ -615,16 +669,15 @@ async function main(){
     });
 
 
-    // Start the HTTP Server to start the web interface
+    // Start the HTTP Server
     server.listen(8080, () => {
         console.log('HTTP-server luistert op poort 8080');
-      });
+    });
 
-    // server.listen(443, () => {
-    //   console.log('HTTPS-server luistert op poort 443');
-    // });
-
-
+    // Start the HTTPS Server
+    httpsServer.listen(8443, () => {
+        console.log('HTTPS-server luistert op poort 8443');
+    });
 
     // Start the TCP/IP Server to listen to Mylaps Exporter
     tcpServer.listen(TCP_PORT, () => {
@@ -644,17 +697,23 @@ main().catch(err => {
 });
 
 // Graceful shutdown
-// Graceful shutdown handler
 async function shutdownGracefully(signal) {
     console.log(`${signal} signal received: closing Redis client and servers.`);
     try {
         if (redisClient.isOpen) {
             await redisClient.quit();
         }
+        if (server) {
+            server.close(() => console.log('HTTP server closed.'));
+        }
+        if (httpsServer) {
+            httpsServer.close(() => console.log('HTTPS server closed.'));
+        }
+        if (tcpServer) {
+            tcpServer.close(() => console.log('TCP server closed.'));
+        }
         let xlog = log.entry(metadata, `${signal} signal received, shutting down.`);
         log.write(xlog);
-        server.close(() => console.log('HTTP server closed.'));
-        tcpServer.close(() => console.log('TCP server closed.'));
     } catch (err) {
         console.error(`Error during shutdown: ${err.message}`);
     }
