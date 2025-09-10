@@ -146,7 +146,7 @@ async function parseCsv(file) {
 
 function matchChipToBib(bibs, chip) {
     const bib = bibs[chip]; //bibs.find(bib => bib.Chip === chip);
-    return bib && bib[0] ? bib[0] : null;
+    return bib ? bib : null;
 }
 
 function bufferToString(buffer) {
