@@ -189,15 +189,15 @@ client.connect(3389, '34.91.108.92', function() { //35.204.46.233
         passing += `c=${d.c}|ct=${d.ct}|t=${d.t}|d=${d.d}|l=${d.l}|dv=${d.dv}|re=${d.re}|an=${d.an}|g=${d.g}|n=${d.n}|b=${d.b}@`
     })
     passing += "100@$"
-    client.write(passing);
+    // client.write(passing);
     // console.log(passing);
 
-    // let passingSE = "TimeSE@Passing@"
-    // data.forEach(d => {
-    //     passingSE += `c=${d.c}|ct=${d.ct}|t=${d.t}|d=${d.d}|l=${d.l}|dv=${d.dv}|re=${d.re}|an=${d.an}|g=${d.g}|n=${d.n}|b=${d.b}@`
-    // })
-    // passingSE += "100@$"
-    // client.write(passingSE);
+    let passingSE = "TimeSE@Passing@"
+    data.forEach(d => {
+        passingSE += `c=${d.c}|ct=${d.ct}|t=${d.t}|d=${d.d}|l=${d.l}|dv=${d.dv}|re=${d.re}|an=${d.an}|g=${d.g}|n=${d.n}|b=${d.b}@`
+    })
+    passingSE += "100@$"
+    client.write(passingSE);
 
     // client.write('TimeR1@Pong@$');
     // client.write("TimeR1@Passing@c=GZ59052|ct=CX|t=13:59:56.452|d=250908|l=1|dv=7|re=0|an=-1|g=-1|n=GZ59052|b=-1@c=NL25386|ct=CX|t=13:59:57.492|d=250908|l=1|dv=7|re=0|an=-1|g=-1|n=NL25386|b=-1@c=HX80374|ct=CX|t=13:59:58.388|d=250908|l=3|dv=7|re=0|an=-1|g=-1|n=HX80374|b=-1@c=FK53933|ct=CX|t=14:00:00.731|d=250908|l=1|dv=7|re=0|an=-1|g=-1|n=FK53933|b=-1@c=RL12543|ct=CX|t=14:00:02.996|d=250908|l=2|dv=7|re=0|an=-1|g=-1|n=RL12543|b=-1@c=KP59983|ct=CX|t=14:00:10.338|d=250908|l=2|dv=7|re=0|an=-1|g=-1|n=KP59983|b=-1@c=NH05685|ct=CX|t=14:00:14.247|d=250908|l=2|dv=7|re=0|an=-1|g=-1|n=NH05685|b=-1@c=FH87124|ct=CX|t=14:00:14.370|d=250908|l=1|dv=7|re=0|an=-1|g=-1|n=FH87124|b=-1@73@$");
