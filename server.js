@@ -157,6 +157,9 @@ function matchChipToBib(bibs, chip) {
     return bib ? bib : null;
 }
 
+function bufferToString(buffer) {
+    return buffer.toString(); // Assuming UTF-8 encoding
+}
 
 function handleAckPing(socket, message) {
     // Extract the version and parameters from the parsed message
