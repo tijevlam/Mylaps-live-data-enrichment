@@ -146,3 +146,9 @@ sudo systemctl start redis-server
 sudo systemctl enable redis-server
 sudo node server.js   # or: sudo pm2 start server
 ```
+=======
+
+#### Start remote server:
+* `sudo systemctl start redis-server`
+* `sudo systemctl enable redis-server`
+* `sudo node server.js` of `sudo pm2 start server`
