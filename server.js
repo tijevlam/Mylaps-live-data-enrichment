@@ -278,20 +278,20 @@ function parsePassingMessage(bibs, data) {
 
         });
         if(passingData.c) {
-            const bib = matchChipToBib(bibs, passingData.c);
+            const bib = matchChipToBib(bibs, passingData);
             if (bib) {
                 Object.assign(passingData, bib);
             }
         }
 
         // If no name found, try to match based on bib number (b)
-        if(!passingData.Name && passingData.b && passingData.b > -1){
-            console.log("looking for athlete based on bib:", passingData.b);
-            const chipbib = matchChipBibToBib(bibs, passingData.b)
-            if (chipbib) {
-                Object.assign(passingData, chipbib);
-            }
-        }
+        // if(!passingData.Name && passingData.b && passingData.b > -1){
+        //     console.log("looking for athlete based on bib:", passingData.b);
+        //     const chipbib = matchChipBibToBib(bibs, passingData.b)
+        //     if (chipbib) {
+        //         Object.assign(passingData, chipbib);
+        //     }
+        // }
 
         return passingData;
     });
