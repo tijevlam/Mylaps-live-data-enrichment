@@ -151,7 +151,7 @@ async function parseCsv(file) {
 function matchChipBibToBib(bibs, chipbib) {
     // console.log(bibs[0], chip)
     console.log(typeof chipbib, chipbib);
-    const bib = Object.values(bibs).find(bib => bib.bib === chipbib);
+    const bib = Object.values(bibs).find(bib => bib.bib == chipbib);
     // console.log(bib);
     for (const k in bib) {
         if (bib.hasOwnProperty(k) && bib[k] != null) {
