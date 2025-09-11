@@ -1983,17 +1983,24 @@
             });
         document.getElementById('filterSwimExit').addEventListener('click', function () {
             table.setFilter('sourceName', '=', 'TimeSE');
+            socket.emit('change room', 'TimeSE');
+
         });
 
         document.getElementById('filterT2').addEventListener('click', function () {
             table.setFilter('sourceName', '=', 'TimeBE');
+            socket.emit('change room', 'TimeBE');
+
         });
         document.getElementById('filterEnterStadium').addEventListener('click', function () {
             table.setFilter('sourceName', '=', 'TimeR1');
+            socket.emit('change room', 'TimeR1');
+
         });
 
         document.getElementById('filterFinish').addEventListener('click', function () {
             table.setFilter('sourceName', '=', 'TimeFinish');
+            socket.emit('change room', 'TimeFinish');
         });
     }
 

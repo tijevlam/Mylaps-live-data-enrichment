@@ -478,6 +478,8 @@ async function main(){
 
         iosocket.join(roomName);
         console.log(`User joined room: ${roomName}`);
+        iosocket.currentRoom = roomName;
+
 
         const fetchLimit = 100; // internal fetch size
         const sendLimit = 30;   // what we actually send to client
@@ -538,6 +540,58 @@ async function main(){
             let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching initial data from Redis: ${err.message}` });
             log.write(xlog);
         }
+
+        iosocket.on('change room', async (newRoom) => {
+            console.log(`User wants to change from ${iosocket.currentRoom} to ${newRoom}`);
+
+            // Valideer de nieuwe room
+            if (!allowedRooms.has(newRoom)) {
+                console.log(`Room ${newRoom} not allowed, staying in current room`);
+                return;
+            }
+
+            // Leave huidige room
+            if (iosocket.currentRoom) {
+                iosocket.leave(iosocket.currentRoom);
+                console.log(`User left room: ${iosocket.currentRoom}`);
+            }
+
+            // Join nieuwe room
+            iosocket.join(newRoom);
+            iosocket.currentRoom = newRoom;
+            console.log(`User joined room: ${newRoom}`);
+
+            // Haal fresh data op voor de nieuwe room
+            try {
+                const fetchLimit = 100;
+                const sendLimit = 30;
+
+                let messageKeys = [];
+                if (newRoom && newRoom !== "everywhere") {
+                    messageKeys = await redisClient.zRange(`z:messages:source:${newRoom}`, 0, fetchLimit - 1, { REV: true });
+                } else {
+                    messageKeys = await redisClient.zRange(`z:messages:everywhere`, 0, fetchLimit - 1, { REV: true });
+                }
+
+                let messages = [];
+                if (messageKeys.length > 0) {
+                    const multiGet = redisClient.multi();
+                    messageKeys.forEach(key => multiGet.hGetAll(key));
+                    const rawMessages = await multiGet.exec();
+                    messages = rawMessages.map(msg => msg).filter(msg => msg != null);
+                }
+
+                messages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
+                const finalMessages = messages.slice(0, sendLimit);
+
+                // Stuur fresh data naar client
+                iosocket.emit('all messages', finalMessages);
+
+            } catch (err) {
+                console.error('Error fetching data for new room:', err);
+                iosocket.emit('all messages', []);
+            }
+        });
 
         iosocket.on('disconnect', () => {
             console.log('user disconnected');
@@ -579,6 +633,8 @@ async function main(){
 
         iosocket.join(roomName);
         console.log(`User joined room: ${roomName}`);
+        iosocket.currentRoom = roomName;
+
 
         const fetchLimit = 100; // internal fetch size
         const sendLimit = 30;   // what we actually send to client
@@ -639,6 +695,53 @@ async function main(){
             let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching initial data from Redis: ${err.message}` });
             log.write(xlog);
         }
+
+        iosocket.on('change room', async (newRoom) => {
+            console.log(`User wants to change from ${iosocket.currentRoom} to ${newRoom}`);
+
+            if (!allowedRooms.has(newRoom)) {
+                console.log(`Room ${newRoom} not allowed, staying in current room`);
+                return;
+            }
+
+            if (iosocket.currentRoom) {
+                iosocket.leave(iosocket.currentRoom);
+                console.log(`User left room: ${iosocket.currentRoom}`);
+            }
+
+            iosocket.join(newRoom);
+            iosocket.currentRoom = newRoom;
+            console.log(`User joined room: ${newRoom}`);
+
+            try {
+                const fetchLimit = 100;
+                const sendLimit = 30;
+
+                let messageKeys = [];
+                if (newRoom && newRoom !== "everywhere") {
+                    messageKeys = await redisClient.zRange(`z:messages:source:${newRoom}`, 0, fetchLimit - 1, { REV: true });
+                } else {
+                    messageKeys = await redisClient.zRange(`z:messages:everywhere`, 0, fetchLimit - 1, { REV: true });
+                }
+
+                let messages = [];
+                if (messageKeys.length > 0) {
+                    const multiGet = redisClient.multi();
+                    messageKeys.forEach(key => multiGet.hGetAll(key));
+                    const rawMessages = await multiGet.exec();
+                    messages = rawMessages.map(msg => msg).filter(msg => msg != null);
+                }
+
+                messages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
+                const finalMessages = messages.slice(0, sendLimit);
+
+                iosocket.emit('all messages', finalMessages);
+
+            } catch (err) {
+                console.error('Error fetching data for new room:', err);
+                iosocket.emit('all messages', []);
+            }
+        });
 
         iosocket.on('disconnect', () => {
             console.log('user disconnected');
