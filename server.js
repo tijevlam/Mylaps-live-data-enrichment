@@ -163,17 +163,26 @@ function matchChipBibToBib(bibs, chipbib) {
 }
 
 
-function matchChipToBib(bibs, chip) {
+function matchChipToBib(bibs, passingData) {
     // console.log(bibs[0], chip)
-    const bib = bibs[chip]; //bibs.find(bib => bib.Chip === chip);
+    const bib = bibs[passingData.c]; //bibs.find(bib => bib.Chip === chip);
     // console.log(bib);
-    for (const k in bib) {
-        if (bib.hasOwnProperty(k) && bib[k] != null) {
-            bib[k] = bib[k].toString();
+    let chipbib;
+
+    if(bib) {
+        for (const k in bib) {
+            if (bib.hasOwnProperty(k) && bib[k] != null) {
+                bib[k] = bib[k].toString();
+            }
+        }
+    } else {
+        if(!passingData.Name && passingData.b && passingData.b > -1){
+            console.log("looking for athlete based on bib:", passingData.b);
+            chipbib = matchChipBibToBib(bibs, passingData.b)
         }
     }
     // console.log(bib);
-    return bib ? bib : null;
+    return bib ? bib : (chipbib ? chipbib : null);
 }
 
 function bufferToString(buffer) {
