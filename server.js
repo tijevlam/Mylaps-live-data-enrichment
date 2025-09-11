@@ -148,6 +148,20 @@ async function parseCsv(file) {
 }
 */
 
+function matchChipBibToBib(bibs, chipbib) {
+    // console.log(bibs[0], chip)
+    const bib = bibs.find(bib => bib.bib == chipbib);
+    // console.log(bib);
+    for (const k in bib) {
+        if (bib.hasOwnProperty(k) && bib[k] != null) {
+            bib[k] = bib[k].toString();
+        }
+    }
+    // console.log(bib);
+    return bib ? bib : null;
+}
+
+
 function matchChipToBib(bibs, chip) {
     // console.log(bibs[0], chip)
     const bib = bibs[chip]; //bibs.find(bib => bib.Chip === chip);
@@ -259,6 +273,14 @@ function parsePassingMessage(bibs, data) {
                 Object.assign(passingData, bib);
             }
         }
+
+        if(!passingData.Name && passingData.b && passingData.b > -1){
+            const chipbib = matchChipBibToBib(bibs, passingData.b)
+            if (chipbib) {
+                Object.assign(passingData, chipbib);
+            }
+        }
+
         return passingData;
     });
 }
