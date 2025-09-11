@@ -1986,7 +1986,7 @@
                 jQuery('#pause').show();
                 socket.connect();
             });
-        document.getElementById('filterSwimExit').addEventListener('click', function () {
+        document.getElementById('filterSwimAll').addEventListener('click', function () {
             table.clearFilter(true);
             socket.emit('change room', 'everywhere');
 
