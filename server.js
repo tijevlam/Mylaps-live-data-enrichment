@@ -274,7 +274,9 @@ function parsePassingMessage(bibs, data) {
             }
         }
 
+        // If no name found, try to match based on bib number (b)
         if(!passingData.Name && passingData.b && passingData.b > -1){
+            console.log("looking for athlete based on bib:", passingData.b);
             const chipbib = matchChipBibToBib(bibs, passingData.b)
             if (chipbib) {
                 Object.assign(passingData, chipbib);
