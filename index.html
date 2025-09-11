@@ -1384,6 +1384,7 @@
             responsiveLayout: "collapse",
             responsiveLayoutCollapseStartOpen: false,
             autoColumns: true,
+            initialSort: [{ column: "time", dir: "desc" }],
             autoColumnsDefinitions: function (definitions) {
                 definitions.forEach((column) => {
                     column.title = capitalize(column.field);
