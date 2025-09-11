@@ -1938,7 +1938,7 @@
 
             socket.on('all messages', (messages) => {
                 console.log(messages);
-                messageList.innerHTML = '';
+                // messageList.innerHTML = '';
                 let tableData = [];
                 for (const m of messages) {
                     tableData.push(displayMessage(m));
