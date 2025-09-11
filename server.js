@@ -47,7 +47,11 @@ const io = new Server(server, {
         origin: finalAllowedOrigins.includes('*') ? '*' : finalAllowedOrigins,
         methods: ['GET', 'POST'],
         credentials: false
-    }
+    },
+    transports: ['polling', 'websocket'],
+    allowEIO3: true,
+    pingTimeout: 60000,
+    pingInterval: 25000
 });
 
 // -----------------------------------------------------------------
@@ -520,7 +524,11 @@ async function main(){
             origin: finalAllowedOrigins.includes('*') ? '*' : finalAllowedOrigins,
             methods: ['GET', 'POST'],
             credentials: false
-        }
+        },
+        transports: ['polling', 'websocket'],
+        allowEIO3: true,
+        pingTimeout: 60000,
+        pingInterval: 25000
     });
 
     httpsio.on('connection', async (iosocket) => {
