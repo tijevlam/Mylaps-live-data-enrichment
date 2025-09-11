@@ -58,6 +58,11 @@
                 </button>
             </li>
             <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterAll"  style="background: none; border:none;">
+                    All
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
                 <button class="nav-link" id="filterSwimExit"  style="background: none; border:none;">
                     <i class="fas fa-water-ladder"></i>
                 </button>
@@ -1981,6 +1986,12 @@
                 jQuery('#pause').show();
                 socket.connect();
             });
+        document.getElementById('filterSwimExit').addEventListener('click', function () {
+            table.clearFilter(true);
+            socket.emit('change room', 'everywhere');
+
+        });
+
         document.getElementById('filterSwimExit').addEventListener('click', function () {
             table.setFilter('sourceName', '=', 'TimeSE');
             socket.emit('change room', 'TimeSE');
