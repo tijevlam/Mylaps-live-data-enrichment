@@ -447,8 +447,8 @@ async function main(){
     await redisClient.connect();
 
     const bibs2023 = JSON.parse(fs.readFileSync('bib2023.json', 'utf8'));
-    const bibs2024 = JSON.parse(fs.readFileSync('bib2024.json', 'utf8'));
-    const bibs2025 =  JSON.parse(fs.readFileSync('bibs2024_enhanced.json', 'utf8')); //await parseCsv("Bibs_2024.csv");
+    const bibs2024 = JSON.parse(fs.readFileSync('bibs2024_enhanced.json', 'utf8'));
+    const bibs2025 =  JSON.parse(fs.readFileSync('bibs2025_enhanced.json', 'utf8')); //await parseCsv("Bibs_2024.csv");
 
     const bibs = bibs2025;
 
