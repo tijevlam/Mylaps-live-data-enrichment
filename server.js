@@ -471,7 +471,7 @@ async function main(){
         let roomName = (query.roomName || "everywhere").toString();
 
         // Basic room whitelist to avoid unbounded growth
-        const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1','TimeSE', 'TimeBE']);
+        const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1','TimeES', 'TimeEB']);
         if (!allowedRooms.has(roomName)) {
             roomName = 'everywhere';
         }
@@ -626,7 +626,7 @@ async function main(){
         let roomName = (query.roomName || "everywhere").toString();
 
         // Basic room whitelist to avoid unbounded growth
-        const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1', 'TimeSE', 'TimeBE']);
+        const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1', 'TimeES', 'TimeEB']);
         if (!allowedRooms.has(roomName)) {
             roomName = 'everywhere';
         }
