@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stadsarchief Almere — Beeldgalerij</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #111;
+      color: #eee;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #333;
+      background: #1a1a1a;
+    }
+
+    header h1 { font-size: 1.25rem; font-weight: 600; }
+    header p  { font-size: 0.85rem; color: #888; margin-top: 0.25rem; }
+
+    #error-msg {
+      display: none;
+      padding: 2rem;
+      color: #f66;
+      font-size: 0.9rem;
+    }
+
+    #gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+
+    .card {
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      background: #111;
+      display: block;
+    }
+
+    .card-img-placeholder {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #555;
+      font-size: 0.8rem;
+    }
+
+    .card-body {
+      padding: 0.85rem 1rem 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: #ddd;
+    }
+
+    .card-desc {
+      font-size: 0.78rem;
+      color: #999;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .card-attribution {
+      font-size: 0.72rem;
+      color: #666;
+      border-top: 1px solid #2a2a2a;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .card-attribution a {
+      color: #5a9fd4;
+      text-decoration: none;
+    }
+
+    .card-attribution a:hover { text-decoration: underline; }
+
+    .card-tags {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 0.68rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: #2a2a2a;
+      color: #aaa;
+    }
+
+    #empty-msg {
+      display: none;
+      padding: 3rem 2rem;
+      text-align: center;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Stadsarchief Almere — Beeldgalerij</h1>
+  <p>Historische fotografie uit het Stadsarchief Almere, gedownload met naamsvermelding.</p>
+</header>
+
+<div id="error-msg"></div>
+<div id="empty-msg">
+  <p>Geen afbeeldingen gevonden in <code>data/metadata.json</code>.</p>
+  <p style="margin-top:0.5rem">Voer eerst <code>python main.py search triatlon</code> en
+  <code>python main.py download-all</code> uit.</p>
+</div>
+
+<div id="gallery"></div>
+
+<script>
+  (async () => {
+    const gallery = document.getElementById('gallery');
+    const errorMsg = document.getElementById('error-msg');
+    const emptyMsg = document.getElementById('empty-msg');
+
+    let metadata;
+    try {
+      const resp = await fetch('data/metadata.json');
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      metadata = await resp.json();
+    } catch (e) {
+      errorMsg.style.display = 'block';
+      errorMsg.textContent =
+        'Kan data/metadata.json niet laden. ' +
+        'Zorg dat de viewer vanuit de projectmap wordt geopend en dat er data aanwezig is. ' +
+        '(' + e.message + ')';
+      return;
+    }
+
+    const records = Object.values(metadata);
+    if (records.length === 0) {
+      emptyMsg.style.display = 'block';
+      return;
+    }
+
+    for (const record of records) {
+      const scans = record.scans || [];
+      const meta = record.meta || {};
+
+      for (const scan of scans) {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        // Image — prefer local file, fall back to IcoonUrl thumbnail
+        const localFiles = record.local_files || [];
+        const imgSrc = localFiles.length > 0
+          ? localFiles[0]           // relative path from viewer.html
+          : (scan.IcoonUrl || null);
+
+        if (imgSrc) {
+          const img = document.createElement('img');
+          img.className = 'card-img';
+          img.src = imgSrc;
+          img.alt = scan.Title || meta.title || '';
+          img.loading = 'lazy';
+          img.onerror = () => {
+            const ph = document.createElement('div');
+            ph.className = 'card-img-placeholder';
+            ph.textContent = 'Afbeelding niet beschikbaar';
+            img.replaceWith(ph);
+          };
+          card.appendChild(img);
+        } else {
+          const ph = document.createElement('div');
+          ph.className = 'card-img-placeholder';
+          ph.textContent = 'Geen afbeelding';
+          card.appendChild(ph);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'card-body';
+
+        const title = scan.Title || meta.title || `Record ${record.record_id}`;
+        body.innerHTML = `<div class="card-title">${escHtml(title)}</div>`;
+
+        const desc = scan.Description || meta.description;
+        if (desc) {
+          body.innerHTML += `<div class="card-desc">${escHtml(desc)}</div>`;
+        }
+
+        // Tags
+        const tags = [];
+        if (meta.date) tags.push(meta.date);
+        if (meta.creator) tags.push(meta.creator);
+        if (tags.length) {
+          const tagHtml = tags.map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+          body.innerHTML += `<div class="card-tags">${tagHtml}</div>`;
+        }
+
+        // Attribution
+        const arkUrl = record.ark_url || record.source_url || '#';
+        const attribution = record.attribution || 'Stadsarchief Almere';
+        body.innerHTML += `
+          <div class="card-attribution">
+            Bron: <a href="${escHtml(arkUrl)}" target="_blank" rel="noopener">${escHtml(attribution)}</a>
+          </div>`;
+
+        card.appendChild(body);
+        gallery.appendChild(card);
+      }
+    }
+  })();
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+</body>
+</html>
