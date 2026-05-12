@@ -148,41 +148,13 @@ async function parseCsv(file) {
 }
 */
 
-function matchChipBibToBib(bibs, chipbib) {
-    // console.log(bibs[0], chip)
-    console.log(typeof chipbib, chipbib);
-    const bib = Object.values(bibs).find(bib => bib.bib == chipbib);
-    // console.log(bib);
-    for (const k in bib) {
-        if (bib.hasOwnProperty(k) && bib[k] != null) {
-            bib[k] = bib[k].toString();
-        }
+function matchChipToBib(bibs, bibsByNumber, passingData) {
+    const bib = bibs[passingData.c];
+    if (bib) return bib;
+    if (passingData.b && passingData.b > -1) {
+        return bibsByNumber[passingData.b] || null;
     }
-    // console.log(bib);
-    return bib ? bib : null;
-}
-
-
-function matchChipToBib(bibs, passingData) {
-    // console.log(bibs[0], chip)
-    const bib = bibs[passingData.c]; //bibs.find(bib => bib.Chip === chip);
-    // console.log(bib);
-    let chipbib;
-
-    if(bib) {
-        for (const k in bib) {
-            if (bib.hasOwnProperty(k) && bib[k] != null) {
-                bib[k] = bib[k].toString();
-            }
-        }
-    } else {
-        if(!passingData.Name && passingData.b && passingData.b > -1){
-            console.log("looking for athlete based on bib:", passingData.b);
-            chipbib = matchChipBibToBib(bibs, passingData.b)
-        }
-    }
-    // console.log(bib);
-    return bib ? bib : (chipbib ? chipbib : null);
+    return null;
 }
 
 function bufferToString(buffer) {
@@ -203,7 +175,7 @@ function handleAckPing(socket, message) {
     console.log('Sent AckPong message:', ackPongMessage);
 }
 
-function parseMessage(bibs, rawMessage, socket) {
+function parseMessage(bibs, bibsByNumber, rawMessage, socket) {
     const parts = rawMessage.split('@');
     if (parts.length < 3) {
         return { error: 'Invalid message format' };
@@ -220,7 +192,6 @@ function parseMessage(bibs, rawMessage, socket) {
         log.write(pongLog);
     } else if (function_.indexOf('Ack') === -1){
         socket.write(`Tije@Ack${function_}${['Store','Passing', 'Marker'].includes(function_) ? '@'+messageNumber:''}@$`);
-        console.log(`Tije@Ack${function_}${['Store','Passing', 'Marker'].includes(function_) ? '@'+messageNumber:''}@$`);
     }
 
     let parsedData;
@@ -229,7 +200,7 @@ function parseMessage(bibs, rawMessage, socket) {
             parsedData = parseStoreMessage(data);
             break;
         case 'Passing':
-            parsedData = parsePassingMessage(bibs, data);
+            parsedData = parsePassingMessage(bibs, bibsByNumber, data);
             break;
         case 'Marker':
             parsedData = parseMarkerMessage(data);
@@ -265,7 +236,7 @@ function parseStoreMessage(data) {
     });
 }
 
-function parsePassingMessage(bibs, data) {
+function parsePassingMessage(bibs, bibsByNumber, data) {
     const records = data.split('@').filter(r => r.trim() !== '');
     return records.map(record => {
         const pairs = record.split('|');
@@ -278,7 +249,7 @@ function parsePassingMessage(bibs, data) {
 
         });
         if(passingData.c) {
-            const bib = matchChipToBib(bibs, passingData);
+            const bib = matchChipToBib(bibs, bibsByNumber, passingData);
             if (bib) {
                 Object.assign(passingData, bib);
             }
@@ -394,7 +365,6 @@ async function storeMessageInRedis(parsedMessage) {
 
     try {
         await multi.exec();
-        console.log(`Stored ${parsedMessage.data.length} message(s) in Redis for ${parsedMessage.sourceName}`);
     } catch (err) {
         console.error('Redis multi exec error (storeMessage):', err);
         let xlog = log.entry(metadata, { severity: 'ERROR', message: `Redis multi exec error (storeMessage): ${err.message}` });
@@ -431,7 +401,6 @@ async function storeMarkerInRedis(parsedMessage) {
 
     try {
         await multi.exec();
-        console.log(`Stored ${parsedMessage.data.length} marker(s) in Redis for ${parsedMessage.sourceName}`);
     } catch (err) {
         console.error('Redis multi exec error (storeMarker):', err);
         let xlog = log.entry(metadata, { severity: 'ERROR', message: `Redis multi exec error (storeMarker): ${err.message}` });
@@ -446,11 +415,27 @@ async function main(){
 
     await redisClient.connect();
 
-    const bibs2023 = JSON.parse(fs.readFileSync('bib2023.json', 'utf8'));
-    const bibs2024 = JSON.parse(fs.readFileSync('bibs2024_enhanced.json', 'utf8'));
-    const bibs2025 =  JSON.parse(fs.readFileSync('bibs2025_enhanced.json', 'utf8')); //await parseCsv("Bibs_2024.csv");
+    const bibs = JSON.parse(fs.readFileSync('bibs2025_enhanced.json', 'utf8'));
 
-    const bibs = bibs2025;
+    // Pre-stringify all bib fields once so per-message conversion is not needed
+    for (const chipCode in bibs) {
+        const b = bibs[chipCode];
+        for (const k in b) {
+            if (Object.prototype.hasOwnProperty.call(b, k) && b[k] != null) {
+                b[k] = b[k].toString();
+            }
+        }
+    }
+
+    // Build O(1) reverse index by bib number for fallback lookups
+    const bibsByNumber = Object.create(null);
+    for (const b of Object.values(bibs)) {
+        if (b.bib != null) {
+            bibsByNumber[b.bib] = b;
+        }
+    }
+
+    const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1','TimeES', 'TimeEB']);
 
     app.use(express.static('public'));
 
@@ -469,9 +454,6 @@ async function main(){
 
         const query = iosocket.handshake.query || {};
         let roomName = (query.roomName || "everywhere").toString();
-
-        // Basic room whitelist to avoid unbounded growth
-        const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1','TimeES', 'TimeEB']);
         if (!allowedRooms.has(roomName)) {
             roomName = 'everywhere';
         }
@@ -514,7 +496,6 @@ async function main(){
                 filteredMessages = filteredMessages.filter(msg => msg.sourceName && pattern.test(msg.sourceName));
             }
 
-            filteredMessages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
 
             const finalMessages = filteredMessages.slice(0, sendLimit);
 
@@ -528,7 +509,6 @@ async function main(){
                 markerKeys.forEach(key => multiGetMarkers.hGetAll(key));
                 const rawMarkers = await multiGetMarkers.exec();
                 markers = rawMarkers.map(m => m).filter(m => m !=null);
-                markers.sort((a,b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
             }
 
             iosocket.emit('initial markers', markers.slice(0, sendLimit));
@@ -581,7 +561,6 @@ async function main(){
                     messages = rawMessages.map(msg => msg).filter(msg => msg != null);
                 }
 
-                messages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
                 const finalMessages = messages.slice(0, sendLimit);
 
                 // Stuur fresh data naar client
@@ -625,8 +604,6 @@ async function main(){
         const query = iosocket.handshake.query || {};
         let roomName = (query.roomName || "everywhere").toString();
 
-        // Basic room whitelist to avoid unbounded growth
-        const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1', 'TimeES', 'TimeEB']);
         if (!allowedRooms.has(roomName)) {
             roomName = 'everywhere';
         }
@@ -669,7 +646,6 @@ async function main(){
                 filteredMessages = filteredMessages.filter(msg => msg.sourceName && pattern.test(msg.sourceName));
             }
 
-            filteredMessages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
 
             const finalMessages = filteredMessages.slice(0, sendLimit);
 
@@ -683,7 +659,6 @@ async function main(){
                 markerKeys.forEach(key => multiGetMarkers.hGetAll(key));
                 const rawMarkers = await multiGetMarkers.exec();
                 markers = rawMarkers.map(m => m).filter(m => m !=null);
-                markers.sort((a,b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
             }
 
             iosocket.emit('initial markers', markers.slice(0, sendLimit));
@@ -732,7 +707,6 @@ async function main(){
                     messages = rawMessages.map(msg => msg).filter(msg => msg != null);
                 }
 
-                messages.sort((a, b) => parseInt(b.receivedTimestamp) - parseInt(a.receivedTimestamp));
                 const finalMessages = messages.slice(0, sendLimit);
 
                 iosocket.emit('all messages', finalMessages);
@@ -768,16 +742,12 @@ async function main(){
                 let pass = rawData.slice(0, sepIndex);
                 rawData = rawData.slice(sepIndex + 1);
 
-                console.log(pass);
                 const rawMessage = pass.toString().trim();
-                console.log('Received:', rawMessage);
                 let mlog = log.entry(metadata, rawMessage);
                 log.write(mlog)
                 const messageString = bufferToString(pass);
-                console.log('Received message:', messageString);
 
-                const parsedMessage = parseMessage(bibs, messageString, socket);
-                console.log('Parsed:', JSON.stringify(parsedMessage, null, 2));
+                const parsedMessage = parseMessage(bibs, bibsByNumber, messageString, socket);
                 let plog = log.entry(metadata, parsedMessage);
                 log.write(plog)
                 if (parsedMessage.function === 'AckPing') {
