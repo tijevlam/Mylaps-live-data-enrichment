@@ -139,6 +139,59 @@ Currently trimming lines are commented out. To limit memory growth, you can enab
 
 ---
 
+## Load Testing
+
+`load-test.js` simulates Mylaps `Passing` traffic against the TCP listener so you can benchmark throughput. It reads chip numbers from whichever bib file it finds first: `bibs2025_enhanced.json`, `bibs2024_enhanced.json`, `bib2024.json`, `bib2023.json`.
+
+```
+node load-test.js [options]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--count` | `100` | Number of chips/bibs to send |
+| `--host` | `127.0.0.1` | TCP target host |
+| `--port` | `3389` | TCP target port |
+| `--mode` | `burst` | `burst` (pack records into as few messages as possible) or `stream` (one message per chip) |
+| `--distribute` | `roundrobin` | How chips are spread across rooms — see below |
+| `--rooms` | `TimeFinish,TimeR1,TimeES,TimeEB` | Comma-separated list of rooms to send to |
+| `--room` | — | Shorthand for a single room (overridden by `--rooms`) |
+| `--delay` | `0` | Milliseconds to wait between messages in `stream` mode |
+| `--repeat` | `1` | How many times to repeat the whole batch |
+
+### Distribution modes
+
+* **`roundrobin`** — chips are interleaved evenly across all rooms, simulating simultaneous activity at every timing point.
+  * `burst`: one message per room, each containing its share of chips.
+  * `stream`: each successive message alternates to the next room.
+* **`wave`** — the full set of chips is sent to one room at a time, in order, simulating a field of runners passing each timing point in sequence (e.g. everyone crosses `TimeFinish`, then `TimeR1`, then `TimeES`, then `TimeEB`).
+  * `burst`: one big message per room, sent sequentially.
+  * `stream`: every chip streamed through room 1, then every chip through room 2, etc.
+
+### Examples
+
+```bash
+# 100 bibs split evenly across the 4 default rooms, sent as 4 burst messages
+node load-test.js --count 100
+
+# Same, but one message per bib, alternating rooms
+node load-test.js --count 100 --mode stream --distribute roundrobin
+
+# Simulate a race: full field of 500 through each timing point in sequence
+node load-test.js --count 500 --distribute wave --repeat 3
+
+# Target only one room
+node load-test.js --count 100 --room TimeFinish
+
+# Target a custom subset of rooms
+node load-test.js --count 100 --rooms TimeFinish,TimeR1
+
+# Against a remote server
+node load-test.js --host example.com --port 3389 --count 1000
+```
+
+---
+
 ## Start Remote Server
 
 ```
