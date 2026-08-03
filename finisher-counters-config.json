@@ -1,0 +1,12 @@
+{
+  "_readme": "Fill this in before resetting the live Redis finisher counters to 0 for a new race. baseOffsets carries over the all-time totals from before the reset, so counters keep reporting correct 'ever' numbers. specialFinishes lists all-time totals to flag when reached. See finisher-counters-config.example.json for a filled-in example. This file itself can stay all-zero/empty if you don't need carry-over or milestones.",
+  "baseOffsets": {
+    "finish": {
+      "overall": { "_all": 0 },
+      "distance": {},
+      "gender": {},
+      "distanceGender": {}
+    }
+  },
+  "specialFinishes": []
+}

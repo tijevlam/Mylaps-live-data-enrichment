@@ -443,30 +443,68 @@ async function evalCounterScript(keys, args) {
     }
 }
 
-// Each dimension owns both how it derives its Redis key for a given passing
-// record (keyFor) and how to enumerate all its keys for a snapshot
-// (snapshotEntries). Add more dimensions here (e.g. age category) without
-// touching anything else.
+// Historical carry-over + milestone config, e.g. before resetting Redis's live
+// counters to 0 for a new race, this file records what the all-time totals
+// were so counters can keep reporting correct "ever" numbers, and lists the
+// specific all-time totals ("special finishes") that should be flagged when
+// reached. See finisher-counters-config.example.json for the schema.
+const FINISHER_COUNTERS_CONFIG_PATH = process.env.FINISHER_COUNTERS_CONFIG || 'finisher-counters-config.json';
+let finisherCountersConfig = { baseOffsets: {}, specialFinishes: [] };
+try {
+    finisherCountersConfig = JSON.parse(fs.readFileSync(FINISHER_COUNTERS_CONFIG_PATH, 'utf8'));
+} catch (err) {
+    console.warn(`No finisher counters config at ${FINISHER_COUNTERS_CONFIG_PATH} (${err.code || err.message}); starting with no base offsets or special finishes.`);
+}
+
+// Base offset = the all-time count this dimension/group already had before the
+// live Redis counter was last reset to 0. "group" must match the label used in
+// snapshotEntries/groupFor below (e.g. a raceType string, a gender string, or
+// "raceType|gender" for the combined dimension).
+function getBaseOffset(eventName, dimensionName, group) {
+    const eventOffsets = finisherCountersConfig.baseOffsets && finisherCountersConfig.baseOffsets[eventName];
+    const dimOffsets = eventOffsets && eventOffsets[dimensionName];
+    return Number((dimOffsets && dimOffsets[group]) || 0);
+}
+
+// Special finishes: milestone all-time totals to flag (e.g. "the 30,000th
+// finisher ever"). Matched against dimension + group + exact target count;
+// since every finish increments its counters by exactly 1, an exact-match
+// check is sufficient (no risk of "jumping past" a target).
+function matchSpecialFinishes(eventName, dimensionName, group, allTimeCount) {
+    return (finisherCountersConfig.specialFinishes || [])
+        .filter(m => m.event ? m.event === eventName : true)
+        .filter(m => m.dimension === dimensionName && m.group === group && Number(m.target) === allTimeCount)
+        .map(m => ({ dimension: dimensionName, group, target: Number(m.target), label: m.label || null }));
+}
+
+// Each dimension owns how it derives its Redis key for a given passing record
+// (keyFor), its "group" label for offset/milestone lookups (groupFor), and how
+// to enumerate all its keys for a snapshot (snapshotEntries). Add more
+// dimensions here (e.g. age category) without touching anything else.
 const FINISHER_COUNTER_DIMENSIONS = [
     {
         name: 'overall',
+        groupFor: () => '_all',
         keyFor: (eventName) => `cnt:${eventName}:overall`,
         snapshotEntries: (eventName) => [{ label: '_all', key: `cnt:${eventName}:overall` }],
     },
     {
         name: 'distance',
+        groupFor: (r) => r.raceType || 'unknown',
         keyFor: (eventName, r) => `cnt:${eventName}:distance:${r.raceType || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) =>
             knownGroups.distances.map(d => ({ label: d, key: `cnt:${eventName}:distance:${d}` })),
     },
     {
         name: 'gender',
+        groupFor: (r) => r.gender || 'unknown',
         keyFor: (eventName, r) => `cnt:${eventName}:gender:${r.gender || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) =>
             knownGroups.genders.map(g => ({ label: g, key: `cnt:${eventName}:gender:${g}` })),
     },
     {
         name: 'distanceGender',
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.gender || 'unknown'}`,
         keyFor: (eventName, r) => `cnt:${eventName}:distance-gender:${r.raceType || 'unknown'}|${r.gender || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) => {
             const entries = [];
@@ -506,8 +544,9 @@ function computeKnownGroups(bibs) {
 }
 
 // Records a counter-event passing if (and only if) this bib/chip hasn't been
-// counted for this event before. Returns the updated counts per dimension, or
-// null when it's a duplicate (or the record has no usable identity).
+// counted for this event before. Returns { counters, allTime, specialFinishes }
+// (live counts, live+baseOffset "ever" counts, and any milestones just hit),
+// or null when it's a duplicate (or the record has no usable identity).
 async function recordCounterEvent(eventConfig, record) {
     const dedupeId = record.bib ? `bib:${record.bib}` : (record.c ? `chip:${record.c}` : null);
     if (!dedupeId) return null;
@@ -519,10 +558,18 @@ async function recordCounterEvent(eventConfig, record) {
     if (!rawResult) return null;
 
     const counters = {};
+    const allTime = {};
+    const specialFinishes = [];
     eventConfig.dimensions.forEach((dim, i) => {
-        counters[dim.name] = Number(rawResult[i]);
+        const liveCount = Number(rawResult[i]);
+        const group = dim.groupFor(record);
+        const allTimeCount = liveCount + getBaseOffset(eventConfig.name, dim.name, group);
+
+        counters[dim.name] = liveCount;
+        allTime[dim.name] = allTimeCount;
+        specialFinishes.push(...matchSpecialFinishes(eventConfig.name, dim.name, group, allTimeCount));
     });
-    return counters;
+    return { counters, allTime, specialFinishes };
 }
 
 async function getCounterSnapshot(eventConfig, knownGroups) {
@@ -530,22 +577,29 @@ async function getCounterSnapshot(eventConfig, knownGroups) {
     const allKeys = perDimension.flat().map(e => e.key);
     const values = allKeys.length ? await redisClient.mGet(allKeys) : [];
 
-    const snapshot = {};
+    const counters = {};
+    const allTime = {};
     let idx = 0;
     eventConfig.dimensions.forEach((dim, di) => {
         if (dim.name === 'overall') {
-            snapshot.overall = Number(values[idx] || 0);
+            const live = Number(values[idx] || 0);
+            counters.overall = live;
+            allTime.overall = live + getBaseOffset(eventConfig.name, dim.name, '_all');
             idx += 1;
             return;
         }
         const bucket = {};
+        const allTimeBucket = {};
         for (const entry of perDimension[di]) {
-            bucket[entry.label] = Number(values[idx] || 0);
+            const live = Number(values[idx] || 0);
+            bucket[entry.label] = live;
+            allTimeBucket[entry.label] = live + getBaseOffset(eventConfig.name, dim.name, entry.label);
             idx += 1;
         }
-        snapshot[dim.name] = bucket;
+        counters[dim.name] = bucket;
+        allTime[dim.name] = allTimeBucket;
     });
-    return snapshot;
+    return { counters, allTime };
 }
 
 async function getAllCounterSnapshots(knownGroups) {
@@ -938,8 +992,8 @@ async function main(){
                         // MYLAPS already sends them in within a batch.
                         for (const record of parsedMessage.data) {
                             try {
-                                const counters = await recordCounterEvent(counterEvent, record);
-                                if (counters) {
+                                const result = await recordCounterEvent(counterEvent, record);
+                                if (result) {
                                     const counterPayload = {
                                         event: counterEvent.name,
                                         sourceName: parsedMessage.sourceName,
@@ -948,11 +1002,18 @@ async function main(){
                                         name: record.Name || null,
                                         gender: record.gender || null,
                                         raceType: record.raceType || null,
-                                        counters,
+                                        counters: result.counters,
+                                        allTime: result.allTime,
                                         timestamp: Date.now(),
                                     };
                                     io.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
                                     httpsio.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
+
+                                    if (result.specialFinishes.length > 0) {
+                                        const specialPayload = { ...counterPayload, specialFinishes: result.specialFinishes };
+                                        io.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
+                                        httpsio.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
+                                    }
                                 }
                             } catch (err) {
                                 console.error('Finisher counter error:', err);
