@@ -408,6 +408,155 @@ async function storeMarkerInRedis(parsedMessage) {
     }
 }
 
+// ---------------- Finisher counters ----------------
+// Reliable, dedicated, dedup'd counters (overall / per distance / per gender / per
+// distance+gender) that ride alongside the existing passing-message stream. This
+// is purely additive: it does not read, write, or emit anything the existing
+// message/marker flow depends on.
+//
+// Dedup + increment happens atomically in Redis via a small Lua script, so
+// concurrent or duplicate "beeps" for the same bib (double reads at the mat,
+// retried TCP messages, etc.) only ever get counted once, even under load.
+const COUNTER_LUA_SCRIPT = `
+local added = redis.call('SADD', KEYS[1], ARGV[1])
+if added == 0 then
+  return false
+end
+local counts = {}
+for i = 2, #KEYS do
+  counts[i - 1] = redis.call('INCR', KEYS[i])
+end
+return counts
+`;
+
+let counterScriptSha = null;
+
+async function evalCounterScript(keys, args) {
+    try {
+        return await redisClient.evalSha(counterScriptSha, { keys, arguments: args });
+    } catch (err) {
+        if (err && /NOSCRIPT/.test(err.message)) {
+            counterScriptSha = await redisClient.scriptLoad(COUNTER_LUA_SCRIPT);
+            return await redisClient.evalSha(counterScriptSha, { keys, arguments: args });
+        }
+        throw err;
+    }
+}
+
+// Each dimension owns both how it derives its Redis key for a given passing
+// record (keyFor) and how to enumerate all its keys for a snapshot
+// (snapshotEntries). Add more dimensions here (e.g. age category) without
+// touching anything else.
+const FINISHER_COUNTER_DIMENSIONS = [
+    {
+        name: 'overall',
+        keyFor: (eventName) => `cnt:${eventName}:overall`,
+        snapshotEntries: (eventName) => [{ label: '_all', key: `cnt:${eventName}:overall` }],
+    },
+    {
+        name: 'distance',
+        keyFor: (eventName, r) => `cnt:${eventName}:distance:${r.raceType || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) =>
+            knownGroups.distances.map(d => ({ label: d, key: `cnt:${eventName}:distance:${d}` })),
+    },
+    {
+        name: 'gender',
+        keyFor: (eventName, r) => `cnt:${eventName}:gender:${r.gender || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) =>
+            knownGroups.genders.map(g => ({ label: g, key: `cnt:${eventName}:gender:${g}` })),
+    },
+    {
+        name: 'distanceGender',
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-gender:${r.raceType || 'unknown'}|${r.gender || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) => {
+            const entries = [];
+            for (const d of knownGroups.distances) {
+                for (const g of knownGroups.genders) {
+                    entries.push({ label: `${d}|${g}`, key: `cnt:${eventName}:distance-gender:${d}|${g}` });
+                }
+            }
+            return entries;
+        },
+    },
+];
+
+// Which timing points count as a "finish" for counter purposes. Configurable so
+// other timing points (or future non-finish counters) can be added later
+// without changing how counting/dedup/broadcasting works.
+const COUNTER_EVENTS = [
+    {
+        name: 'finish',
+        sourceName: process.env.FINISH_SOURCE_NAME || 'TimeFinish',
+        dedupeSetKey: 'cnt:finish:seen',
+        dimensions: FINISHER_COUNTER_DIMENSIONS,
+    },
+];
+
+// Known distance/gender values come straight from the loaded bib data, so the
+// counters and their snapshot automatically adapt to whatever race types and
+// genders exist for the current event, with no hardcoded lists.
+function computeKnownGroups(bibs) {
+    const distances = new Set(['unknown']);
+    const genders = new Set(['unknown']);
+    for (const b of Object.values(bibs)) {
+        if (b.raceType) distances.add(b.raceType);
+        if (b.gender) genders.add(b.gender);
+    }
+    return { distances: [...distances], genders: [...genders] };
+}
+
+// Records a counter-event passing if (and only if) this bib/chip hasn't been
+// counted for this event before. Returns the updated counts per dimension, or
+// null when it's a duplicate (or the record has no usable identity).
+async function recordCounterEvent(eventConfig, record) {
+    const dedupeId = record.bib ? `bib:${record.bib}` : (record.c ? `chip:${record.c}` : null);
+    if (!dedupeId) return null;
+
+    const dimensionKeys = eventConfig.dimensions.map(dim => dim.keyFor(eventConfig.name, record));
+    const keys = [eventConfig.dedupeSetKey, ...dimensionKeys];
+
+    const rawResult = await evalCounterScript(keys, [dedupeId]);
+    if (!rawResult) return null;
+
+    const counters = {};
+    eventConfig.dimensions.forEach((dim, i) => {
+        counters[dim.name] = Number(rawResult[i]);
+    });
+    return counters;
+}
+
+async function getCounterSnapshot(eventConfig, knownGroups) {
+    const perDimension = eventConfig.dimensions.map(dim => dim.snapshotEntries(eventConfig.name, knownGroups));
+    const allKeys = perDimension.flat().map(e => e.key);
+    const values = allKeys.length ? await redisClient.mGet(allKeys) : [];
+
+    const snapshot = {};
+    let idx = 0;
+    eventConfig.dimensions.forEach((dim, di) => {
+        if (dim.name === 'overall') {
+            snapshot.overall = Number(values[idx] || 0);
+            idx += 1;
+            return;
+        }
+        const bucket = {};
+        for (const entry of perDimension[di]) {
+            bucket[entry.label] = Number(values[idx] || 0);
+            idx += 1;
+        }
+        snapshot[dim.name] = bucket;
+    });
+    return snapshot;
+}
+
+async function getAllCounterSnapshots(knownGroups) {
+    const snapshots = {};
+    for (const eventConfig of COUNTER_EVENTS) {
+        snapshots[eventConfig.name] = await getCounterSnapshot(eventConfig, knownGroups);
+    }
+    return snapshots;
+}
+// -----------------------------------------------------------------
+
 let httpsServer;
 let tcpServer;
 
@@ -436,6 +585,11 @@ async function main(){
     }
 
     const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1','TimeES', 'TimeEB']);
+
+    // Finisher counters: derive known distance/gender groups from the bib data
+    // and pre-load the atomic dedup+increment Lua script.
+    const finisherKnownGroups = computeKnownGroups(bibs);
+    counterScriptSha = await redisClient.scriptLoad(COUNTER_LUA_SCRIPT);
 
     app.use(express.static('public'));
 
@@ -518,6 +672,15 @@ async function main(){
             iosocket.emit('initial data', []);
             iosocket.emit('initial markers', []);
             let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching initial data from Redis: ${err.message}` });
+            log.write(xlog);
+        }
+
+        try {
+            iosocket.emit('initial finisher counters', await getAllCounterSnapshots(finisherKnownGroups));
+        } catch (err) {
+            console.error('Error fetching finisher counters from Redis:', err);
+            iosocket.emit('initial finisher counters', {});
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching finisher counters from Redis: ${err.message}` });
             log.write(xlog);
         }
 
@@ -671,6 +834,15 @@ async function main(){
             log.write(xlog);
         }
 
+        try {
+            iosocket.emit('initial finisher counters', await getAllCounterSnapshots(finisherKnownGroups));
+        } catch (err) {
+            console.error('Error fetching finisher counters from Redis:', err);
+            iosocket.emit('initial finisher counters', {});
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching finisher counters from Redis: ${err.message}` });
+            log.write(xlog);
+        }
+
         iosocket.on('change room', async (newRoom) => {
             console.log(`User wants to change from ${iosocket.currentRoom} to ${newRoom}`);
 
@@ -758,6 +930,37 @@ async function main(){
                     await storeMessageInRedis(parsedMessage);
                     io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
                     httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
+
+                    const counterEvent = COUNTER_EVENTS.find(ev => ev.sourceName === parsedMessage.sourceName);
+                    if (counterEvent && Array.isArray(parsedMessage.data)) {
+                        // Sequential (not parallel) so ranks are assigned in the same
+                        // order the chips actually crossed the mat, matching the order
+                        // MYLAPS already sends them in within a batch.
+                        for (const record of parsedMessage.data) {
+                            try {
+                                const counters = await recordCounterEvent(counterEvent, record);
+                                if (counters) {
+                                    const counterPayload = {
+                                        event: counterEvent.name,
+                                        sourceName: parsedMessage.sourceName,
+                                        bib: record.bib || null,
+                                        chip: record.c || null,
+                                        name: record.Name || null,
+                                        gender: record.gender || null,
+                                        raceType: record.raceType || null,
+                                        counters,
+                                        timestamp: Date.now(),
+                                    };
+                                    io.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
+                                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
+                                }
+                            } catch (err) {
+                                console.error('Finisher counter error:', err);
+                                let xlog = log.entry(metadata, { severity: 'ERROR', message: `Finisher counter error: ${err.message}` });
+                                log.write(xlog);
+                            }
+                        }
+                    }
                 }
 
                 if(parsedMessage.function === 'Marker') {
