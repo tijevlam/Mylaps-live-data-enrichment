@@ -266,12 +266,25 @@ same finish).
 
   // Fires only on milestone finishes — good for a banner/confetti moment.
   socket.on('special finish', (update) => {
+    // Optional: vibrate on supporting devices (mostly Android; iOS Safari has
+    // no Vibration API at all, so `navigator.vibrate` is simply undefined
+    // there — the `if` guard skips it silently instead of throwing).
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200, 100, 400]); // buzz-pause-buzz-pause-buzz (ms)
+    }
+
     for (const milestone of update.specialFinishes) {
+      showConfetti(); // your own confetti trigger
       alert(`${update.name || 'Someone'} is ${milestone.label}`);
     }
   });
 </script>
 ```
+
+> **Mobile vibration note:** `navigator.vibrate()` only works on browsers that
+> implement the Vibration API (mainly Android Chrome/Firefox). iOS Safari
+> (including installed PWAs) never implements it, so on iPhone the confetti/
+> banner will still show, just without the buzz.
 
 ### Configuration (backend/ops — not needed by the frontend)
 
