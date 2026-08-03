@@ -43,6 +43,10 @@ https://challengealmere.s3.eu-west-1.amazonaws.com
 | `REDIS_PORT` | Redis port | `6379` |
 | `PROJECT_ID` | GCP Project ID for logging | (none) |
 | `ALLOWED_ORIGINS` | Comma-separated list of allowed origins or `*` | (internal default list) |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web Push keys (see "Push Notifications" below) | (none — push disabled) |
+| `VAPID_SUBJECT` | `mailto:` contact address required by the push protocol | `mailto:admin@example.com` |
+| `FINISH_SOURCE_NAME` | Which `sourceName` counts as "finish" for finisher counters | `TimeFinish` |
+| `FINISHER_COUNTERS_CONFIG` | Path to the finisher counters config file | `finisher-counters-config.json` |
 
 ### Events
 
@@ -303,6 +307,117 @@ same finish).
 | `cnt:finish:distance:<raceType>` | String (int) | Live count per distance |
 | `cnt:finish:gender:<gender>` | String (int) | Live count per gender |
 | `cnt:finish:distance-gender:<raceType>\|<gender>` | String (int) | Live count per distance+gender |
+
+---
+
+## Push Notifications (Special Finishes)
+
+Real background push notifications for `special finish` events — they arrive
+even if the PWA is closed or the phone is locked, not just while the page is
+open. This is entirely optional and additive: with no VAPID keys configured,
+this whole feature is a no-op and nothing else on the server is affected.
+
+**Requirements on iOS:** Safari only delivers Web Push to a site that has been
+**added to the home screen** (iOS 16.4+); a normal Safari tab can never
+receive push, even with permission granted. Android Chrome/Firefox support it
+in a regular tab too, no install required.
+
+**Performance/load:** negligible. Special finishes are milestone events, not
+per-finisher — realistically a handful per race day — so this only ever sends
+a small burst of push requests, never on the hot per-passing path (it's
+fire-and-forget, never awaited, so a slow/unreachable push endpoint can't
+delay live timing data). Subscriptions are stored in a single Redis hash;
+even thousands of subscribed devices is a few hundred KB, no meaningful
+memory or CPU cost. Expired/invalid subscriptions are pruned automatically
+when the push service reports them gone (404/410).
+
+### One-time server setup
+
+```
+node generate-vapid-keys.js
+```
+
+Copy the printed `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`
+into your environment (the private key is a secret — never commit it) and
+restart the server.
+
+### Endpoints
+
+| Endpoint | Method | Purpose |
+|-----------|--------|---------|
+| `/push-public-key` | GET | Returns `{ publicKey }` so the frontend doesn't need to hardcode it. Returns `503` if push isn't configured. |
+| `/push-subscribe` | POST | Body = the `PushSubscription` object from `pushManager.subscribe(...)`. Stores/overwrites it, keyed by its `endpoint`. |
+| `/push-unsubscribe` | POST | Body = `{ "endpoint": "..." }`. Removes that subscription. |
+
+### Frontend integration
+
+This needs to run from **your PWA's own origin** (the service worker scope is
+origin-bound), so it lives in your frontend project, not in this repo.
+
+**1. Service worker** (e.g. `sw.js`, registered at your site's root):
+
+```js
+self.addEventListener('push', (event) => {
+  const payload = event.data ? event.data.json() : {};
+  event.waitUntil(
+    self.registration.showNotification(payload.title || 'Special finish!', {
+      body: payload.body || '',
+      icon: '/android-chrome-192x192.png',
+      data: payload.data || {},
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow('/'));
+});
+```
+
+**2. Register, ask permission, and subscribe** (must run after a user gesture,
+e.g. a "Enable notifications" button tap — required on iOS):
+
+```js
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function enablePushNotifications() {
+  const registration = await navigator.serviceWorker.register('/sw.js');
+
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') return;
+
+  const { publicKey } = await fetch('https://YOUR_DEPLOYMENT_HOST/push-public-key').then(r => r.json());
+
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(publicKey),
+  });
+
+  await fetch('https://YOUR_DEPLOYMENT_HOST/push-subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(subscription),
+  });
+}
+
+document.getElementById('enable-notifications').addEventListener('click', enablePushNotifications);
+```
+
+That's it — no socket.io code needed for this part. The server sends a push
+message directly to each subscribed device whenever a `special finish` is
+detected; the service worker shows it as a system notification, independent
+of whether the page/socket connection is open.
+
+### Data Model (Redis) — push subscriptions
+
+| Key Pattern | Type | Contents |
+|-------------|------|----------|
+| `push:subscriptions` | Hash | `endpoint -> JSON.stringify(PushSubscription)` for every subscribed device |
 
 ---
 

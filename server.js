@@ -9,6 +9,7 @@ const https = require('https');
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 const cors = require('cors'); // NEW: enable cross-site access for Socket.IO + Express
+const webpush = require('web-push'); // Web Push notifications for special finishes
 
 const app = express();
 const server = createServer(app);
@@ -611,6 +612,77 @@ async function getAllCounterSnapshots(knownGroups) {
 }
 // -----------------------------------------------------------------
 
+// ---------------- Push notifications (special finishes) ----------------
+// Lets an installed PWA (incl. iOS Safari 16.4+, added to the home screen)
+// receive a system notification for a special finish even when the app is
+// backgrounded or the phone is locked. Entirely optional: with no VAPID keys
+// configured this whole block is a no-op and nothing else is affected.
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@example.com';
+const pushNotificationsEnabled = Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+
+if (pushNotificationsEnabled) {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+} else {
+    console.warn('VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY not set - special finish push notifications are disabled.');
+}
+
+const PUSH_SUBSCRIPTIONS_KEY = 'push:subscriptions'; // Redis hash: endpoint -> JSON subscription
+
+async function savePushSubscription(subscription) {
+    await redisClient.hSet(PUSH_SUBSCRIPTIONS_KEY, subscription.endpoint, JSON.stringify(subscription));
+}
+
+async function removePushSubscription(endpoint) {
+    await redisClient.hDel(PUSH_SUBSCRIPTIONS_KEY, endpoint);
+}
+
+// Sends one push message per subscribed device. Fire-and-forget from the
+// caller's perspective (never awaited on the hot passing-processing path) so
+// a slow or unreachable push endpoint can never delay live timing data.
+// Expired/invalid subscriptions (410/404) are pruned as they're discovered.
+async function sendSpecialFinishPushNotifications(specialFinishPayload) {
+    if (!pushNotificationsEnabled) return;
+
+    let subscriptionsByEndpoint;
+    try {
+        subscriptionsByEndpoint = await redisClient.hGetAll(PUSH_SUBSCRIPTIONS_KEY);
+    } catch (err) {
+        console.error('Error reading push subscriptions from Redis:', err);
+        return;
+    }
+
+    const milestoneText = specialFinishPayload.specialFinishes
+        .map(m => m.label || `milestone ${m.target}`)
+        .join(', ');
+    const notificationBody = JSON.stringify({
+        title: 'Special finish!',
+        body: `${specialFinishPayload.name || specialFinishPayload.bib || 'Someone'} is ${milestoneText}`,
+        data: specialFinishPayload,
+    });
+
+    await Promise.allSettled(Object.entries(subscriptionsByEndpoint).map(async ([endpoint, subscriptionJson]) => {
+        let subscription;
+        try {
+            subscription = JSON.parse(subscriptionJson);
+        } catch (err) {
+            await removePushSubscription(endpoint);
+            return;
+        }
+        try {
+            await webpush.sendNotification(subscription, notificationBody);
+        } catch (err) {
+            if (err.statusCode === 404 || err.statusCode === 410) {
+                await removePushSubscription(endpoint);
+            } else {
+                console.error('Push send error:', err.message);
+            }
+        }
+    }));
+}
+// -----------------------------------------------------------------
+
 let httpsServer;
 let tcpServer;
 
@@ -646,6 +718,47 @@ async function main(){
     counterScriptSha = await redisClient.scriptLoad(COUNTER_LUA_SCRIPT);
 
     app.use(express.static('public'));
+    app.use(express.json());
+
+    // Push notification subscription endpoints. Registered before the
+    // catch-all '/:room' route below so they aren't swallowed by it.
+    app.get('/push-public-key', (req, res) => {
+        if (!pushNotificationsEnabled) {
+            return res.status(503).json({ error: 'Push notifications are not configured on this server' });
+        }
+        res.json({ publicKey: VAPID_PUBLIC_KEY });
+    });
+
+    app.post('/push-subscribe', async (req, res) => {
+        if (!pushNotificationsEnabled) {
+            return res.status(503).json({ error: 'Push notifications are not configured on this server' });
+        }
+        const subscription = req.body;
+        if (!subscription || typeof subscription.endpoint !== 'string') {
+            return res.status(400).json({ error: 'Invalid subscription' });
+        }
+        try {
+            await savePushSubscription(subscription);
+            res.status(201).json({ ok: true });
+        } catch (err) {
+            console.error('Error saving push subscription:', err);
+            res.status(500).json({ error: 'Failed to save subscription' });
+        }
+    });
+
+    app.post('/push-unsubscribe', async (req, res) => {
+        const endpoint = req.body && req.body.endpoint;
+        if (typeof endpoint !== 'string') {
+            return res.status(400).json({ error: 'Missing endpoint' });
+        }
+        try {
+            await removePushSubscription(endpoint);
+            res.status(200).json({ ok: true });
+        } catch (err) {
+            console.error('Error removing push subscription:', err);
+            res.status(500).json({ error: 'Failed to remove subscription' });
+        }
+    });
 
     app.get('/:room', (req, res) => {
         console.log("Requested index html: ", `room name: ${req.params.room.split("?")[0]}`, `, query: ${JSON.stringify(req.query)}`)
@@ -1013,6 +1126,10 @@ async function main(){
                                         const specialPayload = { ...counterPayload, specialFinishes: result.specialFinishes };
                                         io.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
                                         httpsio.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
+                                        // Not awaited: push delivery must never delay live timing data.
+                                        sendSpecialFinishPushNotifications(specialPayload).catch(err => {
+                                            console.error('Error sending special finish push notifications:', err);
+                                        });
                                     }
                                 }
                             } catch (err) {
