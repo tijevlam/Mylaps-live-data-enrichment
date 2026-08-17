@@ -3,3 +3,6 @@ appengine-generated/
 node_modules/
 .idea/
 .kanbots/
+
+# Downloaded/cached load-test fixture data (large, regenerable)
+.cache/

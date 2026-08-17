@@ -421,6 +421,53 @@ of whether the page/socket connection is open.
 
 ---
 
+## Load Testing With Real 2025 Results
+
+`replay-2025-results.js` replays every real timing-mat split from the actual
+2025 race (start, swim exit, bike splits, run splits, finish — ~49,000
+events across ~1,865 real bibs) against the TCP ingest, so you can load-test
+the server — including the finisher counters, dedup, and push pipeline —
+with realistic volume and real bib/gender/distance data instead of synthetic
+messages. The source data is downloaded once (~100MB) from Challenge
+Almere's public results bucket and cached locally under `.cache/` (gitignored).
+
+```
+node replay-2025-results.js                        # timeline: real pacing, compressed 300x (whole day in ~3 min)
+node replay-2025-results.js --mode burst            # blast everything as fast as possible (pure throughput test)
+node replay-2025-results.js --limit 500             # quick smoke test (first 500 chronological events)
+node replay-2025-results.js --speed 60               # timeline at 60x instead of the 300x default
+node replay-2025-results.js --host 1.2.3.4 --yes    # point at a non-local server (see warning below)
+```
+
+| Flag | Default | Purpose |
+|------|---------|---------|
+| `--host` / `--port` | `127.0.0.1` / `3389` | Target TCP server |
+| `--mode` | `timeline` | `timeline` = realistic pacing (real gaps between events, compressed by `--speed`); `burst` = no pacing, chunked into `--chunk`-sized messages, sent as fast as possible |
+| `--speed` | `300` | Timeline mode only: real-time compression factor (300x turns the ~16.3-hour race day into ~3.3 minutes) |
+| `--chunk` | `150` | Burst mode only: max records per Passing message |
+| `--limit N` | (none) | Only replay the first N chronological events — fast smoke test |
+| `--url` / `--file` | Challenge Almere's 2025 results bucket / `.cache/2025-results-merged.json` | Where to download from / cache to |
+| `--refresh` | off | Force re-download even if a cached copy exists |
+| `--yes` | off | Required to target any host other than localhost (see warning) |
+
+**⚠️ This pollutes finisher-counter state.** Every replayed bib goes through
+the real dedup pipeline, so after running this those ~1,865 bibs are marked
+"already counted." Only point this at a server backed by a local/throwaway
+Redis, or run `node reset-finisher-counters.js --yes` afterwards — otherwise
+real athletes reusing those same bib numbers next race won't get counted.
+That's also why the script refuses to target a non-localhost `--host`
+without an explicit `--yes`.
+
+Timing-point aliases in the results file (`TIMEFINISH`, `TIMER1`, `TIMEES`,
+`TIMEEB`, etc.) are mapped to the server's actual `sourceName` values — most
+importantly `TIMEFINISH` → `TimeFinish`, since that's what the finisher
+counters key off. Verified end-to-end against a stub TCP server: all ~49,000
+records parse cleanly, `TimeFinish` events carry real bib/gender/distance
+data, and both `timeline` and `burst` modes complete without errors or
+backpressure stalls.
+
+---
+
 ## Start Remote Server
 
 ```
