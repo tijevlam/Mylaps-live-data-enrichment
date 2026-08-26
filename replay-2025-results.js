@@ -40,7 +40,7 @@ function flag(name) {
 const HOST = arg('--host', '34.32.193.155');
 const PORT = parseInt(arg('--port', '3389'), 10);
 const MODE = arg('--mode', 'timeline'); // timeline | burst
-const SPEED = parseFloat(arg('--speed', '20')); // timeline mode: real-time compression factor
+const SPEED = parseFloat(arg('--speed', '40')); // timeline mode: real-time compression factor
 const CHUNK = parseInt(arg('--chunk', '150'), 10); // burst mode: max records per Passing message
 const LIMIT = arg('--limit', null); // cap total events, earliest-first (quick smoke test)
 const STADIUM = flag('--stadium'); // shorthand: only the run-in-stadium laps + finish
