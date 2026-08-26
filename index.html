@@ -1964,20 +1964,56 @@
             renderFinisherCounters();
         });
 
-        // ---- Special finish: confetti + banner + vibration ----
+        // ---- Special finish: confetti + banner + vibration + row marker ----
         const CONFETTI_COLORS = ['#ff4d4d', '#ffb347', '#ffe066', '#4dd4ac', '#4dabf7', '#c084fc'];
 
-        function launchConfetti(count = 60) {
+        function launchConfetti(count = 160) {
             const container = document.getElementById('confettiContainer');
             for (let i = 0; i < count; i++) {
                 const piece = document.createElement('div');
                 piece.className = 'confetti-piece';
+                const size = 6 + Math.random() * 8; // 6-14px
+                piece.style.width = `${size}px`;
+                piece.style.height = `${size * 1.6}px`;
                 piece.style.left = `${Math.random() * 100}vw`;
                 piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
-                piece.style.animationDuration = `${2 + Math.random() * 1.5}s`;
-                piece.style.animationDelay = `${Math.random() * 0.4}s`;
+                piece.style.borderRadius = Math.random() < 0.5 ? '50%' : '0';
+                piece.style.animationDuration = `${2.2 + Math.random() * 1.8}s`;
+                piece.style.animationDelay = `${Math.random() * 0.6}s`;
                 container.appendChild(piece);
                 piece.addEventListener('animationend', () => piece.remove());
+            }
+        }
+
+        // Festively marks the table row(s) of the finisher who just hit a
+        // milestone, with a persistent badge + highlight (not time-limited
+        // like the banner/confetti -- this is a lasting record in the log).
+        function markSpecialFinishRow(update, labelText) {
+            if (!table || !update.bib) return;
+
+            const apply = () => {
+                const rows = table.getRows().filter(row => {
+                    const data = row.getData();
+                    return data.bib === update.bib && (!update.sourceName || data.sourceName === update.sourceName);
+                });
+                for (const row of rows) {
+                    const el = row.getElement();
+                    el.classList.add('special-finish-row');
+                    if (!el.querySelector('.special-finish-badge')) {
+                        const badge = document.createElement('span');
+                        badge.className = 'special-finish-badge';
+                        badge.textContent = `\u{1F389} ${labelText}`;
+                        el.appendChild(badge);
+                    }
+                }
+                return rows.length > 0;
+            };
+
+            // The 'new message' row for this finish is sent just before
+            // 'special finish', so it should already be rendered -- but
+            // retry once in case rendering is still catching up.
+            if (!apply()) {
+                setTimeout(apply, 400);
             }
         }
 
@@ -2010,8 +2046,10 @@
         socket.on('special finish', (update) => {
             if (!update || !Array.isArray(update.specialFinishes)) return;
             const milestoneText = update.specialFinishes.map(m => m.label || `milestone ${m.target}`).join(', ');
-            specialFinishQueue.push(`${update.name || update.bib || 'Iemand'} is ${milestoneText}`);
+            const who = update.name || update.bib || 'Iemand';
+            specialFinishQueue.push(`${who} is ${milestoneText}`);
             showNextSpecialFinish();
+            markSpecialFinishRow(update, milestoneText);
         });
 
         let markerData = [];
@@ -2163,22 +2201,25 @@
     }
 
     /* ---- Special finish banner ---- */
+    /* Centered overlay (not docked under the header) so it never depends on
+       the exact height of the sticky nav/counter bar, and z-index well above
+       Bootstrap/MDB's .fixed-top (which sits at 1030) so it's never covered. */
     .special-finish-banner {
         position: fixed;
-        top: 86px;
+        top: 50%;
         left: 50%;
-        transform: translate(-50%, -20px);
-        z-index: 1000;
+        transform: translate(-50%, -50%) scale(0.85);
+        z-index: 2000;
         max-width: 90vw;
-        padding: 12px 24px;
-        border-radius: 8px;
+        padding: 22px 36px;
+        border-radius: 12px;
         background: linear-gradient(90deg, #ff4d4d, #ffb347);
         color: #fff;
         font-family: Helvetica, Arial, sans-serif;
         font-weight: bold;
-        font-size: 16px;
+        font-size: 24px;
         text-align: center;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.3s ease, transform 0.3s ease;
@@ -2186,7 +2227,7 @@
 
     .special-finish-banner.show {
         opacity: 1;
-        transform: translate(-50%, 0);
+        transform: translate(-50%, -50%) scale(1);
     }
 
     /* ---- Confetti ---- */
@@ -2195,18 +2236,46 @@
         inset: 0;
         pointer-events: none;
         overflow: hidden;
-        z-index: 999;
+        z-index: 1990;
     }
 
     .confetti-piece {
         position: absolute;
         top: -12px;
-        width: 8px;
-        height: 14px;
         opacity: 0.9;
         animation-name: confetti-fall;
         animation-timing-function: linear;
         animation-fill-mode: forwards;
+    }
+
+    /* ---- Special finish row marker (in the passings table) ---- */
+    .tabulator-row.special-finish-row {
+        position: relative;
+        background-color: #fff3cd !important;
+        box-shadow: inset 0 0 0 2px #ffb347;
+        animation: special-finish-row-glow 1.8s ease-in-out 3;
+    }
+
+    @keyframes special-finish-row-glow {
+        0%, 100% { box-shadow: inset 0 0 0 2px #ffb347; }
+        50% { box-shadow: inset 0 0 0 2px #ff4d4d; }
+    }
+
+    .special-finish-badge {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        background: linear-gradient(90deg, #ff4d4d, #ffb347);
+        color: #fff;
+        font-family: Helvetica, Arial, sans-serif;
+        font-weight: bold;
+        font-size: 11px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        white-space: nowrap;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
     }
 
     @keyframes confetti-fall {
