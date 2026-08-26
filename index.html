@@ -86,7 +86,18 @@
     </div>
 </nav>
 
-<div id="mylaps" class="table tabulator"  style="top:50px;"></div>
+<div id="finisherCounters" class="finisher-counters-bar">
+    <span class="fc-item fc-overall"><i class="fas fa-flag-checkered"></i> <span id="fcOverall">0</span></span>
+    <span id="fcDistanceBreakdown" class="fc-breakdown"></span>
+    <span id="fcGenderBreakdown" class="fc-breakdown"></span>
+</div>
+
+<div id="specialFinishBanner" class="special-finish-banner">
+    <span id="specialFinishText"></span>
+</div>
+<div id="confettiContainer" class="confetti-container"></div>
+
+<div id="mylaps" class="table tabulator"  style="top:86px;"></div>
 
 <!-- Edit Modal -->
 <div class="modal fade modal-lg" id="editRowFormModal" tabindex="-1" role="dialog" aria-labelledby="editFormTitle"
@@ -1915,6 +1926,94 @@
             */
         }
 
+        // ---- Finisher counters ----
+        let finisherState = { overall: 0, distance: {}, gender: {}, distanceGender: {} };
+
+        function formatCounterBreakdown(counts) {
+            if (!counts) return '';
+            return Object.entries(counts)
+                .filter(([, v]) => v > 0)
+                .sort((a, b) => b[1] - a[1])
+                .map(([label, v]) => `${label}: ${v}`)
+                .join(' &middot; ');
+        }
+
+        function renderFinisherCounters() {
+            document.getElementById('fcOverall').textContent = finisherState.overall;
+            document.getElementById('fcDistanceBreakdown').innerHTML = formatCounterBreakdown(finisherState.distance);
+            document.getElementById('fcGenderBreakdown').innerHTML = formatCounterBreakdown(finisherState.gender);
+        }
+
+        socket.on('initial finisher counters', (snapshot) => {
+            const finish = snapshot && snapshot.finish;
+            if (!finish || !finish.counters) return;
+            finisherState = {
+                overall: finish.counters.overall || 0,
+                distance: { ...(finish.counters.distance || {}) },
+                gender: { ...(finish.counters.gender || {}) },
+                distanceGender: { ...(finish.counters.distanceGender || {}) },
+            };
+            renderFinisherCounters();
+        });
+
+        socket.on('finisher counters', (update) => {
+            if (!update || !update.counters) return;
+            finisherState.overall = update.counters.overall;
+            if (update.raceType) finisherState.distance[update.raceType] = update.counters.distance;
+            if (update.gender) finisherState.gender[update.gender] = update.counters.gender;
+            renderFinisherCounters();
+        });
+
+        // ---- Special finish: confetti + banner + vibration ----
+        const CONFETTI_COLORS = ['#ff4d4d', '#ffb347', '#ffe066', '#4dd4ac', '#4dabf7', '#c084fc'];
+
+        function launchConfetti(count = 60) {
+            const container = document.getElementById('confettiContainer');
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = `${Math.random() * 100}vw`;
+                piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+                piece.style.animationDuration = `${2 + Math.random() * 1.5}s`;
+                piece.style.animationDelay = `${Math.random() * 0.4}s`;
+                container.appendChild(piece);
+                piece.addEventListener('animationend', () => piece.remove());
+            }
+        }
+
+        let specialFinishQueue = [];
+        let specialFinishShowing = false;
+
+        function showNextSpecialFinish() {
+            if (specialFinishShowing || specialFinishQueue.length === 0) return;
+            specialFinishShowing = true;
+
+            const text = specialFinishQueue.shift();
+            const banner = document.getElementById('specialFinishBanner');
+            document.getElementById('specialFinishText').textContent = text;
+            banner.classList.add('show');
+
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 400]);
+            }
+            launchConfetti();
+
+            setTimeout(() => {
+                banner.classList.remove('show');
+                setTimeout(() => {
+                    specialFinishShowing = false;
+                    showNextSpecialFinish();
+                }, 300); // matches the CSS opacity/transform transition
+            }, 5000);
+        }
+
+        socket.on('special finish', (update) => {
+            if (!update || !Array.isArray(update.specialFinishes)) return;
+            const milestoneText = update.specialFinishes.map(m => m.label || `milestone ${m.target}`).join(', ');
+            specialFinishQueue.push(`${update.name || update.bib || 'Iemand'} is ${milestoneText}`);
+            showNextSpecialFinish();
+        });
+
         let markerData = [];
         socket.on('initial markers', (markers) => {
             console.log(markers);
@@ -2021,6 +2120,103 @@
 </script>
 <script type="text/javascript" src="https://history.hollandtriathlon.nl/assets/js/mdb.min.js"></script>
 <style>
+
+    /* ---- Finisher counters bar ---- */
+    .finisher-counters-bar {
+        position: fixed;
+        top: 50px;
+        left: 0;
+        right: 0;
+        height: 36px;
+        z-index: 900;
+        background: #1a1a1a;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 0 14px;
+        overflow-x: auto;
+        white-space: nowrap;
+        font-size: 13px;
+        font-family: Helvetica, Arial, sans-serif;
+        border-bottom: 1px solid #333;
+    }
+
+    .finisher-counters-bar .fc-overall {
+        font-weight: bold;
+        font-size: 15px;
+        color: #ff4d4d;
+        flex: 0 0 auto;
+    }
+
+    .finisher-counters-bar .fc-overall i {
+        margin-right: 4px;
+    }
+
+    .finisher-counters-bar .fc-breakdown {
+        flex: 0 0 auto;
+        color: #ccc;
+    }
+
+    .finisher-counters-bar .fc-breakdown:empty {
+        display: none;
+    }
+
+    /* ---- Special finish banner ---- */
+    .special-finish-banner {
+        position: fixed;
+        top: 86px;
+        left: 50%;
+        transform: translate(-50%, -20px);
+        z-index: 1000;
+        max-width: 90vw;
+        padding: 12px 24px;
+        border-radius: 8px;
+        background: linear-gradient(90deg, #ff4d4d, #ffb347);
+        color: #fff;
+        font-family: Helvetica, Arial, sans-serif;
+        font-weight: bold;
+        font-size: 16px;
+        text-align: center;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .special-finish-banner.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    /* ---- Confetti ---- */
+    .confetti-container {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 999;
+    }
+
+    .confetti-piece {
+        position: absolute;
+        top: -12px;
+        width: 8px;
+        height: 14px;
+        opacity: 0.9;
+        animation-name: confetti-fall;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
+
+    @keyframes confetti-fall {
+        from {
+            transform: translateY(0) rotate(0deg);
+        }
+        to {
+            transform: translateY(105vh) rotate(600deg);
+        }
+    }
 
     #athleteDetails {
         margin: 0;
