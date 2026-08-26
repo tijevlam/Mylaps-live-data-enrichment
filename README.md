@@ -443,6 +443,8 @@ node replay-2025-results.js                        # timeline: real pacing, comp
 node replay-2025-results.js --mode burst            # blast everything as fast as possible (pure throughput test)
 node replay-2025-results.js --limit 500             # quick smoke test (first 500 chronological events)
 node replay-2025-results.js --speed 60               # timeline at 60x instead of the 300x default
+node replay-2025-results.js --stadium                # only the stadium run laps + finish (TimeR1-TimeR4, TimeFinish)
+node replay-2025-results.js --sources TimeR3,TimeR4,TimeFinish  # any custom sourceName subset
 node replay-2025-results.js --host 1.2.3.4 --yes    # point at a non-local server (see warning below)
 ```
 
@@ -452,7 +454,9 @@ node replay-2025-results.js --host 1.2.3.4 --yes    # point at a non-local serve
 | `--mode` | `timeline` | `timeline` = realistic pacing (real gaps between events, compressed by `--speed`); `burst` = no pacing, chunked into `--chunk`-sized messages, sent as fast as possible |
 | `--speed` | `300` | Timeline mode only: real-time compression factor (300x turns the ~16.3-hour race day into ~3.3 minutes) |
 | `--chunk` | `150` | Burst mode only: max records per Passing message |
-| `--limit N` | (none) | Only replay the first N chronological events — fast smoke test |
+| `--limit N` | (none) | Only replay the first N chronological events (after any `--stadium`/`--sources` filter) — fast smoke test |
+| `--stadium` | off | Shorthand for `--sources TimeR1,TimeR2,TimeR3,TimeR4,TimeFinish` — just the run laps back through the stadium/finish area, skipping swim/bike/T1/T2/TimeR0 |
+| `--sources <list>` | (none — all sources) | Comma-separated `sourceName` allowlist (post-alias-mapping, e.g. `TimeR1,TimeFinish`). Overrides `--stadium` if both are given |
 | `--url` / `--file` | Challenge Almere's 2025 results bucket / `.cache/2025-results-merged.json` | Where to download from / cache to |
 | `--refresh` | off | Force re-download even if a cached copy exists |
 | `--yes` | off | Required to target any host other than localhost (see warning) |

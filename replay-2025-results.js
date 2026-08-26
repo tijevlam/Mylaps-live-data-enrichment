@@ -8,6 +8,8 @@
 //   node replay-2025-results.js                    # timeline mode, 300x real time, against localhost
 //   node replay-2025-results.js --mode burst        # blast everything as fast as possible
 //   node replay-2025-results.js --limit 500         # quick smoke test (first 500 chronological events)
+//   node replay-2025-results.js --stadium           # only the run-in-stadium laps + finish (TimeR1-TimeR4, TimeFinish)
+//   node replay-2025-results.js --sources TimeR2,TimeR3,TimeR4,TimeFinish  # any custom sourceName subset
 //   node replay-2025-results.js --host 1.2.3.4 --yes  # point at a non-local server (see warning below)
 //
 // IMPORTANT: this sends ~49,000 real bib numbers through the finisher-counter
@@ -41,6 +43,8 @@ const MODE = arg('--mode', 'timeline'); // timeline | burst
 const SPEED = parseFloat(arg('--speed', '300')); // timeline mode: real-time compression factor
 const CHUNK = parseInt(arg('--chunk', '150'), 10); // burst mode: max records per Passing message
 const LIMIT = arg('--limit', null); // cap total events, earliest-first (quick smoke test)
+const STADIUM = flag('--stadium'); // shorthand: only the run-in-stadium laps + finish
+const SOURCES_ARG = arg('--sources', null); // comma-separated sourceName allowlist (overrides --stadium)
 const SOURCE_URL = arg('--url', 'https://challengealmere.s3.dualstack.eu-west-1.amazonaws.com/data/2025-results-merged.json');
 const CACHE_FILE = arg('--file', path.join(__dirname, '.cache', '2025-results-merged.json'));
 const REFRESH = flag('--refresh');
@@ -79,6 +83,15 @@ const ALIAS_TO_SOURCE_NAME = {
 function sourceNameFor(alias) {
     return ALIAS_TO_SOURCE_NAME[alias] || alias || 'Unknown';
 }
+
+// "Stadium" = the run laps back through the stadium/finish area (TimeR1 and
+// up) plus the finish line itself -- excludes swim/bike/T1/T2/TimeR0 (the
+// very first run split, straight out of T2, not yet back at the stadium).
+const STADIUM_SOURCES = ['TimeR1', 'TimeR2', 'TimeR3', 'TimeR4', 'TimeFinish'];
+
+const SOURCE_FILTER = SOURCES_ARG
+    ? new Set(SOURCES_ARG.split(',').map(s => s.trim()).filter(Boolean))
+    : (STADIUM ? new Set(STADIUM_SOURCES) : null);
 
 // ---- Download (with local caching) ----
 function downloadFile(url, destPath, redirectsLeft = 5) {
@@ -137,9 +150,11 @@ function buildEvents(resultsData) {
                 const epoch = parseFloat(split.epochTime);
                 const bib = split.bib;
                 if (!Number.isFinite(epoch) || !bib) continue;
+                const sourceName = sourceNameFor(split.alias || split.point);
+                if (SOURCE_FILTER && !SOURCE_FILTER.has(sourceName)) continue;
                 events.push({
                     epoch,
-                    sourceName: sourceNameFor(split.alias || split.point),
+                    sourceName,
                     bib: String(bib),
                     chip: split.tag || split.pid || `T${bib}`,
                 });
@@ -252,6 +267,9 @@ async function main() {
     const uniqueBibs = new Set(events.map(e => e.bib)).size;
 
     console.log(`Loaded ${events.length} timing events for ${uniqueBibs} unique bibs.`);
+    if (SOURCE_FILTER) {
+        console.log(`Source filter: ${[...SOURCE_FILTER].join(', ')}`);
+    }
     console.log(`Target: ${HOST}:${PORT}  mode=${MODE}${MODE === 'timeline' ? `  speed=${SPEED}x` : `  chunk=${CHUNK}`}`);
     console.log('---');
 
