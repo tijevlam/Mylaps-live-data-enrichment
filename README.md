@@ -125,6 +125,13 @@ When connecting you may also pass:
 | `marker:<uuid>` | Hash | Marker item |
 | `z:markers:all` | Sorted Set | Marker IDs (score = received timestamp) |
 
+To empty just the marker database (`marker:*` + `z:markers:all`) without
+touching message history, finisher counters, or push subscriptions:
+
+```
+node reset-markers.js --yes
+```
+
 ### Trimming Strategy
 
 Currently trimming lines are commented out. To limit memory growth, you can enable them (example keeps last 1000 per source, 5000 global):
