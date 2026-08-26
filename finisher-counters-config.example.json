@@ -1,0 +1,30 @@
+{
+  "_readme": "Example only - copy the values you need into finisher-counters-config.json. 'group' must match the label used for that dimension: '_all' for overall, the raw raceType string for distance, the raw gender string for gender, and 'raceType|gender' for distanceGender.",
+
+  "baseOffsets": {
+    "finish": {
+      "overall": { "_all": 29762 },
+      "distance": {
+        "long distance": 20000,
+        "middle distance": 9762
+      },
+      "gender": {
+        "Male": 15500,
+        "Female": 14262
+      },
+      "distanceGender": {
+        "long distance|Male": 10500,
+        "long distance|Female": 9500,
+        "middle distance|Male": 5000,
+        "middle distance|Female": 4762
+      }
+    }
+  },
+
+  "specialFinishes": [
+    { "dimension": "overall", "group": "_all", "target": 30000, "label": "30,000th finisher ever!" },
+    { "dimension": "overall", "group": "_all", "target": 50000, "label": "50,000th finisher ever!" },
+    { "dimension": "gender", "group": "Female", "target": 15000, "label": "15,000th female finisher ever!" },
+    { "dimension": "distance", "group": "long distance", "target": 25000, "label": "25,000th long distance finisher ever!" }
+  ]
+}

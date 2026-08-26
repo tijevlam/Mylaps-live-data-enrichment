@@ -9,6 +9,7 @@ const https = require('https');
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 const cors = require('cors'); // NEW: enable cross-site access for Socket.IO + Express
+const webpush = require('web-push'); // Web Push notifications for special finishes
 
 const app = express();
 const server = createServer(app);
@@ -408,6 +409,280 @@ async function storeMarkerInRedis(parsedMessage) {
     }
 }
 
+// ---------------- Finisher counters ----------------
+// Reliable, dedicated, dedup'd counters (overall / per distance / per gender / per
+// distance+gender) that ride alongside the existing passing-message stream. This
+// is purely additive: it does not read, write, or emit anything the existing
+// message/marker flow depends on.
+//
+// Dedup + increment happens atomically in Redis via a small Lua script, so
+// concurrent or duplicate "beeps" for the same bib (double reads at the mat,
+// retried TCP messages, etc.) only ever get counted once, even under load.
+const COUNTER_LUA_SCRIPT = `
+local added = redis.call('SADD', KEYS[1], ARGV[1])
+if added == 0 then
+  return false
+end
+local counts = {}
+for i = 2, #KEYS do
+  counts[i - 1] = redis.call('INCR', KEYS[i])
+end
+return counts
+`;
+
+let counterScriptSha = null;
+
+async function evalCounterScript(keys, args) {
+    try {
+        return await redisClient.evalSha(counterScriptSha, { keys, arguments: args });
+    } catch (err) {
+        if (err && /NOSCRIPT/.test(err.message)) {
+            counterScriptSha = await redisClient.scriptLoad(COUNTER_LUA_SCRIPT);
+            return await redisClient.evalSha(counterScriptSha, { keys, arguments: args });
+        }
+        throw err;
+    }
+}
+
+// Historical carry-over + milestone config, e.g. before resetting Redis's live
+// counters to 0 for a new race, this file records what the all-time totals
+// were so counters can keep reporting correct "ever" numbers, and lists the
+// specific all-time totals ("special finishes") that should be flagged when
+// reached. See finisher-counters-config.example.json for the schema.
+const FINISHER_COUNTERS_CONFIG_PATH = process.env.FINISHER_COUNTERS_CONFIG || 'finisher-counters-config.json';
+let finisherCountersConfig = { baseOffsets: {}, specialFinishes: [] };
+try {
+    finisherCountersConfig = JSON.parse(fs.readFileSync(FINISHER_COUNTERS_CONFIG_PATH, 'utf8'));
+} catch (err) {
+    console.warn(`No finisher counters config at ${FINISHER_COUNTERS_CONFIG_PATH} (${err.code || err.message}); starting with no base offsets or special finishes.`);
+}
+
+// Base offset = the all-time count this dimension/group already had before the
+// live Redis counter was last reset to 0. "group" must match the label used in
+// snapshotEntries/groupFor below (e.g. a raceType string, a gender string, or
+// "raceType|gender" for the combined dimension).
+function getBaseOffset(eventName, dimensionName, group) {
+    const eventOffsets = finisherCountersConfig.baseOffsets && finisherCountersConfig.baseOffsets[eventName];
+    const dimOffsets = eventOffsets && eventOffsets[dimensionName];
+    return Number((dimOffsets && dimOffsets[group]) || 0);
+}
+
+// Special finishes: milestone all-time totals to flag (e.g. "the 30,000th
+// finisher ever"). Matched against dimension + group + exact target count;
+// since every finish increments its counters by exactly 1, an exact-match
+// check is sufficient (no risk of "jumping past" a target).
+function matchSpecialFinishes(eventName, dimensionName, group, allTimeCount) {
+    return (finisherCountersConfig.specialFinishes || [])
+        .filter(m => m.event ? m.event === eventName : true)
+        .filter(m => m.dimension === dimensionName && m.group === group && Number(m.target) === allTimeCount)
+        .map(m => ({ dimension: dimensionName, group, target: Number(m.target), label: m.label || null }));
+}
+
+// Each dimension owns how it derives its Redis key for a given passing record
+// (keyFor), its "group" label for offset/milestone lookups (groupFor), and how
+// to enumerate all its keys for a snapshot (snapshotEntries). Add more
+// dimensions here (e.g. age category) without touching anything else.
+const FINISHER_COUNTER_DIMENSIONS = [
+    {
+        name: 'overall',
+        groupFor: () => '_all',
+        keyFor: (eventName) => `cnt:${eventName}:overall`,
+        snapshotEntries: (eventName) => [{ label: '_all', key: `cnt:${eventName}:overall` }],
+    },
+    {
+        name: 'distance',
+        groupFor: (r) => r.raceType || 'unknown',
+        keyFor: (eventName, r) => `cnt:${eventName}:distance:${r.raceType || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) =>
+            knownGroups.distances.map(d => ({ label: d, key: `cnt:${eventName}:distance:${d}` })),
+    },
+    {
+        name: 'gender',
+        groupFor: (r) => r.gender || 'unknown',
+        keyFor: (eventName, r) => `cnt:${eventName}:gender:${r.gender || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) =>
+            knownGroups.genders.map(g => ({ label: g, key: `cnt:${eventName}:gender:${g}` })),
+    },
+    {
+        name: 'distanceGender',
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.gender || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-gender:${r.raceType || 'unknown'}|${r.gender || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) => {
+            const entries = [];
+            for (const d of knownGroups.distances) {
+                for (const g of knownGroups.genders) {
+                    entries.push({ label: `${d}|${g}`, key: `cnt:${eventName}:distance-gender:${d}|${g}` });
+                }
+            }
+            return entries;
+        },
+    },
+];
+
+// Which timing points count as a "finish" for counter purposes. Configurable so
+// other timing points (or future non-finish counters) can be added later
+// without changing how counting/dedup/broadcasting works.
+const COUNTER_EVENTS = [
+    {
+        name: 'finish',
+        sourceName: process.env.FINISH_SOURCE_NAME || 'TimeFinish',
+        dedupeSetKey: 'cnt:finish:seen',
+        dimensions: FINISHER_COUNTER_DIMENSIONS,
+    },
+];
+
+// Known distance/gender values come straight from the loaded bib data, so the
+// counters and their snapshot automatically adapt to whatever race types and
+// genders exist for the current event, with no hardcoded lists.
+function computeKnownGroups(bibs) {
+    const distances = new Set(['unknown']);
+    const genders = new Set(['unknown']);
+    for (const b of Object.values(bibs)) {
+        if (b.raceType) distances.add(b.raceType);
+        if (b.gender) genders.add(b.gender);
+    }
+    return { distances: [...distances], genders: [...genders] };
+}
+
+// Records a counter-event passing if (and only if) this bib/chip hasn't been
+// counted for this event before. Returns { counters, allTime, specialFinishes }
+// (live counts, live+baseOffset "ever" counts, and any milestones just hit),
+// or null when it's a duplicate (or the record has no usable identity).
+async function recordCounterEvent(eventConfig, record) {
+    const dedupeId = record.bib ? `bib:${record.bib}` : (record.c ? `chip:${record.c}` : null);
+    if (!dedupeId) return null;
+
+    const dimensionKeys = eventConfig.dimensions.map(dim => dim.keyFor(eventConfig.name, record));
+    const keys = [eventConfig.dedupeSetKey, ...dimensionKeys];
+
+    const rawResult = await evalCounterScript(keys, [dedupeId]);
+    if (!rawResult) return null;
+
+    const counters = {};
+    const allTime = {};
+    const specialFinishes = [];
+    eventConfig.dimensions.forEach((dim, i) => {
+        const liveCount = Number(rawResult[i]);
+        const group = dim.groupFor(record);
+        const allTimeCount = liveCount + getBaseOffset(eventConfig.name, dim.name, group);
+
+        counters[dim.name] = liveCount;
+        allTime[dim.name] = allTimeCount;
+        specialFinishes.push(...matchSpecialFinishes(eventConfig.name, dim.name, group, allTimeCount));
+    });
+    return { counters, allTime, specialFinishes };
+}
+
+async function getCounterSnapshot(eventConfig, knownGroups) {
+    const perDimension = eventConfig.dimensions.map(dim => dim.snapshotEntries(eventConfig.name, knownGroups));
+    const allKeys = perDimension.flat().map(e => e.key);
+    const values = allKeys.length ? await redisClient.mGet(allKeys) : [];
+
+    const counters = {};
+    const allTime = {};
+    let idx = 0;
+    eventConfig.dimensions.forEach((dim, di) => {
+        if (dim.name === 'overall') {
+            const live = Number(values[idx] || 0);
+            counters.overall = live;
+            allTime.overall = live + getBaseOffset(eventConfig.name, dim.name, '_all');
+            idx += 1;
+            return;
+        }
+        const bucket = {};
+        const allTimeBucket = {};
+        for (const entry of perDimension[di]) {
+            const live = Number(values[idx] || 0);
+            bucket[entry.label] = live;
+            allTimeBucket[entry.label] = live + getBaseOffset(eventConfig.name, dim.name, entry.label);
+            idx += 1;
+        }
+        counters[dim.name] = bucket;
+        allTime[dim.name] = allTimeBucket;
+    });
+    return { counters, allTime };
+}
+
+async function getAllCounterSnapshots(knownGroups) {
+    const snapshots = {};
+    for (const eventConfig of COUNTER_EVENTS) {
+        snapshots[eventConfig.name] = await getCounterSnapshot(eventConfig, knownGroups);
+    }
+    return snapshots;
+}
+// -----------------------------------------------------------------
+
+// ---------------- Push notifications (special finishes) ----------------
+// Lets an installed PWA (incl. iOS Safari 16.4+, added to the home screen)
+// receive a system notification for a special finish even when the app is
+// backgrounded or the phone is locked. Entirely optional: with no VAPID keys
+// configured this whole block is a no-op and nothing else is affected.
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@example.com';
+const pushNotificationsEnabled = Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+
+if (pushNotificationsEnabled) {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+} else {
+    console.warn('VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY not set - special finish push notifications are disabled.');
+}
+
+const PUSH_SUBSCRIPTIONS_KEY = 'push:subscriptions'; // Redis hash: endpoint -> JSON subscription
+
+async function savePushSubscription(subscription) {
+    await redisClient.hSet(PUSH_SUBSCRIPTIONS_KEY, subscription.endpoint, JSON.stringify(subscription));
+}
+
+async function removePushSubscription(endpoint) {
+    await redisClient.hDel(PUSH_SUBSCRIPTIONS_KEY, endpoint);
+}
+
+// Sends one push message per subscribed device. Fire-and-forget from the
+// caller's perspective (never awaited on the hot passing-processing path) so
+// a slow or unreachable push endpoint can never delay live timing data.
+// Expired/invalid subscriptions (410/404) are pruned as they're discovered.
+async function sendSpecialFinishPushNotifications(specialFinishPayload) {
+    if (!pushNotificationsEnabled) return;
+
+    let subscriptionsByEndpoint;
+    try {
+        subscriptionsByEndpoint = await redisClient.hGetAll(PUSH_SUBSCRIPTIONS_KEY);
+    } catch (err) {
+        console.error('Error reading push subscriptions from Redis:', err);
+        return;
+    }
+
+    const milestoneText = specialFinishPayload.specialFinishes
+        .map(m => m.label || `milestone ${m.target}`)
+        .join(', ');
+    const notificationBody = JSON.stringify({
+        title: 'Special finish!',
+        body: `${specialFinishPayload.name || specialFinishPayload.bib || 'Someone'} is ${milestoneText}`,
+        data: specialFinishPayload,
+    });
+
+    await Promise.allSettled(Object.entries(subscriptionsByEndpoint).map(async ([endpoint, subscriptionJson]) => {
+        let subscription;
+        try {
+            subscription = JSON.parse(subscriptionJson);
+        } catch (err) {
+            await removePushSubscription(endpoint);
+            return;
+        }
+        try {
+            await webpush.sendNotification(subscription, notificationBody);
+        } catch (err) {
+            if (err.statusCode === 404 || err.statusCode === 410) {
+                await removePushSubscription(endpoint);
+            } else {
+                console.error('Push send error:', err.message);
+            }
+        }
+    }));
+}
+// -----------------------------------------------------------------
+
 let httpsServer;
 let tcpServer;
 
@@ -437,7 +712,53 @@ async function main(){
 
     const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1','TimeES', 'TimeEB']);
 
+    // Finisher counters: derive known distance/gender groups from the bib data
+    // and pre-load the atomic dedup+increment Lua script.
+    const finisherKnownGroups = computeKnownGroups(bibs);
+    counterScriptSha = await redisClient.scriptLoad(COUNTER_LUA_SCRIPT);
+
     app.use(express.static('public'));
+    app.use(express.json());
+
+    // Push notification subscription endpoints. Registered before the
+    // catch-all '/:room' route below so they aren't swallowed by it.
+    app.get('/push-public-key', (req, res) => {
+        if (!pushNotificationsEnabled) {
+            return res.status(503).json({ error: 'Push notifications are not configured on this server' });
+        }
+        res.json({ publicKey: VAPID_PUBLIC_KEY });
+    });
+
+    app.post('/push-subscribe', async (req, res) => {
+        if (!pushNotificationsEnabled) {
+            return res.status(503).json({ error: 'Push notifications are not configured on this server' });
+        }
+        const subscription = req.body;
+        if (!subscription || typeof subscription.endpoint !== 'string') {
+            return res.status(400).json({ error: 'Invalid subscription' });
+        }
+        try {
+            await savePushSubscription(subscription);
+            res.status(201).json({ ok: true });
+        } catch (err) {
+            console.error('Error saving push subscription:', err);
+            res.status(500).json({ error: 'Failed to save subscription' });
+        }
+    });
+
+    app.post('/push-unsubscribe', async (req, res) => {
+        const endpoint = req.body && req.body.endpoint;
+        if (typeof endpoint !== 'string') {
+            return res.status(400).json({ error: 'Missing endpoint' });
+        }
+        try {
+            await removePushSubscription(endpoint);
+            res.status(200).json({ ok: true });
+        } catch (err) {
+            console.error('Error removing push subscription:', err);
+            res.status(500).json({ error: 'Failed to remove subscription' });
+        }
+    });
 
     app.get('/:room', (req, res) => {
         console.log("Requested index html: ", `room name: ${req.params.room.split("?")[0]}`, `, query: ${JSON.stringify(req.query)}`)
@@ -518,6 +839,15 @@ async function main(){
             iosocket.emit('initial data', []);
             iosocket.emit('initial markers', []);
             let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching initial data from Redis: ${err.message}` });
+            log.write(xlog);
+        }
+
+        try {
+            iosocket.emit('initial finisher counters', await getAllCounterSnapshots(finisherKnownGroups));
+        } catch (err) {
+            console.error('Error fetching finisher counters from Redis:', err);
+            iosocket.emit('initial finisher counters', {});
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching finisher counters from Redis: ${err.message}` });
             log.write(xlog);
         }
 
@@ -671,6 +1001,15 @@ async function main(){
             log.write(xlog);
         }
 
+        try {
+            iosocket.emit('initial finisher counters', await getAllCounterSnapshots(finisherKnownGroups));
+        } catch (err) {
+            console.error('Error fetching finisher counters from Redis:', err);
+            iosocket.emit('initial finisher counters', {});
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `Error fetching finisher counters from Redis: ${err.message}` });
+            log.write(xlog);
+        }
+
         iosocket.on('change room', async (newRoom) => {
             console.log(`User wants to change from ${iosocket.currentRoom} to ${newRoom}`);
 
@@ -758,6 +1097,48 @@ async function main(){
                     await storeMessageInRedis(parsedMessage);
                     io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
                     httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
+
+                    const counterEvent = COUNTER_EVENTS.find(ev => ev.sourceName === parsedMessage.sourceName);
+                    if (counterEvent && Array.isArray(parsedMessage.data)) {
+                        // Sequential (not parallel) so ranks are assigned in the same
+                        // order the chips actually crossed the mat, matching the order
+                        // MYLAPS already sends them in within a batch.
+                        for (const record of parsedMessage.data) {
+                            try {
+                                const result = await recordCounterEvent(counterEvent, record);
+                                if (result) {
+                                    const counterPayload = {
+                                        event: counterEvent.name,
+                                        sourceName: parsedMessage.sourceName,
+                                        bib: record.bib || null,
+                                        chip: record.c || null,
+                                        name: record.Name || null,
+                                        gender: record.gender || null,
+                                        raceType: record.raceType || null,
+                                        counters: result.counters,
+                                        allTime: result.allTime,
+                                        timestamp: Date.now(),
+                                    };
+                                    io.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
+                                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
+
+                                    if (result.specialFinishes.length > 0) {
+                                        const specialPayload = { ...counterPayload, specialFinishes: result.specialFinishes };
+                                        io.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
+                                        httpsio.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
+                                        // Not awaited: push delivery must never delay live timing data.
+                                        sendSpecialFinishPushNotifications(specialPayload).catch(err => {
+                                            console.error('Error sending special finish push notifications:', err);
+                                        });
+                                    }
+                                }
+                            } catch (err) {
+                                console.error('Finisher counter error:', err);
+                                let xlog = log.entry(metadata, { severity: 'ERROR', message: `Finisher counter error: ${err.message}` });
+                                log.write(xlog);
+                            }
+                        }
+                    }
                 }
 
                 if(parsedMessage.function === 'Marker') {
