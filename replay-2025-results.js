@@ -37,7 +37,7 @@ function flag(name) {
     return process.argv.includes(name);
 }
 
-const HOST = arg('--host', '127.0.0.1');
+const HOST = arg('--host', '34.32.193.155');
 const PORT = parseInt(arg('--port', '3389'), 10);
 const MODE = arg('--mode', 'timeline'); // timeline | burst
 const SPEED = parseFloat(arg('--speed', '300')); // timeline mode: real-time compression factor
