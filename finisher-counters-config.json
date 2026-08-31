@@ -2,31 +2,39 @@
   "_readme": "Fill this in before resetting the live Redis finisher counters to 0 for a new race. baseOffsets carries over the all-time totals from before the reset, so counters keep reporting correct 'ever' numbers. specialFinishes lists all-time totals to flag when reached. See finisher-counters-config.example.json for a filled-in example. This file itself can stay all-zero/empty if you don't need carry-over or milestones.",
   "baseOffsets": {
     "finish": {
-      "overall": { "_all": 29892 },
+      "overall": { "_all": 30546 },
       "distance": {
-        "long distance": 19998,
-        "middle distance": 9962
+        "long distance": 19559,
+        "middle distance": 10987
       },
       "gender": {
-        "Male": 15500,
-        "Female": 14997
+        "Male": 26822,
+        "Female": 4024
       },
       "distanceGender": {
-        "long distance|Male": 9980,
-        "long distance|Female": 9500,
-        "middle distance|Male": 4993,
-        "middle distance|Female": 4999
+        "long distance|Male": 17960,
+        "long distance|Female": 1599,
+        "middle distance|Male": 8862,
+        "middle distance|Female": 2125
       }
     }
   },
 
   "specialFinishes": [
-    { "dimension": "overall", "group": "_all", "target": 30000, "label": "30,000th finisher ever!" },
-    { "dimension": "distance", "group": "long distance", "target": 20000, "label": "25,000th long distance finisher ever!" },
-    { "dimension": "gender", "group": "Female", "target": 15000, "label": "15,000th female finisher ever!" },
-    { "dimension": "distanceGender", "group": "long distance|Male", "target": 10000, "label": "10,000th Male long distance finisher ever!" },
-    { "dimension": "distanceGender", "group": "middle distance|Male", "target": 5000, "label": "5,000th Male middle distance finisher ever!" },
-    { "dimension": "distanceGender", "group": "middle distance|Female", "target": 5000, "label": "5,000th Female middle distance finisher ever!" }
-
+    { "dimension": "overall", "group": "_all", "target": 31000, "label": "31,000th finisher ever!" },
+    { "dimension": "overall", "group": "_all", "target": 32000, "label": "32,000th finisher ever!" },
+    { "dimension": "overall", "group": "_all", "target": 33000, "label": "33,000th finisher ever!" },
+    { "dimension": "distance", "group": "long distance", "target": 20000, "label": "20,000th long distance finisher ever!" },
+    { "dimension": "distance", "group": "long distance", "target": 21000, "label": "21,000th long distance finisher ever!" },
+    { "dimension": "distance", "group": "middle distance", "target": 11000, "label": "11,000th long distance finisher ever!" },
+    { "dimension": "distance", "group": "middle distance", "target": 12500, "label": "12,500th long distance finisher ever!" },
+    { "dimension": "gender", "group": "Male", "target": 27000, "label": "27,000th male finisher ever!" },
+    { "dimension": "gender", "group": "Male", "target": 28000, "label": "28,000th male finisher ever!" },
+    { "dimension": "gender", "group": "Feale", "target": 4500, "label": "4,500th female finisher ever!" },
+    { "dimension": "distanceGender", "group": "long distance|Male", "target": 18000, "label": "10,000th Male long distance finisher ever!" },
+    { "dimension": "distanceGender", "group": "long distance|Female", "target": 1600, "label": "1600th Female long distance finisher ever!" },
+    { "dimension": "distanceGender", "group": "middle distance|Male", "target": 9000, "label": "9,000th Male middle distance finisher ever!" },
+    { "dimension": "distanceGender", "group": "middle distance|Male", "target": 10000, "label": "10,000th Male middle distance finisher ever!" },
+    { "dimension": "distanceGender", "group": "middle distance|Female", "target": 2500, "label": "2,500th Female middle distance finisher ever!" }
   ]
 }
