@@ -30,7 +30,7 @@
     { "dimension": "distance", "group": "middle distance", "target": 12500, "label": "12,500th long distance finisher ever!" },
     { "dimension": "gender", "group": "Male", "target": 27000, "label": "27,000th male finisher ever!" },
     { "dimension": "gender", "group": "Male", "target": 28000, "label": "28,000th male finisher ever!" },
-    { "dimension": "gender", "group": "Feale", "target": 4500, "label": "4,500th female finisher ever!" },
+    { "dimension": "gender", "group": "Female", "target": 4500, "label": "4,500th female finisher ever!" },
     { "dimension": "distanceGender", "group": "long distance|Male", "target": 18000, "label": "10,000th Male long distance finisher ever!" },
     { "dimension": "distanceGender", "group": "long distance|Female", "target": 1600, "label": "1600th Female long distance finisher ever!" },
     { "dimension": "distanceGender", "group": "middle distance|Male", "target": 9000, "label": "9,000th Male middle distance finisher ever!" },
