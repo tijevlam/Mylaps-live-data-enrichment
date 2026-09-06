@@ -161,7 +161,7 @@ Every bib is counted **once** the first time it crosses the finish mat
 Duplicate reads (double beeps, retried messages) never increment the counters
 twice — the dedup happens atomically server-side.
 
-For every counted finisher, four **dimensions** are tracked:
+For every counted finisher, six **dimensions** are tracked:
 
 | Dimension        | Meaning                                    | Example key            |
 |-------------------|---------------------------------------------|-------------------------|
@@ -169,6 +169,14 @@ For every counted finisher, four **dimensions** are tracked:
 | `distance`        | Per `raceType` (e.g. `"long distance"`)      | `"long distance"`       |
 | `gender`          | Per `gender` (e.g. `"Male"` / `"Female"`)     | `"Female"`              |
 | `distanceGender`  | Per distance **and** gender combined         | `"long distance\|Female"` |
+| `country`         | Per `country` (e.g. `"GBR"`)                  | `"GBR"`                 |
+| `countryGender`   | Per country **and** gender combined          | `"GBR\|Male"`            |
+
+`country` reads a `country` field off the enriched bib record, exactly like
+`gender`/`raceType` do — **the current bib enrichment file has no such field
+yet**, so every finisher will show up as `country: "unknown"` until one is
+added to the bib data (same field name, one value per bib, e.g. an ISO/IOC
+country code).
 
 Each dimension is reported twice:
 * **`counters`** — the live count since the last reset (see `reset-finisher-counters.js`).
@@ -197,13 +205,17 @@ room you're already connected to (see "Rooms" above); joining `TimeFinish` or
       "overall": 238,
       "distance": { "long distance": 150, "middle distance": 88, "unknown": 0 },
       "gender": { "Male": 130, "Female": 108, "unknown": 0 },
-      "distanceGender": { "long distance|Male": 90, "long distance|Female": 60, "...": 0 }
+      "distanceGender": { "long distance|Male": 90, "long distance|Female": 60, "...": 0 },
+      "country": { "GBR": 40, "NED": 35, "unknown": 163, "...": 0 },
+      "countryGender": { "GBR|Male": 22, "GBR|Female": 18, "...": 0 }
     },
     "allTime": {
       "overall": 30000,
       "distance": { "long distance": 20150, "middle distance": 9850, "unknown": 0 },
       "gender": { "Male": 15630, "Female": 14370, "unknown": 0 },
-      "distanceGender": { "long distance|Male": 10590, "long distance|Female": 9560, "...": 0 }
+      "distanceGender": { "long distance|Male": 10590, "long distance|Female": 9560, "...": 0 },
+      "country": { "GBR": 1040, "NED": 935, "unknown": 27995, "...": 0 },
+      "countryGender": { "GBR|Male": 522, "GBR|Female": 518, "...": 0 }
     }
   }
 }
@@ -223,17 +235,19 @@ more be added later without breaking clients that read `data.finish`).
   "name": "Yaron Danieli",
   "gender": "Male",
   "raceType": "long distance",
-  "counters": { "overall": 238, "distance": 150, "gender": 130, "distanceGender": 90 },
-  "allTime":  { "overall": 30000, "distance": 20150, "gender": 15630, "distanceGender": 10590 },
+  "country": "GBR",
+  "counters": { "overall": 238, "distance": 150, "gender": 130, "distanceGender": 90, "country": 40, "countryGender": 22 },
+  "allTime":  { "overall": 30000, "distance": 20150, "gender": 15630, "distanceGender": 10590, "country": 1040, "countryGender": 522 },
   "timestamp": 1751234567890
 }
 ```
 
-Note `counters`/`distance`/`gender`/`distanceGender` here are single numbers
-(this finisher's own rank in that dimension), unlike the nested object shape
-in `initial finisher counters` (which reports every group's count).
-`bib`/`chip`/`name`/`gender`/`raceType` can be `null` if the chip wasn't
-matched to a known bib.
+Note `counters`/`distance`/`gender`/`distanceGender`/`country`/`countryGender`
+here are single numbers (this finisher's own rank in that dimension), unlike
+the nested object shape in `initial finisher counters` (which reports every
+group's count). `bib`/`chip`/`name`/`gender`/`raceType`/`country` can be
+`null`/`"unknown"` if the chip wasn't matched to a known bib, or if the bib
+data has no `country` field (see the dimensions table above).
 
 **`special finish`** (same shape as `finisher counters`, plus):
 
@@ -314,6 +328,8 @@ same finish).
 | `cnt:finish:distance:<raceType>` | String (int) | Live count per distance |
 | `cnt:finish:gender:<gender>` | String (int) | Live count per gender |
 | `cnt:finish:distance-gender:<raceType>\|<gender>` | String (int) | Live count per distance+gender |
+| `cnt:finish:country:<country>` | String (int) | Live count per country |
+| `cnt:finish:country-gender:<country>\|<gender>` | String (int) | Live count per country+gender |
 
 ---
 

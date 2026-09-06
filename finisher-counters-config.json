@@ -16,7 +16,9 @@
         "long distance|Female": 1599,
         "middle distance|Male": 8862,
         "middle distance|Female": 2125
-      }
+      },
+      "country": {},
+      "countryGender": {}
     }
   },
 

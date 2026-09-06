@@ -1,5 +1,5 @@
 {
-  "_readme": "Example only - copy the values you need into finisher-counters-config.json. 'group' must match the label used for that dimension: '_all' for overall, the raw raceType string for distance, the raw gender string for gender, and 'raceType|gender' for distanceGender.",
+  "_readme": "Example only - copy the values you need into finisher-counters-config.json. 'group' must match the label used for that dimension: '_all' for overall, the raw raceType string for distance, the raw gender string for gender, 'raceType|gender' for distanceGender, the raw country string for country (requires a 'country' field on the bib enrichment data - not there yet as of writing), and 'country|gender' for countryGender.",
 
   "baseOffsets": {
     "finish": {
@@ -17,6 +17,16 @@
         "long distance|Female": 9500,
         "middle distance|Male": 5000,
         "middle distance|Female": 4762
+      },
+      "country": {
+        "GBR": 1200,
+        "NED": 18000
+      },
+      "countryGender": {
+        "GBR|Male": 700,
+        "GBR|Female": 500,
+        "NED|Male": 12000,
+        "NED|Female": 6000
       }
     }
   },
@@ -25,6 +35,8 @@
     { "dimension": "overall", "group": "_all", "target": 30000, "label": "30,000th finisher ever!" },
     { "dimension": "overall", "group": "_all", "target": 50000, "label": "50,000th finisher ever!" },
     { "dimension": "gender", "group": "Female", "target": 15000, "label": "15,000th female finisher ever!" },
-    { "dimension": "distance", "group": "long distance", "target": 25000, "label": "25,000th long distance finisher ever!" }
+    { "dimension": "distance", "group": "long distance", "target": 25000, "label": "25,000th long distance finisher ever!" },
+    { "dimension": "country", "group": "GBR", "target": 1500, "label": "1,500th British finisher ever!" },
+    { "dimension": "countryGender", "group": "NED|Female", "target": 6500, "label": "6,500th Dutch female finisher ever!" }
   ]
 }

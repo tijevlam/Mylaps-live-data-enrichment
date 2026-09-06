@@ -90,6 +90,7 @@
     <span class="fc-item fc-overall"><i class="fas fa-flag-checkered"></i> <span id="fcOverall">0</span></span>
     <span id="fcDistanceBreakdown" class="fc-breakdown"></span>
     <span id="fcGenderBreakdown" class="fc-breakdown"></span>
+    <span id="fcCountryBreakdown" class="fc-breakdown"></span>
 </div>
 
 <div id="specialFinishBanner" class="special-finish-banner">
@@ -1927,7 +1928,7 @@
         }
 
         // ---- Finisher counters ----
-        let finisherState = { overall: 0, distance: {}, gender: {}, distanceGender: {} };
+        let finisherState = { overall: 0, distance: {}, gender: {}, distanceGender: {}, country: {}, countryGender: {} };
 
         function formatCounterBreakdown(counts) {
             if (!counts) return '';
@@ -1942,6 +1943,7 @@
             document.getElementById('fcOverall').textContent = finisherState.overall;
             document.getElementById('fcDistanceBreakdown').innerHTML = formatCounterBreakdown(finisherState.distance);
             document.getElementById('fcGenderBreakdown').innerHTML = formatCounterBreakdown(finisherState.gender);
+            document.getElementById('fcCountryBreakdown').innerHTML = formatCounterBreakdown(finisherState.country);
         }
 
         socket.on('initial finisher counters', (snapshot) => {
@@ -1952,6 +1954,8 @@
                 distance: { ...(finish.counters.distance || {}) },
                 gender: { ...(finish.counters.gender || {}) },
                 distanceGender: { ...(finish.counters.distanceGender || {}) },
+                country: { ...(finish.counters.country || {}) },
+                countryGender: { ...(finish.counters.countryGender || {}) },
             };
             renderFinisherCounters();
         });
@@ -1961,6 +1965,7 @@
             finisherState.overall = update.counters.overall;
             if (update.raceType) finisherState.distance[update.raceType] = update.counters.distance;
             if (update.gender) finisherState.gender[update.gender] = update.counters.gender;
+            if (update.country) finisherState.country[update.country] = update.counters.country;
             renderFinisherCounters();
         });
 
