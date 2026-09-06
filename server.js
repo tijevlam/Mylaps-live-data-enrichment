@@ -517,6 +517,57 @@ const FINISHER_COUNTER_DIMENSIONS = [
             return entries;
         },
     },
+    {
+        name: 'country',
+        groupFor: (r) => r.country || 'unknown',
+        keyFor: (eventName, r) => `cnt:${eventName}:country:${r.country || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) =>
+            knownGroups.countries.map(c => ({ label: c, key: `cnt:${eventName}:country:${c}` })),
+    },
+    {
+        name: 'countryGender',
+        groupFor: (r) => `${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:country-gender:${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) => {
+            const entries = [];
+            for (const c of knownGroups.countries) {
+                for (const g of knownGroups.genders) {
+                    entries.push({ label: `${c}|${g}`, key: `cnt:${eventName}:country-gender:${c}|${g}` });
+                }
+            }
+            return entries;
+        },
+    },
+    {
+        name: 'distanceCountry',
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.country || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-country:${r.raceType || 'unknown'}|${r.country || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) => {
+            const entries = [];
+            for (const d of knownGroups.distances) {
+                for (const c of knownGroups.countries) {
+                    entries.push({ label: `${d}|${c}`, key: `cnt:${eventName}:distance-country:${d}|${c}` });
+                }
+            }
+            return entries;
+        },
+    },
+    {
+        name: 'distanceCountryGender',
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-country-gender:${r.raceType || 'unknown'}|${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) => {
+            const entries = [];
+            for (const d of knownGroups.distances) {
+                for (const c of knownGroups.countries) {
+                    for (const g of knownGroups.genders) {
+                        entries.push({ label: `${d}|${c}|${g}`, key: `cnt:${eventName}:distance-country-gender:${d}|${c}|${g}` });
+                    }
+                }
+            }
+            return entries;
+        },
+    },
 ];
 
 // Which timing points count as a "finish" for counter purposes. Configurable so
@@ -531,17 +582,22 @@ const COUNTER_EVENTS = [
     },
 ];
 
-// Known distance/gender values come straight from the loaded bib data, so the
-// counters and their snapshot automatically adapt to whatever race types and
-// genders exist for the current event, with no hardcoded lists.
+// Known distance/gender/country values come straight from the loaded bib
+// data, so the counters and their snapshot automatically adapt to whatever
+// race types, genders, and countries exist for the current event, with no
+// hardcoded lists. Note: as of writing, the bib enrichment file has no
+// `country` field yet, so this will just be ['unknown'] until one is added
+// (see the "country" dimension above for the exact field name it reads).
 function computeKnownGroups(bibs) {
     const distances = new Set(['unknown']);
     const genders = new Set(['unknown']);
+    const countries = new Set(['unknown']);
     for (const b of Object.values(bibs)) {
         if (b.raceType) distances.add(b.raceType);
         if (b.gender) genders.add(b.gender);
+        if (b.country) countries.add(b.country);
     }
-    return { distances: [...distances], genders: [...genders] };
+    return { distances: [...distances], genders: [...genders], countries: [...countries] };
 }
 
 // Records a counter-event passing if (and only if) this bib/chip hasn't been
@@ -1115,6 +1171,7 @@ async function main(){
                                         name: record.Name || null,
                                         gender: record.gender || null,
                                         raceType: record.raceType || null,
+                                        country: record.country || null,
                                         counters: result.counters,
                                         allTime: result.allTime,
                                         timestamp: Date.now(),
