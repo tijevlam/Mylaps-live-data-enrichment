@@ -18,7 +18,9 @@
         "middle distance|Female": 2125
       },
       "country": {},
-      "countryGender": {}
+      "countryGender": {},
+      "distanceCountry": {},
+      "distanceCountryGender": {}
     }
   },
 

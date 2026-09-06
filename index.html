@@ -1928,7 +1928,10 @@
         }
 
         // ---- Finisher counters ----
-        let finisherState = { overall: 0, distance: {}, gender: {}, distanceGender: {}, country: {}, countryGender: {} };
+        let finisherState = {
+            overall: 0, distance: {}, gender: {}, distanceGender: {},
+            country: {}, countryGender: {}, distanceCountry: {}, distanceCountryGender: {},
+        };
 
         function formatCounterBreakdown(counts) {
             if (!counts) return '';
@@ -1956,6 +1959,8 @@
                 distanceGender: { ...(finish.counters.distanceGender || {}) },
                 country: { ...(finish.counters.country || {}) },
                 countryGender: { ...(finish.counters.countryGender || {}) },
+                distanceCountry: { ...(finish.counters.distanceCountry || {}) },
+                distanceCountryGender: { ...(finish.counters.distanceCountryGender || {}) },
             };
             renderFinisherCounters();
         });
@@ -1966,6 +1971,10 @@
             if (update.raceType) finisherState.distance[update.raceType] = update.counters.distance;
             if (update.gender) finisherState.gender[update.gender] = update.counters.gender;
             if (update.country) finisherState.country[update.country] = update.counters.country;
+            if (update.raceType && update.gender) finisherState.distanceGender[`${update.raceType}|${update.gender}`] = update.counters.distanceGender;
+            if (update.country && update.gender) finisherState.countryGender[`${update.country}|${update.gender}`] = update.counters.countryGender;
+            if (update.raceType && update.country) finisherState.distanceCountry[`${update.raceType}|${update.country}`] = update.counters.distanceCountry;
+            if (update.raceType && update.country && update.gender) finisherState.distanceCountryGender[`${update.raceType}|${update.country}|${update.gender}`] = update.counters.distanceCountryGender;
             renderFinisherCounters();
         });
 

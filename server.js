@@ -538,6 +538,36 @@ const FINISHER_COUNTER_DIMENSIONS = [
             return entries;
         },
     },
+    {
+        name: 'distanceCountry',
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.country || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-country:${r.raceType || 'unknown'}|${r.country || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) => {
+            const entries = [];
+            for (const d of knownGroups.distances) {
+                for (const c of knownGroups.countries) {
+                    entries.push({ label: `${d}|${c}`, key: `cnt:${eventName}:distance-country:${d}|${c}` });
+                }
+            }
+            return entries;
+        },
+    },
+    {
+        name: 'distanceCountryGender',
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-country-gender:${r.raceType || 'unknown'}|${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        snapshotEntries: (eventName, knownGroups) => {
+            const entries = [];
+            for (const d of knownGroups.distances) {
+                for (const c of knownGroups.countries) {
+                    for (const g of knownGroups.genders) {
+                        entries.push({ label: `${d}|${c}|${g}`, key: `cnt:${eventName}:distance-country-gender:${d}|${c}|${g}` });
+                    }
+                }
+            }
+            return entries;
+        },
+    },
 ];
 
 // Which timing points count as a "finish" for counter purposes. Configurable so
