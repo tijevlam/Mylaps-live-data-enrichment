@@ -47,6 +47,28 @@ https://challengealmere.s3.eu-west-1.amazonaws.com
 | `VAPID_SUBJECT` | `mailto:` contact address required by the push protocol | `mailto:admin@example.com` |
 | `FINISH_SOURCE_NAME` | Which `sourceName` counts as "finish" for finisher counters | `TimeFinish` |
 | `FINISHER_COUNTERS_CONFIG` | Path to the finisher counters config file | `finisher-counters-config.json` |
+| `YEAR` | Race year — selects `bibs<YEAR>_enhanced.json` as the bib data file. Same thing as `--year=<year>` on the command line; the CLI flag wins if both are given. | current calendar year |
+| `BIBS_FILE` | Overrides the bib data file path entirely, if it doesn't follow the `bibs<year>_enhanced.json` naming convention | `bibs<YEAR>_enhanced.json` |
+
+### Choosing the race year / bib file
+
+The server picks its bib enrichment file (`bibs<year>_enhanced.json`) from a
+`--year` CLI flag, e.g.:
+
+```
+node server.js --year=2026
+```
+
+With pm2, pass it after a standalone `--`:
+
+```
+pm2 start server.js --name mylaps -- --year=2026
+```
+
+`YEAR=2026 pm2 start server.js` (an env var) works the same way if you'd
+rather not touch the pm2 start args. If neither is set, it falls back to the
+current calendar year. If the resulting file doesn't exist, the server logs
+which file/year it resolved to and exits — no silent fallback to stale data.
 
 ### Events
 
@@ -174,11 +196,12 @@ For every counted finisher, eight **dimensions** are tracked:
 | `distanceCountry`         | Per distance **and** country combined              | `"long distance\|GBR"`               |
 | `distanceCountryGender`   | Per distance **and** country **and** gender combined | `"long distance\|GBR\|Male"`       |
 
-`country` (and every dimension built on it) reads a `country` field off the
-enriched bib record, exactly like `gender`/`raceType` do — **the current bib
-enrichment file has no such field yet**, so every finisher will show up as
-`country: "unknown"` until one is added to the bib data (same field name, one
-value per bib, e.g. an ISO/IOC country code).
+`country` (and every dimension built on it) reads a `Country` field off the
+enriched bib record (note the capital C — matches the bib data's own naming,
+unlike `gender`/`raceType` which are lowercase). If the bib data has no
+`Country` field for an athlete, they show up as `country: "unknown"` on the
+socket API (the outgoing field itself is always lowercase `country`,
+regardless of the bib data's casing).
 
 Each dimension is reported twice:
 * **`counters`** — the live count since the last reset (see `reset-finisher-counters.js`).

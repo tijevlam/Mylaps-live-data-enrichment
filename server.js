@@ -11,6 +11,24 @@ const { Server } = require('socket.io');
 const cors = require('cors'); // NEW: enable cross-site access for Socket.IO + Express
 const webpush = require('web-push'); // Web Push notifications for special finishes
 
+// ---------------- CLI args ----------------
+// e.g. `node server.js --year=2026`, or with pm2: `pm2 start server.js -- --year=2026`
+function arg(flagName, def) {
+    const i = process.argv.indexOf(flagName);
+    if (i !== -1 && process.argv[i + 1]) return process.argv[i + 1];
+    const kv = process.argv.find(a => a.startsWith(flagName + '='));
+    return kv ? kv.split('=').slice(1).join('=') : def;
+}
+
+// Which race year to run as: picks the bib enrichment file to load
+// (bibs<year>_enhanced.json). --year=<year> wins, then YEAR=<year> in the
+// environment, then the current calendar year. BIBS_FILE overrides the
+// filename entirely if it doesn't follow the bibs<year>_enhanced.json
+// convention.
+const RACE_YEAR = arg('--year', process.env.YEAR || String(new Date().getFullYear()));
+const BIBS_FILE = process.env.BIBS_FILE || `bibs${RACE_YEAR}_enhanced.json`;
+// -------------------------------------------
+
 const app = express();
 const server = createServer(app);
 
@@ -519,15 +537,15 @@ const FINISHER_COUNTER_DIMENSIONS = [
     },
     {
         name: 'country',
-        groupFor: (r) => r.country || 'unknown',
-        keyFor: (eventName, r) => `cnt:${eventName}:country:${r.country || 'unknown'}`,
+        groupFor: (r) => r.Country || 'unknown',
+        keyFor: (eventName, r) => `cnt:${eventName}:country:${r.Country || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) =>
             knownGroups.countries.map(c => ({ label: c, key: `cnt:${eventName}:country:${c}` })),
     },
     {
         name: 'countryGender',
-        groupFor: (r) => `${r.country || 'unknown'}|${r.gender || 'unknown'}`,
-        keyFor: (eventName, r) => `cnt:${eventName}:country-gender:${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        groupFor: (r) => `${r.Country || 'unknown'}|${r.gender || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:country-gender:${r.Country || 'unknown'}|${r.gender || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) => {
             const entries = [];
             for (const c of knownGroups.countries) {
@@ -540,8 +558,8 @@ const FINISHER_COUNTER_DIMENSIONS = [
     },
     {
         name: 'distanceCountry',
-        groupFor: (r) => `${r.raceType || 'unknown'}|${r.country || 'unknown'}`,
-        keyFor: (eventName, r) => `cnt:${eventName}:distance-country:${r.raceType || 'unknown'}|${r.country || 'unknown'}`,
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.Country || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-country:${r.raceType || 'unknown'}|${r.Country || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) => {
             const entries = [];
             for (const d of knownGroups.distances) {
@@ -554,8 +572,8 @@ const FINISHER_COUNTER_DIMENSIONS = [
     },
     {
         name: 'distanceCountryGender',
-        groupFor: (r) => `${r.raceType || 'unknown'}|${r.country || 'unknown'}|${r.gender || 'unknown'}`,
-        keyFor: (eventName, r) => `cnt:${eventName}:distance-country-gender:${r.raceType || 'unknown'}|${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.Country || 'unknown'}|${r.gender || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-country-gender:${r.raceType || 'unknown'}|${r.Country || 'unknown'}|${r.gender || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) => {
             const entries = [];
             for (const d of knownGroups.distances) {
@@ -585,9 +603,9 @@ const COUNTER_EVENTS = [
 // Known distance/gender/country values come straight from the loaded bib
 // data, so the counters and their snapshot automatically adapt to whatever
 // race types, genders, and countries exist for the current event, with no
-// hardcoded lists. Note: as of writing, the bib enrichment file has no
-// `country` field yet, so this will just be ['unknown'] until one is added
-// (see the "country" dimension above for the exact field name it reads).
+// hardcoded lists. Country comes from the bib data's `Country` field
+// (capital C, unlike lowercase `gender`/`raceType`) -- see the "country"
+// dimension above.
 function computeKnownGroups(bibs) {
     const distances = new Set(['unknown']);
     const genders = new Set(['unknown']);
@@ -595,7 +613,7 @@ function computeKnownGroups(bibs) {
     for (const b of Object.values(bibs)) {
         if (b.raceType) distances.add(b.raceType);
         if (b.gender) genders.add(b.gender);
-        if (b.country) countries.add(b.country);
+        if (b.Country) countries.add(b.Country);
     }
     return { distances: [...distances], genders: [...genders], countries: [...countries] };
 }
@@ -746,7 +764,14 @@ async function main(){
 
     await redisClient.connect();
 
-    const bibs = JSON.parse(fs.readFileSync('bibs2025_enhanced.json', 'utf8'));
+    let bibs;
+    try {
+        bibs = JSON.parse(fs.readFileSync(BIBS_FILE, 'utf8'));
+    } catch (err) {
+        console.error(`Failed to load bib data from "${BIBS_FILE}" (year=${RACE_YEAR}). Pass --year=<year>, set YEAR=<year>, or set BIBS_FILE=<path> to point at the right file.`);
+        throw err;
+    }
+    console.log(`Loaded bib data for year ${RACE_YEAR} from ${BIBS_FILE} (${Object.keys(bibs).length} chips).`);
 
     // Pre-stringify all bib fields once so per-message conversion is not needed
     for (const chipCode in bibs) {
@@ -1171,7 +1196,7 @@ async function main(){
                                         name: record.Name || null,
                                         gender: record.gender || null,
                                         raceType: record.raceType || null,
-                                        country: record.country || null,
+                                        country: record.Country || null,
                                         counters: result.counters,
                                         allTime: result.allTime,
                                         timestamp: Date.now(),
