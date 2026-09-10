@@ -746,7 +746,7 @@ async function main(){
 
     await redisClient.connect();
 
-    const bibs = JSON.parse(fs.readFileSync('bibs2026_enhanced.json', 'utf8'));
+    const bibs = JSON.parse(fs.readFileSync('../bibs2026_enhanced.json', 'utf8'));
 
     // Pre-stringify all bib fields once so per-message conversion is not needed
     for (const chipCode in bibs) {
