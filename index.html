@@ -2144,25 +2144,25 @@
         });
 
         document.getElementById('filterSwimExit').addEventListener('click', function () {
-            table.setFilter('sourceName', '=', 'TimeES');
-            socket.emit('change room', 'TimeES');
+            table.setFilter('sourceName', '=', 'EndSwim');
+            socket.emit('change room', 'EndSwim');
 
         });
 
         document.getElementById('filterT2').addEventListener('click', function () {
-            table.setFilter('sourceName', '=', 'TimeEB');
-            socket.emit('change room', 'TimeEB');
+            table.setFilter('sourceName', '=', 'BikeFinish');
+            socket.emit('change room', 'BikeFinish');
 
         });
         document.getElementById('filterEnterStadium').addEventListener('click', function () {
-            table.setFilter('sourceName', '=', 'TimeR1');
-            socket.emit('change room', 'TimeR1');
+            table.setFilter('sourceName', '=', 'RunSplit1');
+            socket.emit('change room', 'RunSplit1');
 
         });
 
         document.getElementById('filterFinish').addEventListener('click', function () {
-            table.setFilter('sourceName', '=', 'TimeFinish');
-            socket.emit('change room', 'TimeFinish');
+            table.setFilter('sourceName', '=', 'Finish');
+            socket.emit('change room', 'Finish');
         });
     }
 
