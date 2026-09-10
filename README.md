@@ -47,6 +47,28 @@ https://challengealmere.s3.eu-west-1.amazonaws.com
 | `VAPID_SUBJECT` | `mailto:` contact address required by the push protocol | `mailto:admin@example.com` |
 | `FINISH_SOURCE_NAME` | Which `sourceName` counts as "finish" for finisher counters | `TimeFinish` |
 | `FINISHER_COUNTERS_CONFIG` | Path to the finisher counters config file | `finisher-counters-config.json` |
+| `YEAR` | Race year — selects `bibs<YEAR>_enhanced.json` as the bib data file. Same thing as `--year=<year>` on the command line; the CLI flag wins if both are given. | current calendar year |
+| `BIBS_FILE` | Overrides the bib data file path entirely, if it doesn't follow the `bibs<year>_enhanced.json` naming convention | `bibs<YEAR>_enhanced.json` |
+
+### Choosing the race year / bib file
+
+The server picks its bib enrichment file (`bibs<year>_enhanced.json`) from a
+`--year` CLI flag, e.g.:
+
+```
+node server.js --year=2026
+```
+
+With pm2, pass it after a standalone `--`:
+
+```
+pm2 start server.js --name mylaps -- --year=2026
+```
+
+`YEAR=2026 pm2 start server.js` (an env var) works the same way if you'd
+rather not touch the pm2 start args. If neither is set, it falls back to the
+current calendar year. If the resulting file doesn't exist, the server logs
+which file/year it resolved to and exits — no silent fallback to stale data.
 
 ### Events
 
@@ -59,9 +81,9 @@ https://challengealmere.s3.eu-west-1.amazonaws.com
 
 ### Rooms
 
-Clients can join a specific source room (e.g. `TimeFinish`, `TimeR1`) or the global room `everywhere` by passing `roomName` in the connection query. Only a limited whitelist is allowed to prevent arbitrary room creation.
+Clients can join a specific source room (e.g. `TimeFinish`, `TimeR1`) or the global room `everywhere` by passing `roomName` in the connection query. **There is no server-side whitelist** — any `roomName` a client sends is joined as-is (it just won't receive anything if nothing is ever broadcast under that name); it only falls back to `everywhere` when no `roomName` is given at all. Which rooms/filters are actually exposed to end users is a frontend concern (see `index.html`'s filter buttons).
 
-Example rooms:
+Example rooms (whatever `sourceName` values your Mylaps feed actually sends):
 ```
 everywhere
 TimeFinish
@@ -142,11 +164,31 @@ Currently trimming lines are commented out. To limit memory growth, you can enab
 // multi.zRemRangeByRank(`z:markers:all`, 0, -1001);
 ```
 
+### Performance Notes (TCP ingest → broadcast latency)
+
+The TCP handler processes each `$`-terminated Mylaps message with a *drain the
+whole buffer* loop, not just the first message per network packet — a single
+TCP chunk can (and often does) contain several complete messages back to
+back, and all of them are handled immediately instead of the extra ones
+waiting for some unrelated future packet to arrive. Within that drain, a
+`new message`/`new marker` broadcast fires **before** its Redis write, and
+the Redis write itself happens in the background (fire-and-forget, logged on
+failure) — a slow or failed persist can never delay what clients see live.
+Finisher-counter processing for a `TimeFinish` batch stays strictly
+sequential on purpose (one Redis call per finisher, awaited in order) so
+ranks/milestones always reflect the real order chips crossed the mat, both
+within one batch and across consecutive messages — that's an intentional
+latency/correctness tradeoff, not an oversight.
+
+If GCP Logging isn't configured (no `PROJECT_ID`), `log.entry()`/`log.write()`
+are cheap no-ops instead of constructing objects and attempting failing API
+calls on every message.
+
 ### Security Notes
 
 1. Do not leave `ALLOWED_ORIGINS=*` in production.
 2. Consider adding an auth token (query param or header) if you need restricted access.
-3. Room whitelist prevents uncontrolled memory usage from arbitrary room creation.
+3. There is no server-side room whitelist (removed by design — see "Rooms" above), so an unauthenticated client can join/create an arbitrary number of distinct rooms. Combined with `ALLOWED_ORIGINS=*`, that's a mild resource-exhaustion surface (many rooms tracked in the Socket.IO adapter) if this server is ever exposed to untrusted traffic — worth keeping in mind if you don't also lock down `ALLOWED_ORIGINS`.
 
 ---
 
@@ -174,11 +216,12 @@ For every counted finisher, eight **dimensions** are tracked:
 | `distanceCountry`         | Per distance **and** country combined              | `"long distance\|GBR"`               |
 | `distanceCountryGender`   | Per distance **and** country **and** gender combined | `"long distance\|GBR\|Male"`       |
 
-`country` (and every dimension built on it) reads a `country` field off the
-enriched bib record, exactly like `gender`/`raceType` do — **the current bib
-enrichment file has no such field yet**, so every finisher will show up as
-`country: "unknown"` until one is added to the bib data (same field name, one
-value per bib, e.g. an ISO/IOC country code).
+`country` (and every dimension built on it) reads a `Country` field off the
+enriched bib record (note the capital C — matches the bib data's own naming,
+unlike `gender`/`raceType` which are lowercase). If the bib data has no
+`Country` field for an athlete, they show up as `country: "unknown"` on the
+socket API (the outgoing field itself is always lowercase `country`,
+regardless of the bib data's casing).
 
 Each dimension is reported twice:
 * **`counters`** — the live count since the last reset (see `reset-finisher-counters.js`).

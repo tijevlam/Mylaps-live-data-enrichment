@@ -1,5 +1,5 @@
 {
-  "_readme": "Example only - copy the values you need into finisher-counters-config.json. 'group' must match the label used for that dimension: '_all' for overall, the raw raceType string for distance, the raw gender string for gender, 'raceType|gender' for distanceGender, the raw country string for country (requires a 'country' field on the bib enrichment data - not there yet as of writing), 'country|gender' for countryGender, 'raceType|country' for distanceCountry, and 'raceType|country|gender' for distanceCountryGender.",
+  "_readme": "Example only - copy the values you need into finisher-counters-config.json. 'group' must match the label used for that dimension: '_all' for overall, the raw raceType string for distance, the raw gender string for gender, 'raceType|gender' for distanceGender, the raw country string for country (reads the bib data's 'Country' field, capital C), 'country|gender' for countryGender, 'raceType|country' for distanceCountry, and 'raceType|country|gender' for distanceCountryGender.",
 
   "baseOffsets": {
     "finish": {

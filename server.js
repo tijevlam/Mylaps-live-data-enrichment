@@ -11,6 +11,24 @@ const { Server } = require('socket.io');
 const cors = require('cors'); // NEW: enable cross-site access for Socket.IO + Express
 const webpush = require('web-push'); // Web Push notifications for special finishes
 
+// ---------------- CLI args ----------------
+// e.g. `node server.js --year=2026`, or with pm2: `pm2 start server.js -- --year=2026`
+function arg(flagName, def) {
+    const i = process.argv.indexOf(flagName);
+    if (i !== -1 && process.argv[i + 1]) return process.argv[i + 1];
+    const kv = process.argv.find(a => a.startsWith(flagName + '='));
+    return kv ? kv.split('=').slice(1).join('=') : def;
+}
+
+// Which race year to run as: picks the bib enrichment file to load
+// (bibs<year>_enhanced.json). --year=<year> wins, then YEAR=<year> in the
+// environment, then the current calendar year. BIBS_FILE overrides the
+// filename entirely if it doesn't follow the bibs<year>_enhanced.json
+// convention.
+const RACE_YEAR = arg('--year', process.env.YEAR || String(new Date().getFullYear()));
+const BIBS_FILE = process.env.BIBS_FILE || `bibs${RACE_YEAR}_enhanced.json`;
+// -------------------------------------------
+
 const app = express();
 const server = createServer(app);
 
@@ -61,11 +79,16 @@ const {Logging} = require('@google-cloud/logging');
 
 const projectId = process.env.PROJECT_ID;
 const logName = 'mylaps-live-data-stream';
-// Creates a client
-const logging = new Logging({projectId});
+const loggingEnabled = Boolean(projectId);
 
-// Selects the log to write to
-const log = logging.log(logName);
+// When no PROJECT_ID is set, log.entry()/log.write() below become cheap
+// no-ops instead of constructing a log entry object and attempting (and
+// failing) a GCP Logging API call for every single incoming TCP message --
+// avoids real, measurable overhead on a hot path when GCP Logging isn't
+// actually configured (the common case outside App Engine deployments).
+const log = loggingEnabled
+    ? new Logging({ projectId }).log(logName)
+    : { entry: () => null, write: () => Promise.resolve() };
 
 const metadata = {
     resource: {type: 'global'},
@@ -519,15 +542,15 @@ const FINISHER_COUNTER_DIMENSIONS = [
     },
     {
         name: 'country',
-        groupFor: (r) => r.country || 'unknown',
-        keyFor: (eventName, r) => `cnt:${eventName}:country:${r.country || 'unknown'}`,
+        groupFor: (r) => r.Country || 'unknown',
+        keyFor: (eventName, r) => `cnt:${eventName}:country:${r.Country || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) =>
             knownGroups.countries.map(c => ({ label: c, key: `cnt:${eventName}:country:${c}` })),
     },
     {
         name: 'countryGender',
-        groupFor: (r) => `${r.country || 'unknown'}|${r.gender || 'unknown'}`,
-        keyFor: (eventName, r) => `cnt:${eventName}:country-gender:${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        groupFor: (r) => `${r.Country || 'unknown'}|${r.gender || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:country-gender:${r.Country || 'unknown'}|${r.gender || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) => {
             const entries = [];
             for (const c of knownGroups.countries) {
@@ -540,8 +563,8 @@ const FINISHER_COUNTER_DIMENSIONS = [
     },
     {
         name: 'distanceCountry',
-        groupFor: (r) => `${r.raceType || 'unknown'}|${r.country || 'unknown'}`,
-        keyFor: (eventName, r) => `cnt:${eventName}:distance-country:${r.raceType || 'unknown'}|${r.country || 'unknown'}`,
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.Country || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-country:${r.raceType || 'unknown'}|${r.Country || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) => {
             const entries = [];
             for (const d of knownGroups.distances) {
@@ -554,8 +577,8 @@ const FINISHER_COUNTER_DIMENSIONS = [
     },
     {
         name: 'distanceCountryGender',
-        groupFor: (r) => `${r.raceType || 'unknown'}|${r.country || 'unknown'}|${r.gender || 'unknown'}`,
-        keyFor: (eventName, r) => `cnt:${eventName}:distance-country-gender:${r.raceType || 'unknown'}|${r.country || 'unknown'}|${r.gender || 'unknown'}`,
+        groupFor: (r) => `${r.raceType || 'unknown'}|${r.Country || 'unknown'}|${r.gender || 'unknown'}`,
+        keyFor: (eventName, r) => `cnt:${eventName}:distance-country-gender:${r.raceType || 'unknown'}|${r.Country || 'unknown'}|${r.gender || 'unknown'}`,
         snapshotEntries: (eventName, knownGroups) => {
             const entries = [];
             for (const d of knownGroups.distances) {
@@ -585,9 +608,9 @@ const COUNTER_EVENTS = [
 // Known distance/gender/country values come straight from the loaded bib
 // data, so the counters and their snapshot automatically adapt to whatever
 // race types, genders, and countries exist for the current event, with no
-// hardcoded lists. Note: as of writing, the bib enrichment file has no
-// `country` field yet, so this will just be ['unknown'] until one is added
-// (see the "country" dimension above for the exact field name it reads).
+// hardcoded lists. Country comes from the bib data's `Country` field
+// (capital C, unlike lowercase `gender`/`raceType`) -- see the "country"
+// dimension above.
 function computeKnownGroups(bibs) {
     const distances = new Set(['unknown']);
     const genders = new Set(['unknown']);
@@ -595,7 +618,7 @@ function computeKnownGroups(bibs) {
     for (const b of Object.values(bibs)) {
         if (b.raceType) distances.add(b.raceType);
         if (b.gender) genders.add(b.gender);
-        if (b.country) countries.add(b.country);
+        if (b.Country) countries.add(b.Country);
     }
     return { distances: [...distances], genders: [...genders], countries: [...countries] };
 }
@@ -746,7 +769,14 @@ async function main(){
 
     await redisClient.connect();
 
-    const bibs = JSON.parse(fs.readFileSync('../bibs2026_enhanced.json', 'utf8'));
+    let bibs;
+    try {
+        bibs = JSON.parse(fs.readFileSync(BIBS_FILE, 'utf8'));
+    } catch (err) {
+        console.error(`Failed to load bib data from "${BIBS_FILE}" (year=${RACE_YEAR}). Pass --year=<year>, set YEAR=<year>, or set BIBS_FILE=<path> to point at the right file.`);
+        throw err;
+    }
+    console.log(`Loaded bib data for year ${RACE_YEAR} from ${BIBS_FILE} (${Object.keys(bibs).length} chips).`);
 
     // Pre-stringify all bib fields once so per-message conversion is not needed
     for (const chipCode in bibs) {
@@ -766,7 +796,10 @@ async function main(){
         }
     }
 
-    const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1','TimeES', 'TimeEB']);
+    // Room names are no longer restricted to a server-side whitelist -- any
+    // roomName a client sends is accepted as-is (defaulting to 'everywhere'
+    // only when none is given). Restricting which rooms/filters are exposed
+    // is now a frontend concern (see index.html's filter buttons).
 
     // Finisher counters: derive known distance/gender groups from the bib data
     // and pre-load the atomic dedup+increment Lua script.
@@ -831,9 +864,6 @@ async function main(){
 
         const query = iosocket.handshake.query || {};
         let roomName = (query.roomName || "everywhere").toString();
-        if (!allowedRooms.has(roomName)) {
-            roomName = 'everywhere';
-        }
 
         iosocket.join(roomName);
         console.log(`User joined room: ${roomName}`);
@@ -909,12 +939,6 @@ async function main(){
 
         iosocket.on('change room', async (newRoom) => {
             console.log(`User wants to change from ${iosocket.currentRoom} to ${newRoom}`);
-
-            // Valideer de nieuwe room
-            if (!allowedRooms.has(newRoom)) {
-                console.log(`Room ${newRoom} not allowed, staying in current room`);
-                return;
-            }
 
             // Leave huidige room
             if (iosocket.currentRoom) {
@@ -990,10 +1014,6 @@ async function main(){
         const query = iosocket.handshake.query || {};
         let roomName = (query.roomName || "everywhere").toString();
 
-        if (!allowedRooms.has(roomName)) {
-            roomName = 'everywhere';
-        }
-
         iosocket.join(roomName);
         console.log(`User joined room: ${roomName}`);
         iosocket.currentRoom = roomName;
@@ -1069,11 +1089,6 @@ async function main(){
         iosocket.on('change room', async (newRoom) => {
             console.log(`User wants to change from ${iosocket.currentRoom} to ${newRoom}`);
 
-            if (!allowedRooms.has(newRoom)) {
-                console.log(`Room ${newRoom} not allowed, staying in current room`);
-                return;
-            }
-
             if (iosocket.currentRoom) {
                 iosocket.leave(iosocket.currentRoom);
                 console.log(`User left room: ${iosocket.currentRoom}`);
@@ -1118,6 +1133,93 @@ async function main(){
     });
 
 
+    // Fire-and-forget Redis persistence, so a slow/failed write can never
+    // delay the live broadcast (which has already gone out by the time this
+    // runs). Logged the same way an awaited failure would have been.
+    function persistInBackground(promise, label) {
+        promise.catch(err => {
+            console.error(`Redis persist error (${label}):`, err);
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `Redis persist error (${label}): ${err.message}` });
+            log.write(xlog);
+        });
+    }
+
+    // Handles one fully-framed TCP message. Awaited sequentially per message
+    // (see the 'data' handler below) so finisher-counter ranks still come
+    // out in the exact order chips crossed the mat, across message
+    // boundaries and not just within a single batch.
+    async function processTcpMessage(pass, socket) {
+        const rawMessage = pass.toString().trim();
+        let mlog = log.entry(metadata, rawMessage);
+        log.write(mlog)
+        const messageString = bufferToString(pass);
+
+        const parsedMessage = parseMessage(bibs, bibsByNumber, messageString, socket);
+        let plog = log.entry(metadata, parsedMessage);
+        log.write(plog)
+        if (parsedMessage.function === 'AckPing') {
+            handleAckPing(socket, parsedMessage);
+        }
+
+        if(parsedMessage.function === 'Passing') {
+            // Broadcast first, persist in the background: live delivery speed
+            // matters more than the (rare) case where a Redis write fails
+            // after clients already saw the message.
+            io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
+            httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
+            persistInBackground(storeMessageInRedis(parsedMessage), 'storeMessage');
+
+            const counterEvent = COUNTER_EVENTS.find(ev => ev.sourceName === parsedMessage.sourceName);
+            if (counterEvent && Array.isArray(parsedMessage.data)) {
+                // Sequential (not parallel) so ranks are assigned in the same
+                // order the chips actually crossed the mat, matching the order
+                // MYLAPS already sends them in within a batch.
+                for (const record of parsedMessage.data) {
+                    try {
+                        const result = await recordCounterEvent(counterEvent, record);
+                        if (result) {
+                            const counterPayload = {
+                                event: counterEvent.name,
+                                sourceName: parsedMessage.sourceName,
+                                bib: record.bib || null,
+                                chip: record.c || null,
+                                name: record.Name || null,
+                                gender: record.gender || null,
+                                raceType: record.raceType || null,
+                                country: record.Country || null,
+                                counters: result.counters,
+                                allTime: result.allTime,
+                                timestamp: Date.now(),
+                            };
+                            io.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
+                            httpsio.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
+
+                            if (result.specialFinishes.length > 0) {
+                                const specialPayload = { ...counterPayload, specialFinishes: result.specialFinishes };
+                                io.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
+                                httpsio.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
+                                // Not awaited: push delivery must never delay live timing data.
+                                sendSpecialFinishPushNotifications(specialPayload).catch(err => {
+                                    console.error('Error sending special finish push notifications:', err);
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Finisher counter error:', err);
+                        let xlog = log.entry(metadata, { severity: 'ERROR', message: `Finisher counter error: ${err.message}` });
+                        log.write(xlog);
+                    }
+                }
+            }
+        }
+
+        if(parsedMessage.function === 'Marker') {
+            io.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
+            httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
+            persistInBackground(storeMarkerInRedis(parsedMessage), 'storeMarker');
+        }
+    }
+
     // TCP server
     tcpServer = net.createServer(async (socket) => {
         console.log('TCP client connected');
@@ -1130,80 +1232,19 @@ async function main(){
         socket.on('data', async function(chunk) {
             rawData += chunk;
 
-            let sepIndex = rawData.indexOf(sep);
-            let didFindMsg = sepIndex !== -1;
-
-            if (didFindMsg) {
+            // A while loop (not `if`): a single TCP chunk can contain more
+            // than one complete '$'-terminated message (Mylaps often flushes
+            // several readings together). Processing only the first and
+            // waiting for the *next* unrelated chunk to handle the rest
+            // could stall an already-fully-received message for seconds.
+            let sepIndex;
+            while ((sepIndex = rawData.indexOf(sep)) !== -1) {
                 let pass = rawData.slice(0, sepIndex);
                 rawData = rawData.slice(sepIndex + 1);
 
-                const rawMessage = pass.toString().trim();
-                let mlog = log.entry(metadata, rawMessage);
-                log.write(mlog)
-                const messageString = bufferToString(pass);
+                if (!pass.toString().trim()) continue;
 
-                const parsedMessage = parseMessage(bibs, bibsByNumber, messageString, socket);
-                let plog = log.entry(metadata, parsedMessage);
-                log.write(plog)
-                if (parsedMessage.function === 'AckPing') {
-                    handleAckPing(socket, parsedMessage);
-                }
-
-                if(parsedMessage.function === 'Passing') {
-                    await storeMessageInRedis(parsedMessage);
-                    io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
-                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
-
-                    const counterEvent = COUNTER_EVENTS.find(ev => ev.sourceName === parsedMessage.sourceName);
-                    if (counterEvent && Array.isArray(parsedMessage.data)) {
-                        // Sequential (not parallel) so ranks are assigned in the same
-                        // order the chips actually crossed the mat, matching the order
-                        // MYLAPS already sends them in within a batch.
-                        for (const record of parsedMessage.data) {
-                            try {
-                                const result = await recordCounterEvent(counterEvent, record);
-                                if (result) {
-                                    const counterPayload = {
-                                        event: counterEvent.name,
-                                        sourceName: parsedMessage.sourceName,
-                                        bib: record.bib || null,
-                                        chip: record.c || null,
-                                        name: record.Name || null,
-                                        gender: record.gender || null,
-                                        raceType: record.raceType || null,
-                                        country: record.country || null,
-                                        counters: result.counters,
-                                        allTime: result.allTime,
-                                        timestamp: Date.now(),
-                                    };
-                                    io.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
-                                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
-
-                                    if (result.specialFinishes.length > 0) {
-                                        const specialPayload = { ...counterPayload, specialFinishes: result.specialFinishes };
-                                        io.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
-                                        httpsio.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
-                                        // Not awaited: push delivery must never delay live timing data.
-                                        sendSpecialFinishPushNotifications(specialPayload).catch(err => {
-                                            console.error('Error sending special finish push notifications:', err);
-                                        });
-                                    }
-                                }
-                            } catch (err) {
-                                console.error('Finisher counter error:', err);
-                                let xlog = log.entry(metadata, { severity: 'ERROR', message: `Finisher counter error: ${err.message}` });
-                                log.write(xlog);
-                            }
-                        }
-                    }
-                }
-
-                if(parsedMessage.function === 'Marker') {
-                    await storeMarkerInRedis(parsedMessage);
-                    io.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
-                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
-                }
-
+                await processTcpMessage(pass, socket);
             }
         });
 
