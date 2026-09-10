@@ -79,11 +79,16 @@ const {Logging} = require('@google-cloud/logging');
 
 const projectId = process.env.PROJECT_ID;
 const logName = 'mylaps-live-data-stream';
-// Creates a client
-const logging = new Logging({projectId});
+const loggingEnabled = Boolean(projectId);
 
-// Selects the log to write to
-const log = logging.log(logName);
+// When no PROJECT_ID is set, log.entry()/log.write() below become cheap
+// no-ops instead of constructing a log entry object and attempting (and
+// failing) a GCP Logging API call for every single incoming TCP message --
+// avoids real, measurable overhead on a hot path when GCP Logging isn't
+// actually configured (the common case outside App Engine deployments).
+const log = loggingEnabled
+    ? new Logging({ projectId }).log(logName)
+    : { entry: () => null, write: () => Promise.resolve() };
 
 const metadata = {
     resource: {type: 'global'},
@@ -1128,6 +1133,93 @@ async function main(){
     });
 
 
+    // Fire-and-forget Redis persistence, so a slow/failed write can never
+    // delay the live broadcast (which has already gone out by the time this
+    // runs). Logged the same way an awaited failure would have been.
+    function persistInBackground(promise, label) {
+        promise.catch(err => {
+            console.error(`Redis persist error (${label}):`, err);
+            let xlog = log.entry(metadata, { severity: 'ERROR', message: `Redis persist error (${label}): ${err.message}` });
+            log.write(xlog);
+        });
+    }
+
+    // Handles one fully-framed TCP message. Awaited sequentially per message
+    // (see the 'data' handler below) so finisher-counter ranks still come
+    // out in the exact order chips crossed the mat, across message
+    // boundaries and not just within a single batch.
+    async function processTcpMessage(pass, socket) {
+        const rawMessage = pass.toString().trim();
+        let mlog = log.entry(metadata, rawMessage);
+        log.write(mlog)
+        const messageString = bufferToString(pass);
+
+        const parsedMessage = parseMessage(bibs, bibsByNumber, messageString, socket);
+        let plog = log.entry(metadata, parsedMessage);
+        log.write(plog)
+        if (parsedMessage.function === 'AckPing') {
+            handleAckPing(socket, parsedMessage);
+        }
+
+        if(parsedMessage.function === 'Passing') {
+            // Broadcast first, persist in the background: live delivery speed
+            // matters more than the (rare) case where a Redis write fails
+            // after clients already saw the message.
+            io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
+            httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
+            persistInBackground(storeMessageInRedis(parsedMessage), 'storeMessage');
+
+            const counterEvent = COUNTER_EVENTS.find(ev => ev.sourceName === parsedMessage.sourceName);
+            if (counterEvent && Array.isArray(parsedMessage.data)) {
+                // Sequential (not parallel) so ranks are assigned in the same
+                // order the chips actually crossed the mat, matching the order
+                // MYLAPS already sends them in within a batch.
+                for (const record of parsedMessage.data) {
+                    try {
+                        const result = await recordCounterEvent(counterEvent, record);
+                        if (result) {
+                            const counterPayload = {
+                                event: counterEvent.name,
+                                sourceName: parsedMessage.sourceName,
+                                bib: record.bib || null,
+                                chip: record.c || null,
+                                name: record.Name || null,
+                                gender: record.gender || null,
+                                raceType: record.raceType || null,
+                                country: record.Country || null,
+                                counters: result.counters,
+                                allTime: result.allTime,
+                                timestamp: Date.now(),
+                            };
+                            io.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
+                            httpsio.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
+
+                            if (result.specialFinishes.length > 0) {
+                                const specialPayload = { ...counterPayload, specialFinishes: result.specialFinishes };
+                                io.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
+                                httpsio.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
+                                // Not awaited: push delivery must never delay live timing data.
+                                sendSpecialFinishPushNotifications(specialPayload).catch(err => {
+                                    console.error('Error sending special finish push notifications:', err);
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Finisher counter error:', err);
+                        let xlog = log.entry(metadata, { severity: 'ERROR', message: `Finisher counter error: ${err.message}` });
+                        log.write(xlog);
+                    }
+                }
+            }
+        }
+
+        if(parsedMessage.function === 'Marker') {
+            io.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
+            httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
+            persistInBackground(storeMarkerInRedis(parsedMessage), 'storeMarker');
+        }
+    }
+
     // TCP server
     tcpServer = net.createServer(async (socket) => {
         console.log('TCP client connected');
@@ -1140,80 +1232,19 @@ async function main(){
         socket.on('data', async function(chunk) {
             rawData += chunk;
 
-            let sepIndex = rawData.indexOf(sep);
-            let didFindMsg = sepIndex !== -1;
-
-            if (didFindMsg) {
+            // A while loop (not `if`): a single TCP chunk can contain more
+            // than one complete '$'-terminated message (Mylaps often flushes
+            // several readings together). Processing only the first and
+            // waiting for the *next* unrelated chunk to handle the rest
+            // could stall an already-fully-received message for seconds.
+            let sepIndex;
+            while ((sepIndex = rawData.indexOf(sep)) !== -1) {
                 let pass = rawData.slice(0, sepIndex);
                 rawData = rawData.slice(sepIndex + 1);
 
-                const rawMessage = pass.toString().trim();
-                let mlog = log.entry(metadata, rawMessage);
-                log.write(mlog)
-                const messageString = bufferToString(pass);
+                if (!pass.toString().trim()) continue;
 
-                const parsedMessage = parseMessage(bibs, bibsByNumber, messageString, socket);
-                let plog = log.entry(metadata, parsedMessage);
-                log.write(plog)
-                if (parsedMessage.function === 'AckPing') {
-                    handleAckPing(socket, parsedMessage);
-                }
-
-                if(parsedMessage.function === 'Passing') {
-                    await storeMessageInRedis(parsedMessage);
-                    io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
-                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
-
-                    const counterEvent = COUNTER_EVENTS.find(ev => ev.sourceName === parsedMessage.sourceName);
-                    if (counterEvent && Array.isArray(parsedMessage.data)) {
-                        // Sequential (not parallel) so ranks are assigned in the same
-                        // order the chips actually crossed the mat, matching the order
-                        // MYLAPS already sends them in within a batch.
-                        for (const record of parsedMessage.data) {
-                            try {
-                                const result = await recordCounterEvent(counterEvent, record);
-                                if (result) {
-                                    const counterPayload = {
-                                        event: counterEvent.name,
-                                        sourceName: parsedMessage.sourceName,
-                                        bib: record.bib || null,
-                                        chip: record.c || null,
-                                        name: record.Name || null,
-                                        gender: record.gender || null,
-                                        raceType: record.raceType || null,
-                                        country: record.Country || null,
-                                        counters: result.counters,
-                                        allTime: result.allTime,
-                                        timestamp: Date.now(),
-                                    };
-                                    io.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
-                                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('finisher counters', counterPayload);
-
-                                    if (result.specialFinishes.length > 0) {
-                                        const specialPayload = { ...counterPayload, specialFinishes: result.specialFinishes };
-                                        io.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
-                                        httpsio.to(parsedMessage.sourceName).to("everywhere").emit('special finish', specialPayload);
-                                        // Not awaited: push delivery must never delay live timing data.
-                                        sendSpecialFinishPushNotifications(specialPayload).catch(err => {
-                                            console.error('Error sending special finish push notifications:', err);
-                                        });
-                                    }
-                                }
-                            } catch (err) {
-                                console.error('Finisher counter error:', err);
-                                let xlog = log.entry(metadata, { severity: 'ERROR', message: `Finisher counter error: ${err.message}` });
-                                log.write(xlog);
-                            }
-                        }
-                    }
-                }
-
-                if(parsedMessage.function === 'Marker') {
-                    await storeMarkerInRedis(parsedMessage);
-                    io.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
-                    httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new marker', parsedMessage);
-                }
-
+                await processTcpMessage(pass, socket);
             }
         });
 

@@ -164,6 +164,26 @@ Currently trimming lines are commented out. To limit memory growth, you can enab
 // multi.zRemRangeByRank(`z:markers:all`, 0, -1001);
 ```
 
+### Performance Notes (TCP ingest → broadcast latency)
+
+The TCP handler processes each `$`-terminated Mylaps message with a *drain the
+whole buffer* loop, not just the first message per network packet — a single
+TCP chunk can (and often does) contain several complete messages back to
+back, and all of them are handled immediately instead of the extra ones
+waiting for some unrelated future packet to arrive. Within that drain, a
+`new message`/`new marker` broadcast fires **before** its Redis write, and
+the Redis write itself happens in the background (fire-and-forget, logged on
+failure) — a slow or failed persist can never delay what clients see live.
+Finisher-counter processing for a `TimeFinish` batch stays strictly
+sequential on purpose (one Redis call per finisher, awaited in order) so
+ranks/milestones always reflect the real order chips crossed the mat, both
+within one batch and across consecutive messages — that's an intentional
+latency/correctness tradeoff, not an oversight.
+
+If GCP Logging isn't configured (no `PROJECT_ID`), `log.entry()`/`log.write()`
+are cheap no-ops instead of constructing objects and attempting failing API
+calls on every message.
+
 ### Security Notes
 
 1. Do not leave `ALLOWED_ORIGINS=*` in production.
