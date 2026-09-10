@@ -438,6 +438,60 @@
       "group": "FRA",
       "target": 600,
       "label": "600th FRA finisher ever!"
+    },
+    {
+      "dimension": "distanceCountry",
+      "group": "long distance|NED",
+      "target": 13000,
+      "label": "13,000th NED long distance finisher ever!"
+    },
+    {
+      "dimension": "distanceCountry",
+      "group": "middle distance|NED",
+      "target": 8000,
+      "label": "8,000th NED middle distance finisher ever!"
+    },
+    {
+      "dimension": "distanceCountry",
+      "group": "long distance|GER",
+      "target": 2000,
+      "label": "2,000th GER long distance finisher ever!"
+    },
+    {
+      "dimension": "distanceCountry",
+      "group": "middle distance|GER",
+      "target": 2000,
+      "label": "2,000th GER middle distance finisher ever!"
+    },
+    {
+      "dimension": "distanceCountry",
+      "group": "long distance|BEL",
+      "target": 1750,
+      "label": "1,750th BEL long distance finisher ever!"
+    },
+    {
+      "dimension": "distanceCountry",
+      "group": "middle distance|BEL",
+      "target": 1000,
+      "label": "1,000th BEL middle distance finisher ever!"
+    },
+    {
+      "dimension": "distanceCountry",
+      "group": "long distance|GBR",
+      "target": 900,
+      "label": "900th GBR long distance finisher ever!"
+    },
+    {
+      "dimension": "distanceCountry",
+      "group": "middle distance|GBR",
+      "target": 600,
+      "label": "600th GBR middle distance finisher ever!"
+    },
+    {
+      "dimension": "distanceCountry",
+      "group": "long distance|DEN",
+      "target": 400,
+      "label": "400th DEN long distance finisher ever!"
     }
   ]
 }
