@@ -7,9 +7,7 @@
       },
       "distance": {
         "middle distance": 10988,
-        "Aquabike middle distance": 95,
         "long distance": 19558,
-        "Aquabike long distance": 54,
         "O3": 1040
       },
       "gender": {
@@ -19,12 +17,8 @@
       "distanceGender": {
         "middle distance|Male": 8864,
         "middle distance|Female": 2124,
-        "Aquabike middle distance|Male": 50,
-        "Aquabike middle distance|Female": 45,
         "long distance|Male": 17959,
         "long distance|Female": 1599,
-        "Aquabike long distance|Male": 41,
-        "Aquabike long distance|Female": 13,
         "O3|Male": 825,
         "O3|Female": 215
       },
@@ -249,90 +243,6 @@
     },
     {
       "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 100,
-      "label": "100th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 105,
-      "label": "105th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 110,
-      "label": "110th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 115,
-      "label": "115th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 120,
-      "label": "120th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 125,
-      "label": "125th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 130,
-      "label": "130th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 135,
-      "label": "135th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 140,
-      "label": "140th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 145,
-      "label": "145th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 150,
-      "label": "150th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 155,
-      "label": "155th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 160,
-      "label": "160th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike middle distance",
-      "target": 165,
-      "label": "165th Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
       "group": "long distance",
       "target": 20000,
       "label": "20,000th long distance finisher ever!"
@@ -342,36 +252,6 @@
       "group": "long distance",
       "target": 20500,
       "label": "20,500th long distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike long distance",
-      "target": 55,
-      "label": "55th Aquabike long distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike long distance",
-      "target": 60,
-      "label": "60th Aquabike long distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike long distance",
-      "target": 65,
-      "label": "65th Aquabike long distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike long distance",
-      "target": 70,
-      "label": "70th Aquabike long distance finisher ever!"
-    },
-    {
-      "dimension": "distance",
-      "group": "Aquabike long distance",
-      "target": 75,
-      "label": "75th Aquabike long distance finisher ever!"
     },
     {
       "dimension": "distanceGender",
@@ -405,90 +285,6 @@
     },
     {
       "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Male",
-      "target": 55,
-      "label": "55th male Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Male",
-      "target": 60,
-      "label": "60th male Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Male",
-      "target": 65,
-      "label": "65th male Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Male",
-      "target": 70,
-      "label": "70th male Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Male",
-      "target": 75,
-      "label": "75th male Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Male",
-      "target": 80,
-      "label": "80th male Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Male",
-      "target": 85,
-      "label": "85th male Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Male",
-      "target": 90,
-      "label": "90th male Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Male",
-      "target": 95,
-      "label": "95th male Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Female",
-      "target": 50,
-      "label": "50th female Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Female",
-      "target": 55,
-      "label": "55th female Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Female",
-      "target": 60,
-      "label": "60th female Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Female",
-      "target": 65,
-      "label": "65th female Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike middle distance|Female",
-      "target": 70,
-      "label": "70th female Aquabike middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
       "group": "long distance|Male",
       "target": 18000,
       "label": "18,000th male long distance finisher ever!"
@@ -504,36 +300,6 @@
       "group": "long distance|Female",
       "target": 1750,
       "label": "1,750th female long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike long distance|Male",
-      "target": 45,
-      "label": "45th male Aquabike long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike long distance|Male",
-      "target": 50,
-      "label": "50th male Aquabike long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike long distance|Male",
-      "target": 55,
-      "label": "55th male Aquabike long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike long distance|Male",
-      "target": 60,
-      "label": "60th male Aquabike long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceGender",
-      "group": "Aquabike long distance|Female",
-      "target": 15,
-      "label": "15th female Aquabike long distance finisher ever!"
     },
     {
       "dimension": "country",
