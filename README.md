@@ -81,9 +81,9 @@ which file/year it resolved to and exits — no silent fallback to stale data.
 
 ### Rooms
 
-Clients can join a specific source room (e.g. `TimeFinish`, `TimeR1`) or the global room `everywhere` by passing `roomName` in the connection query. Only a limited whitelist is allowed to prevent arbitrary room creation.
+Clients can join a specific source room (e.g. `TimeFinish`, `TimeR1`) or the global room `everywhere` by passing `roomName` in the connection query. **There is no server-side whitelist** — any `roomName` a client sends is joined as-is (it just won't receive anything if nothing is ever broadcast under that name); it only falls back to `everywhere` when no `roomName` is given at all. Which rooms/filters are actually exposed to end users is a frontend concern (see `index.html`'s filter buttons).
 
-Example rooms:
+Example rooms (whatever `sourceName` values your Mylaps feed actually sends):
 ```
 everywhere
 TimeFinish
@@ -168,7 +168,7 @@ Currently trimming lines are commented out. To limit memory growth, you can enab
 
 1. Do not leave `ALLOWED_ORIGINS=*` in production.
 2. Consider adding an auth token (query param or header) if you need restricted access.
-3. Room whitelist prevents uncontrolled memory usage from arbitrary room creation.
+3. There is no server-side room whitelist (removed by design — see "Rooms" above), so an unauthenticated client can join/create an arbitrary number of distinct rooms. Combined with `ALLOWED_ORIGINS=*`, that's a mild resource-exhaustion surface (many rooms tracked in the Socket.IO adapter) if this server is ever exposed to untrusted traffic — worth keeping in mind if you don't also lock down `ALLOWED_ORIGINS`.
 
 ---
 

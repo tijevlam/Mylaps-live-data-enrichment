@@ -791,7 +791,10 @@ async function main(){
         }
     }
 
-    const allowedRooms = new Set(['everywhere','TimeFinish','TimeR1','TimeES', 'TimeEB']);
+    // Room names are no longer restricted to a server-side whitelist -- any
+    // roomName a client sends is accepted as-is (defaulting to 'everywhere'
+    // only when none is given). Restricting which rooms/filters are exposed
+    // is now a frontend concern (see index.html's filter buttons).
 
     // Finisher counters: derive known distance/gender groups from the bib data
     // and pre-load the atomic dedup+increment Lua script.
@@ -856,9 +859,6 @@ async function main(){
 
         const query = iosocket.handshake.query || {};
         let roomName = (query.roomName || "everywhere").toString();
-        if (!allowedRooms.has(roomName)) {
-            roomName = 'everywhere';
-        }
 
         iosocket.join(roomName);
         console.log(`User joined room: ${roomName}`);
@@ -934,12 +934,6 @@ async function main(){
 
         iosocket.on('change room', async (newRoom) => {
             console.log(`User wants to change from ${iosocket.currentRoom} to ${newRoom}`);
-
-            // Valideer de nieuwe room
-            if (!allowedRooms.has(newRoom)) {
-                console.log(`Room ${newRoom} not allowed, staying in current room`);
-                return;
-            }
 
             // Leave huidige room
             if (iosocket.currentRoom) {
@@ -1015,10 +1009,6 @@ async function main(){
         const query = iosocket.handshake.query || {};
         let roomName = (query.roomName || "everywhere").toString();
 
-        if (!allowedRooms.has(roomName)) {
-            roomName = 'everywhere';
-        }
-
         iosocket.join(roomName);
         console.log(`User joined room: ${roomName}`);
         iosocket.currentRoom = roomName;
@@ -1093,11 +1083,6 @@ async function main(){
 
         iosocket.on('change room', async (newRoom) => {
             console.log(`User wants to change from ${iosocket.currentRoom} to ${newRoom}`);
-
-            if (!allowedRooms.has(newRoom)) {
-                console.log(`Room ${newRoom} not allowed, staying in current room`);
-                return;
-            }
 
             if (iosocket.currentRoom) {
                 iosocket.leave(iosocket.currentRoom);
