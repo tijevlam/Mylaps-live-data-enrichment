@@ -92,6 +92,75 @@
                     <i class="fas fa-mars"></i>
                 </button>
             </li>
+            <!-- Additional timing-point rooms from the mats' full location list. Kept
+                 alongside the checkpoints above rather than replacing any of them, since a
+                 rename/removal there would need explicit confirmation from whoever owns the
+                 timing server's location config. -->
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterCheckIn" title="Check-In" style="background: none; border:none;">
+                    CI
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterSwimStart" title="Swim Start" style="background: none; border:none;">
+                    SS
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterSwimFinRunStart" title="Swim Finish / Run Start (T1)" style="background: none; border:none;">
+                    T1
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterBikeStart" title="Bike Start" style="background: none; border:none;">
+                    BS
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterBikeSplit1" title="Bike Split 1" style="background: none; border:none;">
+                    B1
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterBikeSplit2" title="Bike Split 2" style="background: none; border:none;">
+                    B2
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterBikeSplit3" title="Bike Split 3" style="background: none; border:none;">
+                    B3
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterBikeSplit4" title="Bike Split 4" style="background: none; border:none;">
+                    B4
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterRunSplit1" title="Run Split 1" style="background: none; border:none;">
+                    R1
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterRunSplit2" title="Run Split 2" style="background: none; border:none;">
+                    R2
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterRunSplit3" title="Run Split 3" style="background: none; border:none;">
+                    R3
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterRunSplit4" title="Run Split 4" style="background: none; border:none;">
+                    R4
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterRunSplit5" title="Run Split 5" style="background: none; border:none;">
+                    R5
+                </button>
+            </li>
         </ul>
     </div>
 </nav>
@@ -2183,6 +2252,72 @@
         document.getElementById('filterEliteMale').addEventListener('click', function () {
             table.setFilter('sourceName', '=', 'EliteMale');
             socket.emit('change room', 'EliteMale');
+        });
+
+        // Additional timing-point rooms from the mats' full location list.
+        document.getElementById('filterCheckIn').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'CheckIn');
+            socket.emit('change room', 'CheckIn');
+        });
+
+        document.getElementById('filterSwimStart').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'SwimStart');
+            socket.emit('change room', 'SwimStart');
+        });
+
+        document.getElementById('filterSwimFinRunStart').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'SwimFinRunStart');
+            socket.emit('change room', 'SwimFinRunStart');
+        });
+
+        document.getElementById('filterBikeStart').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'BikeStart');
+            socket.emit('change room', 'BikeStart');
+        });
+
+        document.getElementById('filterBikeSplit1').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'BikeSplit1');
+            socket.emit('change room', 'BikeSplit1');
+        });
+
+        document.getElementById('filterBikeSplit2').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'BikeSplit2');
+            socket.emit('change room', 'BikeSplit2');
+        });
+
+        document.getElementById('filterBikeSplit3').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'BikeSplit3');
+            socket.emit('change room', 'BikeSplit3');
+        });
+
+        document.getElementById('filterBikeSplit4').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'BikeSplit4');
+            socket.emit('change room', 'BikeSplit4');
+        });
+
+        document.getElementById('filterRunSplit1').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'RunSplit1');
+            socket.emit('change room', 'RunSplit1');
+        });
+
+        document.getElementById('filterRunSplit2').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'RunSplit2');
+            socket.emit('change room', 'RunSplit2');
+        });
+
+        document.getElementById('filterRunSplit3').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'RunSplit3');
+            socket.emit('change room', 'RunSplit3');
+        });
+
+        document.getElementById('filterRunSplit4').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'RunSplit4');
+            socket.emit('change room', 'RunSplit4');
+        });
+
+        document.getElementById('filterRunSplit5').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'RunSplit5');
+            socket.emit('change room', 'RunSplit5');
         });
     }
 
