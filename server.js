@@ -613,7 +613,7 @@ const FINISHER_COUNTER_DIMENSIONS = [
 const COUNTER_EVENTS = [
     {
         name: 'finish',
-        sourceName: process.env.FINISH_SOURCE_NAME || 'TimeFinish',
+        sourceName: process.env.FINISH_SOURCE_NAME || 'Finish',
         dedupeSetKey: 'cnt:finish:seen',
         dimensions: FINISHER_COUNTER_DIMENSIONS,
     },
