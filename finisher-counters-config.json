@@ -149,199 +149,199 @@
       "dimension": "overall",
       "group": "_all",
       "target": 32000,
-      "label": "32,000th finisher ever!"
+      "label": "32000th finisher ever!"
     },
     {
       "dimension": "overall",
       "group": "_all",
       "target": 32500,
-      "label": "32,500th finisher ever!"
+      "label": "32500th finisher ever!"
     },
     {
       "dimension": "overall",
       "group": "_all",
       "target": 33000,
-      "label": "33,000th finisher ever!"
+      "label": "33000th finisher ever!"
     },
     {
       "dimension": "overall",
       "group": "_all",
       "target": 33500,
-      "label": "33,500th finisher ever!"
+      "label": "33500th finisher ever!"
     },
     {
       "dimension": "overall",
       "group": "_all",
       "target": 34000,
-      "label": "34,000th finisher ever!"
+      "label": "34000th finisher ever!"
     },
     {
       "dimension": "gender",
       "group": "Male",
       "target": 28000,
-      "label": "28,000th male finisher ever!"
+      "label": "28000th male finisher ever!"
     },
     {
       "dimension": "gender",
       "group": "Male",
       "target": 28500,
-      "label": "28,500th male finisher ever!"
+      "label": "28500th male finisher ever!"
     },
     {
       "dimension": "gender",
       "group": "Male",
       "target": 29000,
-      "label": "29,000th male finisher ever!"
+      "label": "29000th male finisher ever!"
     },
     {
       "dimension": "gender",
       "group": "Male",
       "target": 29500,
-      "label": "29,500th male finisher ever!"
+      "label": "29500th male finisher ever!"
     },
     {
       "dimension": "gender",
       "group": "Female",
       "target": 4000,
-      "label": "4,000th female finisher ever!"
+      "label": "4000th female finisher ever!"
     },
     {
       "dimension": "gender",
       "group": "Female",
       "target": 4250,
-      "label": "4,250th female finisher ever!"
+      "label": "4250th female finisher ever!"
     },
     {
       "dimension": "gender",
       "group": "Female",
       "target": 4500,
-      "label": "4,500th female finisher ever!"
+      "label": "4500th female finisher ever!"
     },
     {
       "dimension": "distance",
       "group": "middle distance",
       "target": 11000,
-      "label": "11,000th middle distance finisher ever!"
+      "label": "11000th middle distance finisher ever!"
     },
     {
       "dimension": "distance",
       "group": "middle distance",
       "target": 11500,
-      "label": "11,500th middle distance finisher ever!"
+      "label": "11500th middle distance finisher ever!"
     },
     {
       "dimension": "distance",
       "group": "middle distance",
       "target": 12000,
-      "label": "12,000th middle distance finisher ever!"
+      "label": "12000th middle distance finisher ever!"
     },
     {
       "dimension": "distance",
       "group": "middle distance",
       "target": 12500,
-      "label": "12,500th middle distance finisher ever!"
+      "label": "12500th middle distance finisher ever!"
     },
     {
       "dimension": "distance",
       "group": "long distance",
       "target": 20000,
-      "label": "20,000th long distance finisher ever!"
+      "label": "20000th long distance finisher ever!"
     },
     {
       "dimension": "distance",
       "group": "long distance",
       "target": 20500,
-      "label": "20,500th long distance finisher ever!"
+      "label": "20500th long distance finisher ever!"
     },
     {
       "dimension": "distanceGender",
       "group": "middle distance|Male",
       "target": 9000,
-      "label": "9,000th male middle distance finisher ever!"
+      "label": "9000th male middle distance finisher ever!"
     },
     {
       "dimension": "distanceGender",
       "group": "middle distance|Male",
       "target": 9500,
-      "label": "9,500th male middle distance finisher ever!"
+      "label": "9500th male middle distance finisher ever!"
     },
     {
       "dimension": "distanceGender",
       "group": "middle distance|Male",
       "target": 10000,
-      "label": "10,000th male middle distance finisher ever!"
+      "label": "10000th male middle distance finisher ever!"
     },
     {
       "dimension": "distanceGender",
       "group": "middle distance|Female",
       "target": 2250,
-      "label": "2,250th female middle distance finisher ever!"
+      "label": "2250th female middle distance finisher ever!"
     },
     {
       "dimension": "distanceGender",
       "group": "middle distance|Female",
       "target": 2500,
-      "label": "2,500th female middle distance finisher ever!"
+      "label": "2500th female middle distance finisher ever!"
     },
     {
       "dimension": "distanceGender",
       "group": "long distance|Male",
       "target": 18000,
-      "label": "18,000th male long distance finisher ever!"
+      "label": "18000th male long distance finisher ever!"
     },
     {
       "dimension": "distanceGender",
       "group": "long distance|Male",
       "target": 18500,
-      "label": "18,500th male long distance finisher ever!"
+      "label": "18500th male long distance finisher ever!"
     },
     {
       "dimension": "distanceGender",
       "group": "long distance|Female",
       "target": 1750,
-      "label": "1,750th female long distance finisher ever!"
+      "label": "1750th female long distance finisher ever!"
     },
     {
       "dimension": "country",
       "group": "NED",
       "target": 20500,
-      "label": "20,500th NED finisher ever!"
+      "label": "20500th NED finisher ever!"
     },
     {
       "dimension": "country",
       "group": "NED",
       "target": 21000,
-      "label": "21,000th NED finisher ever!"
+      "label": "21000th NED finisher ever!"
     },
     {
       "dimension": "country",
       "group": "GER",
       "target": 3750,
-      "label": "3,750th GER finisher ever!"
+      "label": "3750th GER finisher ever!"
     },
     {
       "dimension": "country",
       "group": "GER",
       "target": 4000,
-      "label": "4,000th GER finisher ever!"
+      "label": "4000th GER finisher ever!"
     },
     {
       "dimension": "country",
       "group": "GER",
       "target": 4250,
-      "label": "4,250th GER finisher ever!"
+      "label": "4250th GER finisher ever!"
     },
     {
       "dimension": "country",
       "group": "BEL",
       "target": 2750,
-      "label": "2,750th BEL finisher ever!"
+      "label": "2750th BEL finisher ever!"
     },
     {
       "dimension": "country",
       "group": "GBR",
       "target": 1500,
-      "label": "1,500th GBR finisher ever!"
+      "label": "1500th GBR finisher ever!"
     },
     {
       "dimension": "country",
@@ -374,214 +374,40 @@
       "label": "150th SUI finisher ever!"
     },
     {
-      "dimension": "country",
-      "group": "AUT",
-      "target": 75,
-      "label": "75th AUT finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "AUT",
-      "target": 80,
-      "label": "80th AUT finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "AUT",
-      "target": 85,
-      "label": "85th AUT finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "AUS",
-      "target": 70,
-      "label": "70th AUS finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "POR",
-      "target": 65,
-      "label": "65th POR finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "POR",
-      "target": 70,
-      "label": "70th POR finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "ISR",
-      "target": 50,
-      "label": "50th ISR finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "ISR",
-      "target": 55,
-      "label": "55th ISR finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "BRA",
-      "target": 50,
-      "label": "50th BRA finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "HUN",
-      "target": 40,
-      "label": "40th HUN finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "LUX",
-      "target": 35,
-      "label": "35th LUX finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "LUX",
-      "target": 40,
-      "label": "40th LUX finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "LUX",
-      "target": 45,
-      "label": "45th LUX finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "LUX",
-      "target": 50,
-      "label": "50th LUX finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "CAN",
-      "target": 35,
-      "label": "35th CAN finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "SVK",
-      "target": 30,
-      "label": "30th SVK finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "UKR",
-      "target": 30,
-      "label": "30th UKR finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "GRE",
-      "target": 25,
-      "label": "25th GRE finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "CRO",
-      "target": 17.5,
-      "label": "17.5th CRO finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "JPN",
-      "target": 15,
-      "label": "15th JPN finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "TUR",
-      "target": 12.5,
-      "label": "12.5th TUR finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "TUR",
-      "target": 15,
-      "label": "15th TUR finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "EST",
-      "target": 12.5,
-      "label": "12.5th EST finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "EST",
-      "target": 15,
-      "label": "15th EST finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "UAE",
-      "target": 5,
-      "label": "5th UAE finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "HKG",
-      "target": 5,
-      "label": "5th HKG finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "LIE",
-      "target": 5,
-      "label": "5th LIE finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "KAZ",
-      "target": 5,
-      "label": "5th KAZ finisher ever!"
-    },
-    {
-      "dimension": "country",
-      "group": "MDA",
-      "target": 2.5,
-      "label": "2.5th MDA finisher ever!"
-    },
-    {
       "dimension": "distanceCountry",
       "group": "long distance|NED",
       "target": 13000,
-      "label": "13,000th NED long distance finisher ever!"
+      "label": "13000th NED long distance finisher ever!"
     },
     {
       "dimension": "distanceCountry",
       "group": "middle distance|NED",
       "target": 7500,
-      "label": "7,500th NED middle distance finisher ever!"
+      "label": "7500th NED middle distance finisher ever!"
     },
     {
       "dimension": "distanceCountry",
       "group": "middle distance|NED",
       "target": 8000,
-      "label": "8,000th NED middle distance finisher ever!"
+      "label": "8000th NED middle distance finisher ever!"
     },
     {
       "dimension": "distanceCountry",
       "group": "long distance|GER",
       "target": 2000,
-      "label": "2,000th GER long distance finisher ever!"
+      "label": "2000th GER long distance finisher ever!"
     },
     {
       "dimension": "distanceCountry",
       "group": "middle distance|GER",
       "target": 2000,
-      "label": "2,000th GER middle distance finisher ever!"
+      "label": "2000th GER middle distance finisher ever!"
     },
     {
       "dimension": "distanceCountry",
       "group": "long distance|BEL",
       "target": 1750,
-      "label": "1,750th BEL long distance finisher ever!"
+      "label": "1750th BEL long distance finisher ever!"
     },
     {
       "dimension": "distanceCountry",
@@ -593,13 +419,13 @@
       "dimension": "distanceCountry",
       "group": "middle distance|BEL",
       "target": 1000,
-      "label": "1,000th BEL middle distance finisher ever!"
+      "label": "1000th BEL middle distance finisher ever!"
     },
     {
       "dimension": "distanceCountry",
       "group": "middle distance|BEL",
       "target": 1050,
-      "label": "1,050th BEL middle distance finisher ever!"
+      "label": "1050th BEL middle distance finisher ever!"
     },
     {
       "dimension": "distanceCountry",
@@ -651,345 +477,9 @@
     },
     {
       "dimension": "distanceCountry",
-      "group": "long distance|SWE",
-      "target": 95,
-      "label": "95th SWE long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|CZE",
-      "target": 95,
-      "label": "95th CZE long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
       "group": "long distance|CZE",
       "target": 100,
       "label": "100th CZE long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|NOR",
-      "target": 85,
-      "label": "85th NOR long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|ITA",
-      "target": 80,
-      "label": "80th ITA middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|ITA",
-      "target": 85,
-      "label": "85th ITA middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|ESP",
-      "target": 80,
-      "label": "80th ESP middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|SUI",
-      "target": 75,
-      "label": "75th SUI long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|SUI",
-      "target": 80,
-      "label": "80th SUI long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|SUI",
-      "target": 85,
-      "label": "85th SUI long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|USA",
-      "target": 75,
-      "label": "75th USA long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|IRL",
-      "target": 75,
-      "label": "75th IRL long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|POL",
-      "target": 70,
-      "label": "70th POL long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|ITA",
-      "target": 60,
-      "label": "60th ITA long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|ITA",
-      "target": 65,
-      "label": "65th ITA long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|SUI",
-      "target": 50,
-      "label": "50th SUI middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|SUI",
-      "target": 55,
-      "label": "55th SUI middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|SUI",
-      "target": 60,
-      "label": "60th SUI middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|SUI",
-      "target": 65,
-      "label": "65th SUI middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|SUI",
-      "target": 70,
-      "label": "70th SUI middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|POR",
-      "target": 50,
-      "label": "50th POR long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|IRL",
-      "target": 45,
-      "label": "45th IRL middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|IRL",
-      "target": 50,
-      "label": "50th IRL middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|FIN",
-      "target": 45,
-      "label": "45th FIN middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|AUT",
-      "target": 45,
-      "label": "45th AUT long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|BRA",
-      "target": 40,
-      "label": "40th BRA middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|AUT",
-      "target": 35,
-      "label": "35th AUT middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|AUT",
-      "target": 40,
-      "label": "40th AUT middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|null",
-      "target": 35,
-      "label": "35th null middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|null",
-      "target": 40,
-      "label": "40th null middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|null",
-      "target": 45,
-      "label": "45th null middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|null",
-      "target": 50,
-      "label": "50th null middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|SWE",
-      "target": 30,
-      "label": "30th SWE middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|SWE",
-      "target": 35,
-      "label": "35th SWE middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|SWE",
-      "target": 40,
-      "label": "40th SWE middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|ISR",
-      "target": 30,
-      "label": "30th ISR long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|ISR",
-      "target": 35,
-      "label": "35th ISR long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|HUN",
-      "target": 25,
-      "label": "25th HUN long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|CZE",
-      "target": 25,
-      "label": "25th CZE middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|GRE",
-      "target": 20,
-      "label": "20th GRE long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|ISR",
-      "target": 20,
-      "label": "20th ISR middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|LUX",
-      "target": 20,
-      "label": "20th LUX long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|LUX",
-      "target": 22.5,
-      "label": "22.5th LUX long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|LUX",
-      "target": 25,
-      "label": "25th LUX long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|POR",
-      "target": 20,
-      "label": "20th POR middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|LUX",
-      "target": 17.5,
-      "label": "17.5th LUX middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|LUX",
-      "target": 20,
-      "label": "20th LUX middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|LUX",
-      "target": 22.5,
-      "label": "22.5th LUX middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|LUX",
-      "target": 25,
-      "label": "25th LUX middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|CRO",
-      "target": 15,
-      "label": "15th CRO long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|null",
-      "target": 15,
-      "label": "15th null long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|EST",
-      "target": 10,
-      "label": "10th EST long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|TUR",
-      "target": 10,
-      "label": "10th TUR middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "middle distance|UKR",
-      "target": 10,
-      "label": "10th UKR middle distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|SVK",
-      "target": 10,
-      "label": "10th SVK long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|KAZ",
-      "target": 2.5,
-      "label": "2.5th KAZ long distance finisher ever!"
-    },
-    {
-      "dimension": "distanceCountry",
-      "group": "long distance|MDA",
-      "target": 2.5,
-      "label": "2.5th MDA long distance finisher ever!"
     }
   ]
 }
