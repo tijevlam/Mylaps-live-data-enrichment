@@ -185,6 +185,20 @@ function bufferToString(buffer) {
     return buffer.toString(); // Assuming UTF-8 encoding
 }
 
+// ---------------- Elite gender rooms ----------------
+// Two extra rooms, cutting across every timing point (not tied to a single
+// sourceName like the mat-based rooms): every passing of an elite female
+// athlete broadcasts to ELITE_FEMALE_ROOM, every elite male passing to
+// ELITE_MALE_ROOM, regardless of which mat it came from. "Elite" is read
+// from the bib data's Cat field (e.g. "Elite Men" / "Elite Women").
+const ELITE_FEMALE_ROOM = process.env.ELITE_FEMALE_ROOM || 'EliteFemale';
+const ELITE_MALE_ROOM = process.env.ELITE_MALE_ROOM || 'EliteMale';
+
+function isElite(record) {
+    return Boolean(record.Cat && /elite/i.test(record.Cat));
+}
+// -----------------------------------------------------------------
+
 function handleAckPing(socket, message) {
     // Extract the version and parameters from the parsed message
     const version = message.data.version;
@@ -1168,6 +1182,33 @@ async function main(){
             io.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
             httpsio.to(parsedMessage.sourceName).to("everywhere").emit('new message', parsedMessage);
             persistInBackground(storeMessageInRedis(parsedMessage), 'storeMessage');
+
+            // Elite gender rooms: re-broadcast just the elite-female /
+            // elite-male records from this batch (regardless of which mat
+            // they're from) to their own dedicated room. Only targets that
+            // room specifically -- not "everywhere" -- so clients already on
+            // "everywhere" don't see these records twice.
+            if (Array.isArray(parsedMessage.data)) {
+                const eliteFemaleRecords = [];
+                const eliteMaleRecords = [];
+                for (const record of parsedMessage.data) {
+                    if (!isElite(record)) continue;
+                    if (record.gender === 'Female') eliteFemaleRecords.push(record);
+                    else if (record.gender === 'Male') eliteMaleRecords.push(record);
+                }
+                if (eliteFemaleRecords.length > 0) {
+                    const eliteFemaleMessage = { ...parsedMessage, sourceName: ELITE_FEMALE_ROOM, data: eliteFemaleRecords };
+                    io.to(ELITE_FEMALE_ROOM).emit('new message', eliteFemaleMessage);
+                    httpsio.to(ELITE_FEMALE_ROOM).emit('new message', eliteFemaleMessage);
+                    persistInBackground(storeMessageInRedis(eliteFemaleMessage), 'storeMessage:eliteFemale');
+                }
+                if (eliteMaleRecords.length > 0) {
+                    const eliteMaleMessage = { ...parsedMessage, sourceName: ELITE_MALE_ROOM, data: eliteMaleRecords };
+                    io.to(ELITE_MALE_ROOM).emit('new message', eliteMaleMessage);
+                    httpsio.to(ELITE_MALE_ROOM).emit('new message', eliteMaleMessage);
+                    persistInBackground(storeMessageInRedis(eliteMaleMessage), 'storeMessage:eliteMale');
+                }
+            }
 
             const counterEvent = COUNTER_EVENTS.find(ev => ev.sourceName === parsedMessage.sourceName);
             if (counterEvent && Array.isArray(parsedMessage.data)) {

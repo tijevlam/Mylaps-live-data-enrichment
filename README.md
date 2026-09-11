@@ -49,6 +49,7 @@ https://challengealmere.s3.eu-west-1.amazonaws.com
 | `FINISHER_COUNTERS_CONFIG` | Path to the finisher counters config file | `finisher-counters-config.json` |
 | `YEAR` | Race year — selects `bibs<YEAR>_enhanced.json` as the bib data file. Same thing as `--year=<year>` on the command line; the CLI flag wins if both are given. | current calendar year |
 | `BIBS_FILE` | Overrides the bib data file path entirely, if it doesn't follow the `bibs<year>_enhanced.json` naming convention | `bibs<YEAR>_enhanced.json` |
+| `ELITE_FEMALE_ROOM` / `ELITE_MALE_ROOM` | Room names for the elite-gender broadcast (see "Elite gender rooms" below) | `EliteFemale` / `EliteMale` |
 
 ### Choosing the race year / bib file
 
@@ -89,6 +90,22 @@ everywhere
 TimeFinish
 TimeR1
 ```
+
+#### Elite gender rooms
+
+Two extra rooms cut across every mat instead of following one `sourceName`:
+`EliteFemale` and `EliteMale` (override the names with the `ELITE_FEMALE_ROOM`
+/ `ELITE_MALE_ROOM` env vars). Every `Passing` record whose bib data has an
+elite `Cat` (matches `/elite/i`, e.g. `"Elite Men"` / `"Elite Women"`) is
+re-broadcast to the matching room — regardless of which timing point it came
+from — as its own `new message` event containing just that record (or those
+records, if a batch has more than one). These aren't a subset of the mat
+rooms: a client on `everywhere` still gets the original, unfiltered message
+exactly once; the elite rooms are an entirely separate, parallel broadcast
+so nothing is duplicated for clients who are on both. Like every other room,
+history replay on connect (`initial data`) works automatically since these
+are persisted under `z:messages:source:EliteFemale` / `EliteMale` the same
+way any other room's messages are.
 
 ### Optional Query Filters
 
