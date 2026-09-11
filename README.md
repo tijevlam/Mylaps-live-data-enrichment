@@ -45,10 +45,11 @@ https://challengealmere.s3.eu-west-1.amazonaws.com
 | `ALLOWED_ORIGINS` | Comma-separated list of allowed origins or `*` | (internal default list) |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web Push keys (see "Push Notifications" below) | (none — push disabled) |
 | `VAPID_SUBJECT` | `mailto:` contact address required by the push protocol | `mailto:admin@example.com` |
-| `FINISH_SOURCE_NAME` | Which `sourceName` counts as "finish" for finisher counters | `TimeFinish` |
+| `FINISH_SOURCE_NAME` | Which `sourceName` counts as "finish" for finisher counters | `Finish` |
 | `FINISHER_COUNTERS_CONFIG` | Path to the finisher counters config file | `finisher-counters-config.json` |
 | `YEAR` | Race year — selects `bibs<YEAR>_enhanced.json` as the bib data file. Same thing as `--year=<year>` on the command line; the CLI flag wins if both are given. | current calendar year |
 | `BIBS_FILE` | Overrides the bib data file path entirely, if it doesn't follow the `bibs<year>_enhanced.json` naming convention | `bibs<YEAR>_enhanced.json` |
+| `ELITE_FEMALE_ROOM` / `ELITE_MALE_ROOM` | Room names for the elite-gender broadcast (see "Elite gender rooms" below) | `EliteFemale` / `EliteMale` |
 
 ### Choosing the race year / bib file
 
@@ -89,6 +90,95 @@ everywhere
 TimeFinish
 TimeR1
 ```
+
+#### Elite gender rooms
+
+Two extra rooms cut across every mat instead of following one `sourceName`:
+`EliteFemale` and `EliteMale` (override the names with the `ELITE_FEMALE_ROOM`
+/ `ELITE_MALE_ROOM` env vars). Every `Passing` record whose bib data has an
+elite `Cat` (matches `/elite/i`, e.g. `"Elite Men"` / `"Elite Women"`) is
+re-broadcast to the matching room — regardless of which timing point it came
+from — as its own `new message` event containing just that record (or those
+records, if a batch has more than one). These aren't a subset of the mat
+rooms: a client on `everywhere` still gets the original, unfiltered message
+exactly once; the elite rooms are an entirely separate, parallel broadcast
+so nothing is duplicated for clients who are on both. Like every other room,
+history replay on connect (`initial data`) works automatically since these
+are persisted under `z:messages:source:EliteFemale` / `EliteMale` the same
+way any other room's messages are.
+
+**Connecting a frontend to it is exactly the same pattern as any other
+room** — join with `roomName` in the connection query, listen for
+`initial data` (history replay) and `new message` (live updates):
+
+```html
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  const socketEliteF = io('https://YOUR_DEPLOYMENT_HOST', {
+    query: { roomName: 'EliteFemale' }
+  });
+  const socketEliteM = io('https://YOUR_DEPLOYMENT_HOST', {
+    query: { roomName: 'EliteMale' }
+  });
+
+  socketEliteF.on('initial data', (messages) => {
+    console.log('Recent elite female passings:', messages);
+  });
+  socketEliteF.on('new message', (parsedPacket) => {
+    // parsedPacket.data is an array of the elite female record(s)
+    // from this batch — never a mix of male and female
+    console.log('Live elite female passing:', parsedPacket);
+  });
+
+  socketEliteM.on('initial data', (messages) => { /* same shape */ });
+  socketEliteM.on('new message', (parsedPacket) => { /* same shape */ });
+</script>
+```
+
+One join per gender is enough if you only care about one; join both if you
+want a single combined "elite leaderboard" view (in which case keep the two
+`new message` listeners separate rather than trying to share one, since
+that's the only way to know which gender a given update belongs to).
+
+A `new message` payload for the elite rooms looks like this:
+
+```json
+{
+  "sourceName": "EliteFemale",
+  "function": "Passing",
+  "messageNumber": "1",
+  "data": [
+    {
+      "c": "PG78385",
+      "t": "07:41:40.111",
+      "d": "260911",
+      "l": "1",
+      "b": "-1",
+      "n": "PG78385",
+      "bib": "14",
+      "Name": "Vanessa Pereira",
+      "Cat": "Elite Women",
+      "raceType": "long distance",
+      "gender": "Female"
+    }
+  ]
+}
+```
+
+Two things to know before wiring this up:
+
+* **`sourceName` on the wrapper message is the room name itself**
+  (`EliteFemale` / `EliteMale`), not the timing mat the record actually
+  came from. The original mat (`EndSwim`, `BikeFinish`, `RunSplit1`,
+  `Finish`, ...) is **not preserved anywhere on the record** — if your UI
+  needs to show "which checkpoint was this," you cannot get it from the
+  elite-room stream and must also listen on `everywhere` (or the specific
+  mat rooms) and cross-reference by `bib`/`c` (chip).
+* Each `new message` batch on an elite room only ever contains records for
+  that one gender, but a single incoming TCP batch can still produce **two
+  separate `new message` events** (one to `EliteFemale`, one to
+  `EliteMale`) if it happened to contain passings for both — they are not
+  merged into one event.
 
 ### Optional Query Filters
 
@@ -199,7 +289,7 @@ existing `new message` stream. This is purely additive — it does not change
 `initial data`, `new message`, rooms, or anything documented above.
 
 Every bib is counted **once** the first time it crosses the finish mat
-(`sourceName === 'TimeFinish'`, or whatever `FINISH_SOURCE_NAME` is set to).
+(`sourceName === 'Finish'`, or whatever `FINISH_SOURCE_NAME` is set to).
 Duplicate reads (double beeps, retried messages) never increment the counters
 twice — the dedup happens atomically server-side.
 
@@ -366,7 +456,7 @@ same finish).
 |-----------------|---------|
 | `finisher-counters-config.json` | `baseOffsets` (historical carry-over per dimension/group) and `specialFinishes` (milestones to flag). Edited before a new race, requires a server restart to take effect. See `finisher-counters-config.example.json`. |
 | `node reset-finisher-counters.js --yes` | Resets live counters (`cnt:finish:*` in Redis) to 0 ahead of a new race. Does not touch message/marker history. |
-| `FINISH_SOURCE_NAME` (env var) | Which `sourceName` counts as "finish". Defaults to `TimeFinish`. |
+| `FINISH_SOURCE_NAME` (env var) | Which `sourceName` counts as "finish". Defaults to `Finish`. |
 
 ### Data Model (Redis) — finisher counters
 
