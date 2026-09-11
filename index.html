@@ -82,6 +82,16 @@
                     <i class="fas fa-flag-checkered"></i>
                 </button>
             </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterEliteFemale" style="background: none; border:none;">
+                    <i class="fas fa-venus"></i>
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterEliteMale" style="background: none; border:none;">
+                    <i class="fas fa-mars"></i>
+                </button>
+            </li>
         </ul>
     </div>
 </nav>
@@ -2163,6 +2173,16 @@
         document.getElementById('filterFinish').addEventListener('click', function () {
             table.setFilter('sourceName', '=', 'Finish');
             socket.emit('change room', 'Finish');
+        });
+
+        document.getElementById('filterEliteFemale').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'EliteFemale');
+            socket.emit('change room', 'EliteFemale');
+        });
+
+        document.getElementById('filterEliteMale').addEventListener('click', function () {
+            table.setFilter('sourceName', '=', 'EliteMale');
+            socket.emit('change room', 'EliteMale');
         });
     }
 
