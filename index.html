@@ -62,19 +62,12 @@
                     All
                 </button>
             </li>
+            <!-- Elite gender rooms first, then every physical checkpoint in course order
+                 (matching the mats' own location list) - CheckIn, swim, T1, bike (start ->
+                 splits -> finish), run (splits -> stadium entry), finish. -->
             <li class="nav-item me-3 me-lg-0">
-                <button class="nav-link" id="filterT2"  style="background: none; border:none;">
-                    <i class="fas fa-person-biking"></i>
-                </button>
-            </li>
-            <li class="nav-item me-3 me-lg-0">
-                <button class="nav-link" id="filterEnterStadium" style="background: none; border:none;">
-                    <i class="fas fa-arrow-right-to-bracket"></i>
-                </button>
-            </li>
-            <li class="nav-item me-3 me-lg-0">
-                <button class="nav-link" id="filterFinish" style="background: none; border:none;">
-                    <i class="fas fa-flag-checkered"></i>
+                <button class="nav-link" id="filterEliteMale" style="background: none; border:none;">
+                    <i class="fas fa-mars"></i>
                 </button>
             </li>
             <li class="nav-item me-3 me-lg-0">
@@ -82,15 +75,6 @@
                     <i class="fas fa-venus"></i>
                 </button>
             </li>
-            <li class="nav-item me-3 me-lg-0">
-                <button class="nav-link" id="filterEliteMale" style="background: none; border:none;">
-                    <i class="fas fa-mars"></i>
-                </button>
-            </li>
-            <!-- Additional timing-point rooms from the mats' full location list. Kept
-                 alongside the checkpoints above rather than replacing any of them, since a
-                 rename/removal there would need explicit confirmation from whoever owns the
-                 timing server's location config. -->
             <li class="nav-item me-3 me-lg-0">
                 <button class="nav-link" id="filterCheckIn" title="Check-In" style="background: none; border:none;">
                     CI
@@ -132,6 +116,11 @@
                 </button>
             </li>
             <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterT2"  style="background: none; border:none;">
+                    <i class="fas fa-person-biking"></i>
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
                 <button class="nav-link" id="filterRunSplit1" title="Run Split 1" style="background: none; border:none;">
                     R1
                 </button>
@@ -154,6 +143,16 @@
             <li class="nav-item me-3 me-lg-0">
                 <button class="nav-link" id="filterRunSplit5" title="Run Split 5" style="background: none; border:none;">
                     R5
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterEnterStadium" style="background: none; border:none;">
+                    <i class="fas fa-arrow-right-to-bracket"></i>
+                </button>
+            </li>
+            <li class="nav-item me-3 me-lg-0">
+                <button class="nav-link" id="filterFinish" style="background: none; border:none;">
+                    <i class="fas fa-flag-checkered"></i>
                 </button>
             </li>
         </ul>
