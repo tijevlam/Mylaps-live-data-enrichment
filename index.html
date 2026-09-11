@@ -1910,27 +1910,13 @@
         function displayMessage(message) {
             let tableBody = document.querySelector('#message-list tbody');
             let cTime = luxon.DateTime.fromISO(`2025-09-13T${message.t}`);
-            let starttimes = {
-                "ECLDEF": "07:10:00",
-                "ECLDEM": "07:25:00",
-                //"LDP": "07:27:00",
-                "ECLDM": "07:30:00",
-                "ECLDW": "07:30:00",
-                "LDU45M": "07:40:00",
-                "LDU45W": "07:40:00",
-                "LDO45M": "07:45:00",
-                "LDO45W": "07:45:00",
-                "LDP": "07:47:00",
-                "LDA": "07:50:00",
-                "LDR": "07:50:00",
-                "MDM": "09:50:00",
-                "MDW": "09:50:00",
-                "MDA": "09:50:00",
-                "MDR": "09:50:00"
-            };
 
-
-            let startTime = luxon.DateTime.fromISO(`2025-09-13T${message.startTime || starttimes[message.Wave] || "07:10:00"}.000`);
+            // Every matched bib in bibs2026_enhanced.json already carries its own correct
+            // startTime, merged onto the passing record server-side -- so there's no need (and
+            // no accurate way, now that waves are numeric ids like "9" rather than the old
+            // "ECLDEF"-style codes) to guess it from the wave code here. This default only
+            // covers the rare passing whose chip never matched a bib at all.
+            let startTime = luxon.DateTime.fromISO(`2025-09-13T${message.startTime || "07:10:00"}.000`);
 
             function formatTime(seconds) {
                 const hours = Math.floor(seconds / 3600);
@@ -1951,7 +1937,10 @@
                 function: message.function,
                 sourceName: message.sourceName,
                 name: message.Name,
-                wave: message.Wave,
+                // WaveName ("MD All", "LD Elite Women", ...) is the human-readable label;
+                // Wave itself is now mostly just a numeric id ("9"), so prefer WaveName
+                // whenever it's populated and fall back to the raw code otherwise.
+                wave: message.WaveName || message.Wave,
                 cat: message.Cat,
                 catEK: message.CatEK,
                 Wave: message.Wave,
