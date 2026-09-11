@@ -382,6 +382,10 @@ async function storeMessageInRedis(parsedMessage) {
         const messagePayload = {
             ...item,
             sourceName: parsedMessage.sourceName,
+            // Only set for the elite rooms (see the elite re-broadcast above) - the original
+            // mat a passing came from, kept separate from sourceName since that has to be the
+            // elite room's own name for room routing to work.
+            mat: parsedMessage.mat,
             function: parsedMessage.function,
             originalMessageNumber: parsedMessage.messageNumber || '',
             receivedTimestamp: receivedTimestamp.toString()
@@ -1196,14 +1200,18 @@ async function main(){
                     if (record.gender === 'Female') eliteFemaleRecords.push(record);
                     else if (record.gender === 'Male') eliteMaleRecords.push(record);
                 }
+                // `mat` carries the actual timing point this passing came from (sourceName
+                // itself has to become the elite room's own name for room routing/filtering to
+                // keep working) - without it, a client viewing the elite room has no way to
+                // tell which mat/split each row is from.
                 if (eliteFemaleRecords.length > 0) {
-                    const eliteFemaleMessage = { ...parsedMessage, sourceName: ELITE_FEMALE_ROOM, data: eliteFemaleRecords };
+                    const eliteFemaleMessage = { ...parsedMessage, sourceName: ELITE_FEMALE_ROOM, mat: parsedMessage.sourceName, data: eliteFemaleRecords };
                     io.to(ELITE_FEMALE_ROOM).emit('new message', eliteFemaleMessage);
                     httpsio.to(ELITE_FEMALE_ROOM).emit('new message', eliteFemaleMessage);
                     persistInBackground(storeMessageInRedis(eliteFemaleMessage), 'storeMessage:eliteFemale');
                 }
                 if (eliteMaleRecords.length > 0) {
-                    const eliteMaleMessage = { ...parsedMessage, sourceName: ELITE_MALE_ROOM, data: eliteMaleRecords };
+                    const eliteMaleMessage = { ...parsedMessage, sourceName: ELITE_MALE_ROOM, mat: parsedMessage.sourceName, data: eliteMaleRecords };
                     io.to(ELITE_MALE_ROOM).emit('new message', eliteMaleMessage);
                     httpsio.to(ELITE_MALE_ROOM).emit('new message', eliteMaleMessage);
                     persistInBackground(storeMessageInRedis(eliteMaleMessage), 'storeMessage:eliteMale');

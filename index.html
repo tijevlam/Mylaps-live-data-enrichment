@@ -1619,7 +1619,7 @@
                     rowTable.innerHTML = `<tbody class=\"passing ${bgClass}\"> 
                         <tr>
                             <td>
-                                <span class="badge badge-info mt-2 mb-2"> ${data.sourceName}</span>
+                                <span class="badge badge-info mt-2 mb-2"> ${data.mat || data.sourceName}</span>
                                 ${data.laps ? `<span class="badge badge-light mt-2 mb-2">laps: ${data.laps}</span>` : ""}
                             </td>
                             <td><span class="badge ${setRaceTypeBadge(data.raceType)} mt-2 mb-2 me-2"> ${data.raceType} </span></td>
@@ -1935,6 +1935,10 @@
                 chipcode: message.c,
                 function: message.function,
                 sourceName: message.sourceName,
+                // For the elite rooms, sourceName is the room's own name (EliteFemale/
+                // EliteMale), not the mat this passing actually came from - message.mat carries
+                // that original mat; falls back to sourceName everywhere else, unchanged.
+                mat: message.mat || message.sourceName,
                 name: message.Name,
                 // WaveName ("MD All", "LD Elite Women", ...) is the human-readable label;
                 // Wave itself is now mostly just a numeric id ("9"), so prefer WaveName
@@ -2183,6 +2187,7 @@
                 for (const d of message.data) {
                     d['function'] = message.function;
                     d['sourceName'] = message.sourceName;
+                    d['mat'] = message.mat;
                     tableData.push(displayMessage(d));
                 }
                 table.addData(tableData, true);
